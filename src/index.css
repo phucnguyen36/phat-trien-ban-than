@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Neue Haas Grotesk Display", "Neue Haas Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Neue Haas Grotesk Display", "Neue Haas Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Neue Haas Grotesk Display", "Neue Haas Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Theme State Root Definitions */
+:root {
+  --font-primary: "Neue Haas Grotesk Display", "Neue Haas Grotesk", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --theme-bg-app: #000000;
+  --theme-bg-card: #020202;
+  --theme-bg-muted: #050506;
+  --theme-border: #18181b;
+  --theme-text-primary: #f4f4f5;
+  --theme-text-muted: #71717a;
+  --theme-accent: #3b82f6;
+  --theme-accent-rgb: 59, 130, 246;
+}
+
+.light-mode {
+  --theme-bg-app: #f8fafc;
+  --theme-bg-card: #ffffff;
+  --theme-bg-muted: #f1f5f9;
+  --theme-border: #cbd5e1;
+  --theme-text-primary: #0f172a;
+  --theme-text-muted: #475569;
+}
+
+/* Automatic conversion overrides for Light Mode */
+.light-mode .bg-black,
+.light-mode .bg-\[\#000000\] {
+  background-color: var(--theme-bg-app) !important;
+}
+
+.light-mode .bg-\[\#020202\] {
+  background-color: var(--theme-bg-card) !important;
+}
+
+.light-mode .bg-\[\#050506\] {
+  background-color: var(--theme-bg-muted) !important;
+}
+
+/* Translucent Containers Override for pristine light mode glassmorphism */
+.light-mode .bg-\[\#020202\]\/40 {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+}
+.light-mode .bg-\[\#020202\]\/30 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+.light-mode .bg-\[\#020202\]\/80 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+.light-mode .bg-black\/95 {
+  background-color: rgba(248, 250, 252, 0.96) !important;
+}
+.light-mode .bg-black\/60 {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+.light-mode .bg-\[\#050506\]\/60 {
+  background-color: rgba(241, 245, 249, 0.6) !important;
+}
+.light-mode .bg-\[\#050506\]\/30 {
+  background-color: rgba(241, 245, 249, 0.3) !important;
+}
+.light-mode .bg-\[\#050506\]\/50 {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+}
+
+/* Borders Override */
+.light-mode .border-zinc-900,
+.light-mode .border-zinc-950,
+.light-mode .border-zinc-800,
+.light-mode .border-zinc-900\/50,
+.light-mode .border-zinc-900\/80 {
+  border-color: var(--theme-border) !important;
+}
+
+.light-mode .border-zinc-900\/40,
+.light-mode .border-zinc-900\/60,
+.light-mode .border-zinc-900\/30 {
+  border-color: rgba(203, 213, 225, 0.4) !important;
+}
+
+/* High contrast Text override */
+.light-mode .text-zinc-100,
+.light-mode .text-zinc-200,
+.light-mode .text-zinc-300,
+.light-mode .text-zinc-400,
+.light-mode .text-zinc-100\/90 {
+  color: var(--theme-text-primary) !important;
+}
+
+.light-mode .text-zinc-500,
+.light-mode .text-zinc-600 {
+  color: var(--theme-text-muted) !important;
+}
+
+.light-mode .text-zinc-700,
+.light-mode .text-zinc-800 {
+  color: #0f172a !important;
+}
+
+/* Hover behaviors for text and backgrounds */
+.light-mode .hover\:text-zinc-200:hover {
+  color: var(--theme-text-primary) !important;
+}
+.light-mode .hover\:bg-zinc-900\/20:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+.light-mode .hover\:border-zinc-800:hover {
+  border-color: rgba(15, 23, 42, 0.25) !important;
+}
+
+/* Maintain clean high contrast inputs on light layout */
+.light-mode input, 
+.light-mode textarea, 
+.light-mode select {
+  background-color: var(--theme-bg-muted) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border) !important;
+}
+
+.light-mode input:focus, 
+.light-mode textarea:focus, 
+.light-mode select:focus {
+  border-color: var(--theme-accent) !important;
+}
+
+.light-mode ::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Custom dynamic accent color classes */
+.theme-text-accent {
+  color: var(--theme-accent) !important;
+}
+.theme-border-accent {
+  border-color: var(--theme-accent) !important;
+}
+.theme-bg-accent {
+  background-color: var(--theme-accent) !important;
+}
+.theme-bg-accent-dim {
+  background-color: rgba(var(--theme-accent-rgb), 0.08) !important;
+}
+.theme-border-accent-dim {
+  border-color: rgba(var(--theme-accent-rgb), 0.2) !important;
+}
+.theme-glow {
+  box-shadow: 0 0 15px rgba(var(--theme-accent-rgb), 0.15) !important;
+}
+
+/* Base Body settings for high-end luxury dark look */
+*, body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div, a {
+  font-family: var(--font-primary) !important;
+  letter-spacing: -0.035em !important;
+}
+
+body {
+  background-color: var(--theme-bg-app);
+  color: var(--theme-text-primary);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Scrollbar styling for thin, clean architectural feel */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #18181b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #27272a;
+}
+
+/* Custom Animation for passcode gate shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Soft Glow for checked items with beautiful, bright pastel shades */
+.glow-success {
+  box-shadow: 0 0 20px rgba(110, 231, 183, 0.35);
+}
+
+.glow-active {
+  box-shadow: 0 0 20px rgba(125, 211, 252, 0.35);
+}
+
+.glow-amber {
+  box-shadow: 0 0 20px rgba(253, 230, 138, 0.35);
+}
+
+/* Pastel design utility accents */
+.text-pastel-blue { color: #7dd3fc; }
+.text-pastel-green { color: #6ee7b7; }
+.text-pastel-amber { color: #fde68a; }
+.text-pastel-red { color: #fecdd3; }
+.text-pastel-purple { color: #d8b4fe; }
+
+.bg-pastel-blue-dim { background-color: rgba(125, 211, 252, 0.1); }
+.bg-[#050506] .bg-pastel-blue-dim, .bg-[#020202] .bg-pastel-blue-dim { background-color: rgba(125, 211, 252, 0.08); }
+.bg-pastel-green-dim { background-color: rgba(110, 231, 183, 0.1); }
+.bg-pastel-amber-dim { background-color: rgba(253, 230, 138, 0.1); }
+.bg-pastel-red-dim { background-color: rgba(254, 205, 211, 0.1); }
+.bg-pastel-purple-dim { background-color: rgba(216, 180, 254, 0.1); }
+
+.border-pastel-blue { border-color: rgba(125, 211, 252, 0.3); }
+.border-pastel-green { border-color: rgba(110, 231, 183, 0.3); }
+.border-pastel-amber { border-color: rgba(253, 230, 138, 0.3); }
+.border-pastel-red { border-color: rgba(254, 205, 211, 0.3); }
+.border-pastel-purple { border-color: rgba(216, 180, 254, 0.3); }
+
+.glow-pastel-blue { box-shadow: 0 0 20px rgba(125, 211, 252, 0.25); }
+.glow-pastel-green { box-shadow: 0 0 20px rgba(110, 231, 183, 0.25); }
+.glow-pastel-amber { box-shadow: 0 0 20px rgba(253, 230, 138, 0.25); }
+.glow-pastel-red { box-shadow: 0 0 20px rgba(254, 205, 211, 0.25); }
+.glow-pastel-purple { box-shadow: 0 0 20px rgba(216, 180, 254, 0.25); }
+
+/* Animation Utility */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+

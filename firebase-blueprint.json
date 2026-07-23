@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "goals_todo": {
+      "title": "goals_todo",
+      "description": "Tactical Roadmap Goals and To-Dos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique Goal ID" },
+        "text": { "type": "string", "maxLength": 500, "description": "Goal text description" },
+        "timeframe": { "type": "string", "enum": ["daily", "weekly", "monthly"], "description": "Timeframe scope" },
+        "completed": { "type": "boolean", "description": "Completion state" },
+        "createdAt": { "type": "number", "description": "Unix timestamp" }
+      },
+      "required": ["id", "text", "timeframe", "completed", "createdAt"]
+    },
+    "habits_data": {
+      "title": "habits_data",
+      "description": "Self-Mastery Habit logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Habit entry ID" },
+        "monthYear": { "type": "string", "pattern": "^\\d{4}-\\d{2}$", "description": "Target Month and Year YYYY-MM" },
+        "habitName": { "type": "string", "maxLength": 100, "description": "Name of habit (e.g. Meditation)" },
+        "completedDays": { "type": "array", "description": "Completed days of month (1-31)" }
+      },
+      "required": ["id", "monthYear", "habitName", "completedDays"]
+    },
+    "daily_journal": {
+      "title": "daily_journal",
+      "description": "Daily mental journal and energy logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Date format YYYY-MM-DD" },
+        "energy": { "type": "integer", "description": "Energy level index 1 to 5" },
+        "text": { "type": "string", "maxLength": 2000, "description": "Gratitude / brain dump diary text" },
+        "updatedAt": { "type": "number", "description": "Unix timestamp" }
+      },
+      "required": ["id", "energy", "text", "updatedAt"]
+    },
+    "personal_expenses": {
+      "title": "personal_expenses",
+      "description": "Personal Cash Burn-Rate Ledger entries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique transaction ID" },
+        "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Target date YYYY-MM-DD" },
+        "amount": { "type": "number", "description": "Amount spent in currency" },
+        "category": { "type": "string", "enum": ["Eating", "Transport", "Study/Equipment", "Entertainment", "Others"], "description": "Expense category" },
+        "note": { "type": "string", "maxLength": 500, "description": "Expense brief description / note" }
+      },
+      "required": ["id", "date", "amount", "category", "note"]
+    },
+    "quick_scratchpad": {
+      "title": "quick_scratchpad",
+      "description": "Single-document collaborative brain scratchpad",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Document lock ID 'single_doc'" },
+        "text": { "type": "string", "maxLength": 10000, "description": "Raw unformatted notepad content" },
+        "lastUpdated": { "type": "number", "description": "Unix timestamp of keypress" }
+      },
+      "required": ["id", "text", "lastUpdated"]
+    }
+  },
+  "firestore": {
+    "/goals_todo/{goalId}": {
+      "schema": "goals_todo",
+      "description": "All to-dos logged in system"
+    },
+    "/habits_data/{habitId}": {
+      "schema": "habits_data",
+      "description": "Logged habit checklists"
+    },
+    "/daily_journal/{journalId}": {
+      "schema": "daily_journal",
+      "description": "Daily journals indexed by YYYY-MM-DD"
+    },
+    "/personal_expenses/{expenseId}": {
+      "schema": "personal_expenses",
+      "description": "Logged transactions"
+    },
+    "/quick_scratchpad/{padId}": {
+      "schema": "quick_scratchpad",
+      "description": "Notepad content"
+    }
+  }
+}

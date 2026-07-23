@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for zero-trust security
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerifiedUser() {
+      return true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Default catch-all deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Tactical Roadmap & To-Do Hub Collection Rules
+    match /goals_todo/{goalId} {
+      allow read: if isVerifiedUser();
+      allow create: if isVerifiedUser() 
+        && isValidId(goalId)
+        && incoming().id == goalId
+        && incoming().text is string 
+        && incoming().text.size() <= 500
+        && incoming().timeframe in ['daily', 'weekly', 'monthly', 'yearly']
+        && incoming().completed is bool
+        && incoming().createdAt is number;
+      
+      allow update: if isVerifiedUser()
+        && incoming().id == existing().id
+        && incoming().text is string
+        && incoming().text.size() <= 500
+        && incoming().timeframe in ['daily', 'weekly', 'monthly', 'yearly']
+        && incoming().completed is bool
+        && incoming().createdAt == existing().createdAt;
+
+      allow delete: if isVerifiedUser();
+    }
+
+    // 2. Self-Mastery Habit Matrix Collection Rules
+    match /habits_data/{habitId} {
+      allow read: if isVerifiedUser();
+      allow create: if isVerifiedUser()
+        && isValidId(habitId)
+        && incoming().id == habitId
+        && incoming().monthYear is string
+        && incoming().monthYear.matches('^\\d{4}-\\d{2}$')
+        && incoming().habitName is string
+        && incoming().habitName.size() <= 100
+        && incoming().completedDays is list;
+
+      allow update: if isVerifiedUser()
+        && incoming().id == existing().id
+        && incoming().monthYear == existing().monthYear
+        && incoming().habitName is string
+        && incoming().habitName.size() <= 100
+        && incoming().completedDays is list;
+
+      allow delete: if isVerifiedUser();
+    }
+
+    // 3. Daily Journal & Energy Flow Collection Rules
+    match /daily_journal/{journalId} {
+      allow read: if isVerifiedUser();
+      allow create: if isVerifiedUser()
+        && isValidId(journalId)
+        && journalId.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && incoming().id == journalId
+        && incoming().energy is int
+        && incoming().energy >= 1 
+        && incoming().energy <= 5
+        && incoming().text is string
+        && incoming().text.size() <= 2000
+        && incoming().updatedAt is number;
+
+      allow update: if isVerifiedUser()
+        && incoming().id == existing().id
+        && incoming().energy is int
+        && incoming().energy >= 1
+        && incoming().energy <= 5
+        && incoming().text is string
+        && incoming().text.size() <= 2000
+        && incoming().updatedAt is number;
+
+      allow delete: if isVerifiedUser();
+    }
+
+    // 4. Personal Cash Burn-Rate Ledger Collection Rules
+    match /personal_expenses/{expenseId} {
+      allow read: if isVerifiedUser();
+      allow create: if isVerifiedUser()
+        && isValidId(expenseId)
+        && incoming().id == expenseId
+        && incoming().date is string
+        && incoming().date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && incoming().amount is number
+        && incoming().category in ['Eating', 'Transport', 'Study/Equipment', 'Entertainment', 'Others']
+        && incoming().note is string
+        && incoming().note.size() <= 500;
+
+      allow update: if isVerifiedUser()
+        && incoming().id == existing().id
+        && incoming().date is string
+        && incoming().date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && incoming().amount is number
+        && incoming().category in ['Eating', 'Transport', 'Study/Equipment', 'Entertainment', 'Others']
+        && incoming().note is string
+        && incoming().note.size() <= 500;
+
+      allow delete: if isVerifiedUser();
+    }
+
+    // 5. Quick Scratchpad / Brain Dump Collection Rules
+    match /quick_scratchpad/{padId} {
+      allow read: if isVerifiedUser();
+      allow create, update: if isVerifiedUser()
+        && isValidId(padId)
+        && incoming().id == padId
+        && incoming().text is string
+        && incoming().text.size() <= 10000
+        && incoming().lastUpdated is number;
+
+      allow delete: if isVerifiedUser();
+    }
+  }
+}
