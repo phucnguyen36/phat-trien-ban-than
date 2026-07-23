@@ -47,6 +47,8 @@ import Scratchpad from './components/Scratchpad';
 import AEPicker from './components/AEPicker';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CommandPalette from './components/CommandPalette';
+import AdminDashboard from './components/AdminDashboard';
+import { UserAccount } from './userRegistry';
 
 import { 
   Database, 
@@ -55,6 +57,7 @@ import {
   LogOut, 
   RefreshCw, 
   ShieldAlert, 
+  ShieldCheck,
   Info,
   Clock,
   Compass,
@@ -169,8 +172,9 @@ export const THEMES: UITheme[] = [
 ];
 
 export default function App() {
-  // Authentication State
+  // Authentication & Active User State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
 
   // Core Data States
   const [goals, setGoals] = useState<GoalTodo[]>([]);
@@ -767,7 +771,14 @@ export default function App() {
 
   // Auth Gate screen before unlock
   if (!isAuthenticated) {
-    return <AuthGate onAuthenticated={() => setIsAuthenticated(true)} />;
+    return (
+      <AuthGate 
+        onAuthenticated={(user) => {
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+        }} 
+      />
+    );
   }
 
   return (
@@ -866,10 +877,10 @@ export default function App() {
             />
             <div className="hidden sm:flex flex-col">
               <span className="text-xs font-serif text-zinc-200 group-hover:text-zinc-100 transition-colors">
-                {profile.name}
+                {currentUser ? currentUser.name : profile.name}
               </span>
               <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">
-                {profile.role}
+                {currentUser?.role === 'admin' ? 'Master Admin' : profile.role}
               </span>
             </div>
           </button>
@@ -885,8 +896,10 @@ export default function App() {
 
           <button
             onClick={() => {
+              sessionStorage.removeItem('df_os_active_user');
               sessionStorage.removeItem('df_os_unlocked');
-              window.location.reload();
+              setIsAuthenticated(false);
+              setCurrentUser(null);
             }}
             className="p-2 border border-zinc-900 hover:border-zinc-700 text-zinc-500 hover:text-red-400 transition-colors rounded-none"
             title="Sign Out / Lock Screen"
@@ -961,6 +974,7 @@ export default function App() {
               
               <div className="space-y-1.5">
                 {[
+                  ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'License & Users', icon: ShieldCheck }] : []),
                   { id: 'overview', label: 'Executive Overview', sub: 'Command Center & Stats', icon: LayoutDashboard },
                   { id: 'todo-hub', label: 'Tactical Roadmap', sub: 'To-Do & Timeline', icon: CheckSquare },
                   { id: 'habit-matrix', label: 'Habit Matrix', sub: 'Daily Consistency', icon: Activity },
@@ -1020,6 +1034,13 @@ export default function App() {
             ) : (
               <div className="space-y-12">
                 
+                {/* Module Admin: Master Admin Control Portal */}
+                {currentUser?.role === 'admin' && (
+                  <section id="admin-portal" className="scroll-mt-28">
+                    <AdminDashboard onNotice={showNotice} />
+                  </section>
+                )}
+
                 {/* Module 0: Executive Command Center Overview */}
                 <section id="overview" className="scroll-mt-28">
                   <ExecutiveDashboard
