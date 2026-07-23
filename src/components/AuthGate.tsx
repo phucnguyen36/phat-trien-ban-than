@@ -33,7 +33,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
     setErrorMessage('');
 
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Vui lòng nhập đầy đủ Email và Mật khẩu!');
+      setErrorMessage('Please enter both Email and Access Password!');
       return;
     }
 
@@ -45,7 +45,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
         onAuthenticated(res.user!);
       }, 600);
     } else {
-      setErrorMessage(res.message || 'Đăng nhập không thành công!');
+      setErrorMessage(res.message || 'Authentication failed. Please verify credentials.');
     }
   };
 
@@ -89,14 +89,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                 Deep Focus OS
               </h1>
               <p className="text-xs font-sans text-zinc-400">
-                Hệ điều hành phát triển bản thân & Quản trị hiệu suất
+                Executive Personal Growth & Performance System
               </p>
             </div>
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-3 bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2 animate-fadeIn">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <div className="p-3 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs font-mono flex items-center gap-2 animate-fadeIn">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-zinc-400" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -104,14 +104,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
             {/* Login Form */}
             <form onSubmit={handleLogin} className="space-y-4 text-xs font-mono">
               <div className="space-y-1">
-                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Email Đăng Nhập:</label>
+                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">LOGIN EMAIL:</label>
                 <div className="relative">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full bg-[#050506] text-zinc-100 py-3 pl-9 pr-3 border border-zinc-800 focus:outline-none focus:border-blue-500 transition-colors rounded-none"
+                    placeholder="name@domain.com"
+                    className="w-full bg-[#050506] text-zinc-100 py-3 pl-9 pr-3 border border-zinc-800 focus:outline-none focus:border-zinc-500 transition-colors rounded-none"
                     autoFocus
                   />
                   <Mail className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -119,14 +119,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Mật Khẩu Access Key:</label>
+                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">ACCESS KEY PASSWORD:</label>
                 <div className="relative">
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#050506] text-zinc-100 py-3 pl-9 pr-3 border border-zinc-800 focus:outline-none focus:border-blue-500 transition-colors rounded-none"
+                    className="w-full bg-[#050506] text-zinc-100 py-3 pl-9 pr-3 border border-zinc-800 focus:outline-none focus:border-zinc-500 transition-colors rounded-none"
                   />
                   <Key className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
@@ -134,9 +134,9 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-98"
+                className="w-full py-3 bg-zinc-100 hover:bg-white text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 transition-all shadow-none active:scale-98"
               >
-                <span>XÁC NHẬN ĐĂNG NHẬP</span>
+                <span>CONFIRM SYSTEM INGRESS</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -144,13 +144,13 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
             {/* Demo Presets Bar for Easy Testing */}
             <div className="pt-4 border-t border-zinc-900 space-y-2">
               <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block text-center">
-                DÀNH CHO DÙNG THỬ & DEMO QUICK LOGIN
+                DEMO PRESETS & QUICK INGRESS
               </span>
               <div className="flex gap-2 text-[10px] font-mono">
                 <button
                   type="button"
                   onClick={handleFillAdmin}
-                  className="flex-1 py-2 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border border-amber-500/30 transition-colors text-center"
+                  className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 transition-colors text-center"
                 >
                   👑 ADMIN PORTAL
                 </button>
@@ -159,7 +159,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                   onClick={handleFillDemoClient}
                   className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-colors text-center"
                 >
-                  👤 KHÁCH DEMO
+                  👤 DEMO CLIENT
                 </button>
               </div>
             </div>

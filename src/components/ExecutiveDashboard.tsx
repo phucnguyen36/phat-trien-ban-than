@@ -86,10 +86,10 @@ export default function ExecutiveDashboard({
               EXECUTIVE COMMAND CENTER
             </div>
             <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-zinc-100 font-mono uppercase">
-              Cập Nhật Tiến Độ & Năng Lượng
+              Progress & Energy Telemetry
             </h1>
             <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-sans leading-relaxed">
-              Hệ thống phát triển bản thân toàn diện: Quản trị mục tiêu, rèn luyện thói quen và tối ưu hóa hiệu suất mỗi ngày.
+              Integrated Personal Growth System: Task Management, Habit Mastery, and Peak Performance.
             </p>
           </div>
 
@@ -101,7 +101,7 @@ export default function ExecutiveDashboard({
                   <Trophy className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block">Cấp Độ Hiện Tại</span>
+                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block">CURRENT LEVEL</span>
                   <span className="text-base font-bold font-mono text-zinc-100">Level {stats.currentLevel}</span>
                 </div>
               </div>
@@ -130,14 +130,14 @@ export default function ExecutiveDashboard({
             </div>
 
             <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-2 border-t border-zinc-900">
-              <span>Tổng XP: <strong className="text-zinc-200">{stats.totalXP}</strong></span>
-              <span>Danh hiệu: <strong className={activeTheme.text}>{stats.badgesCount} Badges</strong></span>
+              <span>TOTAL XP: <strong className="text-zinc-200">{stats.totalXP}</strong></span>
+              <span>BADGES: <strong className={activeTheme.text}>{stats.badgesCount} Unlocked</strong></span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Grid Quick Stats Cards - Pure Monochrome + Accent Hover */}
+      {/* Grid Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Habit Stat */}
         <div 
@@ -145,17 +145,17 @@ export default function ExecutiveDashboard({
           className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
         >
           <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">THÓI QUÊN HÔM NAY</span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">TODAY'S HABITS</span>
             <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
               <Activity className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-zinc-100">{todayHabitsDoneCount}/{habits.length}</span>
-            <span className={`text-xs font-mono font-semibold ${activeTheme.text}`}>{habitCompletionPercent}% xong</span>
+            <span className={`text-xs font-mono font-semibold ${activeTheme.text}`}>{habitCompletionPercent}% DONE</span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>{stats.activeHabitStreaks} THÓI QUÊN RÈN LUYỆN</span>
+            <span>{stats.activeHabitStreaks} ACTIVE HABIT STREAKS</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
           </p>
         </div>
@@ -166,17 +166,17 @@ export default function ExecutiveDashboard({
           className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
         >
           <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">CÔNG VIỆC & MỤC TIÊU</span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">TASKS & GOALS</span>
             <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
               <CheckSquare className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-zinc-100">{goals.length - pendingGoals.length}/{goals.length}</span>
-            <span className="text-xs font-mono font-semibold text-zinc-400">ĐÃ XONG</span>
+            <span className="text-xs font-mono font-semibold text-zinc-400">COMPLETED</span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>CÒN {pendingGoals.length} MỤC TIÊU TỒN ĐỌNG</span>
+            <span>{pendingGoals.length} PENDING TASKS</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
           </p>
         </div>
@@ -187,18 +187,18 @@ export default function ExecutiveDashboard({
           className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
         >
           <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">TÀI CHÍNH THÁNG NÀY</span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">MONTHLY CASH FLOW</span>
             <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-bold font-mono text-zinc-100">
-              {monthlyTotalSpent.toLocaleString('vi-VN')} ₫
+              ${monthlyTotalSpent.toLocaleString('en-US')}
             </span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>CHI TIÊU THÁNG HIỆN TẠI</span>
+            <span>CURRENT MONTH EXPENSES</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
           </p>
         </div>
@@ -209,17 +209,17 @@ export default function ExecutiveDashboard({
           className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
         >
           <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">NHẬT KÝ & SUY TƯỞNG</span>
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">DAILY JOURNAL & REFLECTION</span>
             <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
               <BookOpen className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-zinc-100">{journals.length}</span>
-            <span className={`text-xs font-mono font-semibold ${activeTheme.text}`}>BÀI ĐÃ GHI</span>
+            <span className={`text-xs font-mono font-semibold ${activeTheme.text}`}>ENTRIES</span>
           </div>
           <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>VIẾT NHẬT KÝ HÔM NAY</span>
+            <span>LOG DAILY JOURNAL TODAY</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
           </p>
         </div>
@@ -232,21 +232,21 @@ export default function ExecutiveDashboard({
           <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
             <div className="flex items-center gap-2">
               <CheckSquare className={`w-4 h-4 ${activeTheme.text}`} />
-              <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">Nhiệm Vụ Cần Xử Lý</h2>
+              <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">Priority Tasks</h2>
             </div>
             <button 
               onClick={() => onNavigate('todo-hub')}
               className={`text-[10px] font-mono uppercase tracking-widest font-semibold ${activeTheme.text} flex items-center gap-1 transition-colors`}
             >
-              Xem tất cả ({goals.length}) <ArrowRight className="w-3 h-3" />
+              View All ({goals.length}) <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
           {pendingGoals.length === 0 ? (
             <div className="text-center py-10 text-zinc-500 space-y-2">
               <CheckCircle2 className={`w-10 h-10 mx-auto opacity-80 ${activeTheme.text}`} />
-              <p className="font-mono text-xs uppercase tracking-wider text-zinc-300">Tuyệt vời! Không có nhiệm vụ tồn đọng.</p>
-              <p className="text-xs text-zinc-600">Tất cả mục tiêu ưu tiên đã được hoàn thành.</p>
+              <p className="font-mono text-xs uppercase tracking-wider text-zinc-300">Outstanding! No pending priority tasks.</p>
+              <p className="text-xs text-zinc-600">All high-priority goals are completed.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -275,7 +275,7 @@ export default function ExecutiveDashboard({
                     onClick={() => onToggleGoal(goal.id, !goal.completed)}
                     className={`text-[9px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-none bg-zinc-900 text-zinc-200 border border-zinc-800 hover:border-zinc-700 transition-all flex-shrink-0 opacity-0 group-hover:opacity-100`}
                   >
-                    Hoàn thành
+                    Mark Done
                   </button>
                 </div>
               ))}
@@ -288,19 +288,19 @@ export default function ExecutiveDashboard({
           <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
             <div className="flex items-center gap-2">
               <Flame className={`w-4 h-4 ${activeTheme.text}`} />
-              <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">Thói Quên Hôm Nay (Ngày {todayDay})</h2>
+              <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">Today's Habits (Day {todayDay})</h2>
             </div>
             <button 
               onClick={() => onNavigate('habits')}
               className={`text-[10px] font-mono uppercase tracking-widest font-semibold ${activeTheme.text} flex items-center gap-1 transition-colors`}
             >
-              Quản lý ({habits.length}) <ArrowRight className="w-3 h-3" />
+              Manage ({habits.length}) <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
           {habits.length === 0 ? (
             <div className="text-center py-10 text-zinc-500">
-              <p className="text-xs font-mono uppercase tracking-wider">Chưa có thói quen nào được tạo.</p>
+              <p className="text-xs font-mono uppercase tracking-wider">No habits created yet.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -329,7 +329,7 @@ export default function ExecutiveDashboard({
                           {habit.habitName}
                         </span>
                         <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">
-                          Đã thực hiện {habit.completedDays ? habit.completedDays.length : 0} ngày
+                          Logged {habit.completedDays ? habit.completedDays.length : 0} days
                         </span>
                       </div>
                     </div>
@@ -341,7 +341,7 @@ export default function ExecutiveDashboard({
                           : 'bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-zinc-700'
                       }`}
                     >
-                      {isDoneToday ? 'Đã xong' : 'Check-in'}
+                      {isDoneToday ? 'Done' : 'Check-in'}
                     </button>
                   </div>
                 );
@@ -351,7 +351,7 @@ export default function ExecutiveDashboard({
         </div>
       </div>
 
-      {/* Quote Banner - Monochrome */}
+      {/* Quote Banner - English */}
       <div className="rounded-none bg-[#050506] p-5 border border-zinc-900 flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
         <div className={`p-2.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text} flex-shrink-0`}>
           <Quote className="w-4 h-4" />

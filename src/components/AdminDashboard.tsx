@@ -38,7 +38,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
   const [newTier, setNewTier] = useState<'Standard' | 'VIP'>('Standard');
-  const [newPrice, setNewPrice] = useState<number>(399000);
+  const [newPrice, setNewPrice] = useState<number>(49);
   const [formError, setFormError] = useState('');
 
   // Load registry
@@ -78,21 +78,21 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
     setFormError('');
 
     if (!newEmail.trim() || !newPassword.trim() || !newName.trim()) {
-      setFormError('Vui lòng điền đầy đủ Email, Mật khẩu và Tên khách hàng!');
+      setFormError('Please enter Email, Password, and Customer Name!');
       return;
     }
 
     const res = createUserAccount(newEmail, newPassword, newName, newTier, newPrice);
     if (!res.success) {
-      setFormError(res.message || 'Lỗi tạo tài khoản!');
+      setFormError(res.message || 'Error creating account!');
       return;
     }
 
     refreshUsers();
     setIsAddModalOpen(false);
     onNotice(
-      "ĐÃ TẠO TÀI KHOẢN KHÁCH HÀNG",
-      `Đã cấp thành công tài khoản cho ${newName} (${newEmail}). Bạn có thể copy thông tin bàn giao ngay bên dưới!`
+      "CUSTOMER ACCOUNT ISSUED",
+      `Successfully generated credentials for ${newName} (${newEmail}). You can copy the delivery message below!`
     );
 
     // Reset Form
@@ -100,19 +100,19 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
     setNewPassword('');
     setNewName('');
     setNewTier('Standard');
-    setNewPrice(399000);
+    setNewPrice(49);
   };
 
   // Copy Delivery Info
   const handleCopyDeliveryInfo = (user: UserAccount) => {
-    const deliveryMsg = `[THÔNG TIN BÀN GIAO DEEP FOCUS OS]\n` +
-      `Xin chào ${user.name},\n` +
-      `Tài khoản bản quyền của bạn đã được kích hoạt thành công!\n` +
-      `- Link Đăng Nhập: ${window.location.origin}\n` +
+    const deliveryMsg = `[DEEP FOCUS OS ACCESS CREDENTIALS]\n` +
+      `Hello ${user.name},\n` +
+      `Your commercial license for Deep Focus OS is now active!\n` +
+      `- Ingress URL: ${window.location.origin}\n` +
       `- Email: ${user.email}\n` +
-      `- Mật khẩu: ${user.password}\n` +
-      `- Gói bản quyền: ${user.tier}\n` +
-      `Chúc bạn có trải nghiệm phát triển bản thân tuyệt vời!`;
+      `- Password: ${user.password}\n` +
+      `- License Tier: ${user.tier}\n` +
+      `Welcome aboard! Elevate your personal growth performance.`;
 
     navigator.clipboard.writeText(deliveryMsg);
     setCopiedId(user.id);
@@ -128,7 +128,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
   // Delete User
   const handleDeleteUser = (user: UserAccount) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa tài khoản khách hàng ${user.name} (${user.email})?`)) {
+    if (window.confirm(`Are you sure you want to revoke and delete customer account ${user.name} (${user.email})?`)) {
       deleteUserAccount(user.id);
       refreshUsers();
     }
@@ -159,10 +159,10 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
               MASTER ADMIN CONTROL PORTAL
             </div>
             <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-zinc-100 font-mono uppercase">
-              Quản Lý Bản Quyền & Khách Hàng
+              License & Customer Management
             </h1>
             <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-sans leading-relaxed">
-              Cấp tài khoản mới, bàn giao thông tin đăng nhập và quản lý danh sách bản quyền kinh doanh sản phẩm.
+              Issue new customer credentials, deliver access details, and manage commercial software licenses.
             </p>
           </div>
 
@@ -175,68 +175,68 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
               className="px-4 py-2.5 bg-zinc-100 hover:bg-white text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all shadow-none active:scale-95 border border-zinc-200"
             >
               <UserPlus className="w-4 h-4" />
-              + CẤP TÀI KHOẢN KHÁCH MỚI
+              + ISSUE CUSTOMER ACCOUNT
             </button>
             <button
               onClick={handleExportRegistry}
               className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all"
             >
               <Download className="w-4 h-4" />
-              XUẤT REGISTRY JSON
+              EXPORT REGISTRY JSON
             </button>
           </div>
         </div>
       </div>
 
-      {/* Overview Business Metrics Cards - Monochrome */}
+      {/* Overview Business Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-[#020202] border border-zinc-900 p-5 space-y-2">
           <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-            <span>TỔNG KHÁCH HÀNG</span>
+            <span>TOTAL CUSTOMERS</span>
             <Users className="w-4 h-4 text-zinc-400" />
           </div>
           <div className="text-2xl font-bold font-mono text-zinc-100">
-            {customerList.length} <span className="text-xs text-zinc-500 font-normal">người dùng</span>
+            {customerList.length} <span className="text-xs text-zinc-500 font-normal">users</span>
           </div>
           <div className="text-[10px] font-mono text-zinc-400">
-            {activeCustomers.length} tài khoản đang hoạt động
+            {activeCustomers.length} active customer licenses
           </div>
         </div>
 
         <div className="bg-[#020202] border border-zinc-900 p-5 space-y-2">
           <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-            <span>TỔNG DOANH THU KINH DOANH</span>
+            <span>TOTAL REVENUE</span>
             <DollarSign className="w-4 h-4 text-zinc-400" />
           </div>
           <div className="text-2xl font-bold font-mono text-zinc-100">
-            {totalRevenue.toLocaleString('vi-VN')} ₫
+            ${totalRevenue.toLocaleString('en-US')}
           </div>
           <div className="text-[10px] font-mono text-zinc-500">
-            Doanh thu tích lũy từ bán bản quyền
+            Accumulated license sales
           </div>
         </div>
 
         <div className="bg-[#020202] border border-zinc-900 p-5 space-y-2">
           <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-            <span>ADMIN TÀI KHOẢN MẶC ĐỊNH</span>
+            <span>DEFAULT ADMIN IDENTITY</span>
             <ShieldCheck className="w-4 h-4 text-zinc-400" />
           </div>
           <div className="text-xs font-mono font-bold text-zinc-200 truncate">
             {DEFAULT_ADMIN.email}
           </div>
           <div className="text-[10px] font-mono text-zinc-500">
-            Quyền quản trị cao nhất hệ thống
+            Master system access rights
           </div>
         </div>
       </div>
 
-      {/* Customer Registry Table - Strict Monochrome */}
+      {/* Customer Registry Table */}
       <div className="bg-[#020202] border border-zinc-900 p-6 space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-900 pb-4">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-zinc-400" />
             <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">
-              Danh Sách Tài Khoản Khách Hàng ({customerList.length})
+              Customer Registry ({customerList.length})
             </h2>
           </div>
 
@@ -246,7 +246,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
               type="text" 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Tìm theo Tên hoặc Email..."
+              placeholder="Search Name or Email..."
               className="w-full pl-9 pr-3 py-1.5 bg-[#050506] border border-zinc-800 text-xs font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 rounded-none"
             />
           </div>
@@ -255,20 +255,20 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
         {filteredCustomers.length === 0 ? (
           <div className="text-center py-12 text-zinc-500 space-y-2 font-mono text-xs">
             <Users className="w-8 h-8 text-zinc-600 mx-auto" />
-            <p>Chưa có tài khoản khách hàng nào khớp với tìm kiếm.</p>
+            <p>No customer accounts match the search query.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono border-collapse">
               <thead>
                 <tr className="border-b border-zinc-800 text-zinc-500 uppercase tracking-widest text-[10px] bg-[#050506]">
-                  <th className="p-3">Khách Hàng / Email</th>
-                  <th className="p-3">Mật Khẩu Cấp</th>
-                  <th className="p-3">Gói Bản Quyền</th>
-                  <th className="p-3">Giá Bán</th>
-                  <th className="p-3">Ngày Cấp</th>
-                  <th className="p-3">Trạng Thái</th>
-                  <th className="p-3 text-right">Thao Tác Bàn Giao</th>
+                  <th className="p-3">Customer / Email</th>
+                  <th className="p-3">Password</th>
+                  <th className="p-3">Tier</th>
+                  <th className="p-3">Price Paid</th>
+                  <th className="p-3">Issue Date</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3 text-right">Delivery Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-900 text-zinc-300">
@@ -289,10 +289,10 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                       </span>
                     </td>
                     <td className="p-3 font-semibold text-zinc-200">
-                      {(cust.pricePaid || 0).toLocaleString('vi-VN')} ₫
+                      ${(cust.pricePaid || 0).toLocaleString('en-US')}
                     </td>
                     <td className="p-3 text-zinc-500 text-[10px]">
-                      {new Date(cust.createdAt).toLocaleDateString('vi-VN')}
+                      {new Date(cust.createdAt).toLocaleDateString('en-US')}
                     </td>
                     <td className="p-3">
                       <span className={`px-2 py-0.5 text-[9px] uppercase tracking-widest border ${
@@ -300,7 +300,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                           ? 'bg-zinc-900 text-zinc-200 border-zinc-700'
                           : 'bg-zinc-950 text-zinc-500 border-zinc-800'
                       }`}>
-                        {cust.status === 'active' ? 'HOẠT ĐỘNG' : 'ĐÃ KHÓA'}
+                        {cust.status === 'active' ? 'ACTIVE' : 'SUSPENDED'}
                       </span>
                     </td>
                     <td className="p-3 text-right">
@@ -309,21 +309,21 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         <button
                           onClick={() => handleCopyDeliveryInfo(cust)}
                           className="px-2 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all"
-                          title="Copy tin nhắn bàn giao thông tin cho khách"
+                          title="Copy delivery message to customer"
                         >
                           {copiedId === cust.id ? (
                             <Check className="w-3 h-3 text-zinc-200" />
                           ) : (
                             <Copy className="w-3 h-3 text-zinc-400" />
                           )}
-                          <span>{copiedId === cust.id ? 'ĐÃ COPY' : 'COPY INFOS'}</span>
+                          <span>{copiedId === cust.id ? 'COPIED' : 'COPY INFOS'}</span>
                         </button>
 
                         {/* Toggle Suspend/Active */}
                         <button
                           onClick={() => handleToggleStatus(cust)}
                           className="p-1.5 border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition-all"
-                          title={cust.status === 'active' ? 'Tạm khóa tài khoản' : 'Mở lại tài khoản'}
+                          title={cust.status === 'active' ? 'Suspend Account' : 'Reactivate Account'}
                         >
                           {cust.status === 'active' ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                         </button>
@@ -332,7 +332,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         <button
                           onClick={() => handleDeleteUser(cust)}
                           className="p-1.5 border border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700 transition-all"
-                          title="Xóa tài khoản khách hàng"
+                          title="Delete Customer Account"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -346,7 +346,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
         )}
       </div>
 
-      {/* Modal Add New Customer Account - Monochrome */}
+      {/* Modal Add New Customer Account */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
           <div className="w-full max-w-md bg-[#020202] border border-zinc-800 p-6 space-y-5">
@@ -354,7 +354,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
               <div className="flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">
-                  Cấp Tài Khoản Khách Hàng Mới
+                  Issue New Customer Account
                 </h3>
               </div>
               <button 
@@ -374,37 +374,37 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
             <form onSubmit={handleCreateAccount} className="space-y-4 text-xs font-mono">
               <div className="space-y-1">
-                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Tên Khách Hàng:</label>
+                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Customer Name:</label>
                 <input 
                   type="text" 
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
-                  placeholder="Ví dụ: Nguyễn Văn A"
+                  placeholder="e.g. Alexander Pierce"
                   className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none"
                   autoFocus
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Email Đăng Nhập:</label>
+                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Login Email:</label>
                 <input 
                   type="email" 
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
-                  placeholder="khachhang@gmail.com"
+                  placeholder="customer@domain.com"
                   className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Mật Khẩu Đăng Nhập:</label>
+                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Generated Password:</label>
                   <button 
                     type="button" 
                     onClick={generatePassword}
                     className="text-[9px] text-zinc-400 hover:text-zinc-200 hover:underline"
                   >
-                    Tự tạo ngẫu nhiên
+                    Randomize
                   </button>
                 </div>
                 <div className="relative">
@@ -412,7 +412,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                     type="text" 
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    placeholder="Mật khẩu"
+                    placeholder="Password"
                     className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 font-mono focus:border-zinc-500 focus:outline-none rounded-none"
                   />
                   <Key className="w-4 h-4 text-zinc-600 absolute right-3 top-1/2 -translate-y-1/2" />
@@ -421,19 +421,19 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Gói Bản Quyền:</label>
+                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">License Tier:</label>
                   <select 
                     value={newTier}
                     onChange={e => setNewTier(e.target.value as 'Standard' | 'VIP')}
                     className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none"
                   >
-                    <option value="Standard">Gói Standard (LMS)</option>
-                    <option value="VIP">Gói VIP (Coaching)</option>
+                    <option value="Standard">Standard ($49 Lifetime)</option>
+                    <option value="VIP">VIP ($149 Coaching)</option>
                   </select>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Giá Thu Khách (VNĐ):</label>
+                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Price Charged ($):</label>
                   <input 
                     type="number" 
                     value={newPrice}
@@ -449,13 +449,13 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   onClick={() => setIsAddModalOpen(false)}
                   className="flex-1 py-2.5 border border-zinc-800 text-zinc-400 hover:text-zinc-200 uppercase tracking-widest text-[10px]"
                 >
-                  HỦY BỎ
+                  CANCEL
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2.5 bg-zinc-100 hover:bg-white text-black font-bold uppercase tracking-widest text-[10px]"
                 >
-                  XÁC NHẬN CẤP TÀI KHOẢN
+                  ISSUE ACCOUNT
                 </button>
               </div>
             </form>

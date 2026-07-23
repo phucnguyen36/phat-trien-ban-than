@@ -63,13 +63,13 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   const NAV_ITEMS = [
-    { id: 'overview', label: 'Tổng Quan (Executive Dashboard)', icon: LayoutDashboard },
-    { id: 'todo-hub', label: 'Mục Tiêu & Công Việc (Todo Hub)', icon: CheckSquare },
-    { id: 'habits', label: 'Rèn Luyện Thói Quên (Habit Tracker)', icon: Activity },
-    { id: 'journal', label: 'Nhật Ký & Suy Tưởng (Daily Journal)', icon: BookOpen },
-    { id: 'expenses', label: 'Quản Lý Tài Chính (Expense Ledger)', icon: DollarSign },
-    { id: 'scratchpad', label: 'Ghi Chú Nhanh (Scratchpad)', icon: FileText },
-    { id: 'ae-picker', label: 'Kiến Trúc Cuộc Sống (AE Picker)', icon: Compass }
+    { id: 'overview', label: 'Executive Overview', icon: LayoutDashboard },
+    { id: 'todo-hub', label: 'Tactical Roadmap (Todo Hub)', icon: CheckSquare },
+    { id: 'habits', label: 'Habit Matrix (Habit Tracker)', icon: Activity },
+    { id: 'journal', label: 'Energy Journal (Daily Journal)', icon: BookOpen },
+    { id: 'expenses', label: 'Cash Flow Ledger (Expense Ledger)', icon: DollarSign },
+    { id: 'scratchpad', label: 'Brain Scratchpad', icon: FileText },
+    { id: 'ae-picker', label: 'Life Architecture (AE Picker)', icon: Compass }
   ];
 
   const filteredNav = NAV_ITEMS.filter(item => 
@@ -85,36 +85,36 @@ export default function CommandPalette({
   ).slice(0, 4);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-start justify-center pt-16 md:pt-24 px-4 animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-start justify-center pt-16 md:pt-24 px-4 animate-fadeIn">
       <div 
-        className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+        className="w-full max-w-2xl bg-[#020202] border border-zinc-800 rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 border-b border-slate-800 bg-slate-900/90">
-          <Search className="w-5 h-5 text-slate-400 mr-3" />
+        <div className="flex items-center px-4 border-b border-zinc-900 bg-[#050506]">
+          <Search className="w-5 h-5 text-zinc-500 mr-3" />
           <input 
             type="text" 
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Gõ để tìm nhanh tính năng, mục tiêu, thói quen... (Ctrl + K)"
-            className="w-full py-4 bg-transparent text-white placeholder-slate-400 focus:outline-none text-sm md:text-base"
+            placeholder="Type to quick search features, goals, habits... (Ctrl + K)"
+            className="w-full py-4 bg-transparent text-white font-mono placeholder-zinc-600 focus:outline-none text-sm md:text-base"
           />
           <button 
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-1 text-zinc-500 hover:text-white rounded-none hover:bg-zinc-900 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search Results / Actions List */}
-        <div className="p-3 overflow-y-auto space-y-4 text-slate-300 text-sm">
+        <div className="p-3 overflow-y-auto space-y-4 text-zinc-300 text-sm font-mono">
           {/* Navigation Section */}
           <div>
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1 block">
-              Điều Hướng Nhanh
+            <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+              QUICK NAVIGATION
             </span>
             <div className="space-y-1">
               {filteredNav.map(item => {
@@ -126,15 +126,15 @@ export default function CommandPalette({
                       onNavigate(item.id);
                       onClose();
                     }}
-                    className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-800/80 text-left transition-colors group"
+                    className="w-full flex items-center justify-between p-2.5 rounded-none hover:bg-zinc-900 text-left transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-slate-800 group-hover:bg-blue-500/20 group-hover:text-blue-400 transition-colors text-slate-400">
+                      <div className="p-1.5 rounded-none bg-zinc-900 border border-zinc-800 text-zinc-400 group-hover:text-white">
                         <Icon className="w-4 h-4" />
                       </div>
-                      <span className="font-medium text-slate-200 group-hover:text-white">{item.label}</span>
+                      <span className="font-medium text-zinc-200 group-hover:text-white">{item.label}</span>
                     </div>
-                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 text-blue-400 transition-all" />
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 text-zinc-400 transition-all" />
                   </button>
                 );
               })}
@@ -144,8 +144,8 @@ export default function CommandPalette({
           {/* Goals Quick Search */}
           {query.trim().length > 0 && filteredGoals.length > 0 && (
             <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1 block">
-                Mục Tiêu & Công Việc
+              <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+                GOALS & TASKS
               </span>
               <div className="space-y-1">
                 {filteredGoals.map(g => (
@@ -155,10 +155,10 @@ export default function CommandPalette({
                       onNavigate('todo-hub');
                       onClose();
                     }}
-                    className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex justify-between items-center"
+                    className="p-2.5 rounded-none hover:bg-zinc-900 cursor-pointer flex justify-between items-center"
                   >
-                    <span className="truncate font-medium text-slate-200">{g.text}</span>
-                    <span className="text-xs text-blue-400 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">
+                    <span className="truncate font-medium text-zinc-200">{g.text}</span>
+                    <span className="text-[9px] uppercase tracking-widest text-zinc-400 px-2 py-0.5 rounded-none bg-zinc-900 border border-zinc-800">
                       {g.timeframe}
                     </span>
                   </div>
@@ -170,8 +170,8 @@ export default function CommandPalette({
           {/* Habits Quick Search */}
           {query.trim().length > 0 && filteredHabits.length > 0 && (
             <div>
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1 block">
-                Thói Quên
+              <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+                HABITS
               </span>
               <div className="space-y-1">
                 {filteredHabits.map(h => (
@@ -181,11 +181,11 @@ export default function CommandPalette({
                       onNavigate('habits');
                       onClose();
                     }}
-                    className="p-2.5 rounded-xl hover:bg-slate-800/80 cursor-pointer flex justify-between items-center"
+                    className="p-2.5 rounded-none hover:bg-zinc-900 cursor-pointer flex justify-between items-center"
                   >
-                    <span className="truncate font-medium text-slate-200">{h.habitName}</span>
-                    <span className="text-xs text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                      {h.completedDays ? h.completedDays.length : 0} ngày
+                    <span className="truncate font-medium text-zinc-200">{h.habitName}</span>
+                    <span className="text-[9px] uppercase tracking-widest text-zinc-400 px-2 py-0.5 rounded-none bg-zinc-900 border border-zinc-800">
+                      {h.completedDays ? h.completedDays.length : 0} Days Logged
                     </span>
                   </div>
                 ))}
@@ -194,23 +194,23 @@ export default function CommandPalette({
           )}
 
           {/* Quick Settings Actions */}
-          <div className="pt-2 border-t border-slate-800">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-1 block">
-              Tùy Chỉnh Nhanh
+          <div className="pt-2 border-t border-zinc-900">
+            <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+              QUICK PREFERENCES
             </span>
             <button
               onClick={() => {
                 onToggleThemeMode();
                 onClose();
               }}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-800/80 text-left transition-colors"
+              className="w-full flex items-center justify-between p-2.5 rounded-none hover:bg-zinc-900 text-left transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-slate-800 text-amber-400">
+                <div className="p-1.5 rounded-none bg-zinc-900 border border-zinc-800 text-zinc-300">
                   {isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 </div>
-                <span className="font-medium text-slate-200">
-                  Chuyển Sang Chế Độ {isLightMode ? 'Tối (Dark Mode)' : 'Sáng (Light Mode)'}
+                <span className="font-medium text-zinc-200">
+                  Switch to {isLightMode ? 'Dark Mode' : 'Light Mode'}
                 </span>
               </div>
             </button>
@@ -218,9 +218,9 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="p-3 bg-slate-950/60 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
-          <span>Dùng phím <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">ESC</kbd> để thoát</span>
-          <span>Bật nhanh bằng <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">Ctrl + K</kbd></span>
+        <div className="p-3 bg-[#050506] border-t border-zinc-900 flex justify-between items-center text-[10px] font-mono text-zinc-500">
+          <span>Press <kbd className="px-1.5 py-0.5 rounded-none bg-zinc-900 text-zinc-300 font-mono">ESC</kbd> to exit</span>
+          <span>Quick trigger with <kbd className="px-1.5 py-0.5 rounded-none bg-zinc-900 text-zinc-300 font-mono">Ctrl + K</kbd></span>
         </div>
       </div>
     </div>

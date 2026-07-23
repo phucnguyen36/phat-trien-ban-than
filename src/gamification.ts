@@ -24,7 +24,7 @@ export function calculateGamification(
   const completedTasks = goals.filter(g => g.completed);
   const taskXP = completedTasks.length * 50;
 
-  // Habit XP (20 XP per completed day)
+  // Habit XP (25 XP per completed day)
   let habitXP = 0;
   let activeHabitStreaks = 0;
   habits.forEach(h => {
@@ -48,20 +48,20 @@ export function calculateGamification(
   const xpNeededForNextLevel = levelCost;
   const progressPercent = Math.min(100, Math.round((xpInCurrentLevel / levelCost) * 100));
 
-  let tierName = 'Khởi Đầu (Apprentice)';
+  let tierName = 'Apprentice';
   let tierColor = 'from-blue-500 to-cyan-400';
 
   if (currentLevel >= 20) {
-    tierName = 'Huyền Thoại (Titan)';
+    tierName = 'Titan';
     tierColor = 'from-amber-400 via-rose-500 to-purple-600';
   } else if (currentLevel >= 15) {
-    tierName = 'Bậc Thầy (Architect)';
+    tierName = 'Architect';
     tierColor = 'from-purple-500 to-indigo-500';
   } else if (currentLevel >= 10) {
-    tierName = 'Kiến Tạo (Strategist)';
+    tierName = 'Strategist';
     tierColor = 'from-emerald-400 to-teal-600';
   } else if (currentLevel >= 5) {
-    tierName = 'Bứt Phá (Achiever)';
+    tierName = 'Achiever';
     tierColor = 'from-blue-500 to-indigo-600';
   }
 
@@ -91,10 +91,10 @@ export function calculateGamification(
 }
 
 export const DAILY_QUOTES = [
-  { quote: "Kỷ luật là cầu nối giữa mục tiêu và thành tựu.", author: "Jim Rohn" },
-  { quote: "Chúng ta là những gì chúng ta lặp đi lặp lại. Sự xuất sắc không phải là hành động, mà là thói quen.", author: "Aristotle" },
-  { quote: "Thành công không phải là chìa khóa mở cửa hạnh phúc. Hạnh phúc mới là chìa khóa dẫn tới thành công.", author: "Albert Schweitzer" },
-  { quote: "Tương lai phụ thuộc vào những gì bạn làm hôm nay.", author: "Mahatma Gandhi" },
-  { quote: "Đừng chờ đợi cơ hội. Hãy tự tạo ra nó.", author: "George Bernard Shaw" },
-  { quote: "Mô hình hoá và tối ưu hoá hệ thống tư duy là con đường nhanh nhất đến sự tự do.", author: "Product Architect" }
+  { quote: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+  { quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Aristotle" },
+  { quote: "Success is not the key to happiness. Happiness is the key to success.", author: "Albert Schweitzer" },
+  { quote: "The future depends on what you do today.", author: "Mahatma Gandhi" },
+  { quote: "Don't wait for opportunity. Create it.", author: "George Bernard Shaw" },
+  { quote: "Modeling and optimizing your mental system is the fastest path to autonomy.", author: "Product Architect" }
 ];
