@@ -80,7 +80,8 @@ import {
   PanelLeftOpen,
   LayoutDashboard,
   Search,
-  Trophy
+  Trophy,
+  Sparkles
 } from 'lucide-react';
 
 interface UserProfile {
@@ -727,6 +728,76 @@ export default function App() {
     e.target.value = '';
   };
 
+  // Quick Seed Rich Demo Data (for user screenshots)
+  const handleSeedDemoData = async () => {
+    setIsLoading(true);
+    const demoGoals: GoalTodo[] = [
+      { id: 'g1', text: '[D:2026-07-24] Execute Dark Frosted Glassmorphism UI Overhaul', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 * 3 },
+      { id: 'g2', text: '[D:2026-07-24] Finalize Executive Growth Telemetry Presentation', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 * 2 },
+      { id: 'g3', text: '[D:2026-07-24] Review Q3 Strategic Financial Allocation & Cashflow', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 },
+      { id: 'g4', text: '[D:2026-07-24] Conduct 30-min Meditative Peak Focus Session', timeframe: 'daily', completed: false, createdAt: Date.now() },
+      { id: 'g5', text: '[W:2026-07-W3] Scale System Ingress Infrastructure to 10k Licenses', timeframe: 'weekly', completed: true, createdAt: Date.now() - 86400000 * 5 },
+      { id: 'g6', text: '[W:2026-07-W3] Audit Personal Asset Portfolio & Capital Ledger', timeframe: 'weekly', completed: true, createdAt: Date.now() - 86400000 * 4 },
+      { id: 'g7', text: '[M:2026-07] Launch Deep Focus OS v5.0 Master Product Ingress', timeframe: 'monthly', completed: true, createdAt: Date.now() - 86400000 * 10 },
+      { id: 'g8', text: '[M:2026-07] Expand International Client License Distribution Network', timeframe: 'monthly', completed: false, createdAt: Date.now() - 86400000 * 8 },
+      { id: 'g9', text: '[Y:2026] Achieve 100% Personal Autonomy & Systems Mastery', timeframe: 'yearly', completed: true, createdAt: Date.now() - 86400000 * 30 },
+      { id: 'g10', text: '[Y:2026] Build High-Impact AI Automation Funnels', timeframe: 'yearly', completed: true, createdAt: Date.now() - 86400000 * 25 }
+    ];
+
+    const demoHabits: HabitData[] = [
+      { id: 'h1', habitName: '5:30 AM Peak Protocol & Hydration', monthYear: '2026-07', completedDays: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] },
+      { id: 'h2', habitName: '2-Hour Uninterrupted Deep Work Block', monthYear: '2026-07', completedDays: [1,2,3,4,5,7,8,9,10,11,12,14,15,16,17,18,19,21,22,23,24] },
+      { id: 'h3', habitName: 'Zone-2 Physical Cardio / Gym Session', monthYear: '2026-07', completedDays: [2,4,6,8,10,12,14,16,18,20,22,24] },
+      { id: 'h4', habitName: 'Daily Journal & Energy Telemetry Log', monthYear: '2026-07', completedDays: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] },
+      { id: 'h5', habitName: 'Zero Processed Sugar & High Protein Diet', monthYear: '2026-07', completedDays: [1,3,4,5,6,7,8,9,11,12,13,14,15,16,18,19,20,21,22,23,24] }
+    ];
+
+    const demoJournal: DailyJournal[] = [
+      { id: '2026-07-24', energy: 5, text: 'Peak clarity today. Completed the Dark Frosted Glassmorphism UI overhaul. Systems are running smoothly.', updatedAt: Date.now() },
+      { id: '2026-07-23', energy: 5, text: 'Great progress on product funnel and commercial licensing. High focus velocity throughout the afternoon.', updatedAt: Date.now() - 86400000 },
+      { id: '2026-07-22', energy: 4, text: 'Solid strategic planning session. Financial cashflow ledger audited and optimized.', updatedAt: Date.now() - 86400000 * 2 },
+      { id: '2026-07-21', energy: 4, text: 'Consistent execution on habit streaks. 2-hour deep work block completed uninterrupted.', updatedAt: Date.now() - 86400000 * 3 },
+      { id: '2026-07-20', energy: 5, text: 'High energy output. Expanded commercial license architecture for client deployments.', updatedAt: Date.now() - 86400000 * 4 },
+      { id: '2026-07-19', energy: 3, text: 'Sunday reflection and strategic roadmap review. Refueled for upcoming high-intensity week.', updatedAt: Date.now() - 86400000 * 5 },
+      { id: '2026-07-18', energy: 4, text: 'Cardio session and mental reset. Re-calibrated weekly priorities.', updatedAt: Date.now() - 86400000 * 6 }
+    ];
+
+    const demoExpenses: PersonalExpense[] = [
+      { id: 'e1', date: '2026-07-24', amount: -180000, category: 'Eating', note: 'Executive Team Lunch' },
+      { id: 'e2', date: '2026-07-23', amount: -1250000, category: 'Study/Equipment', note: 'High-Performance Monitor Arm & Ergonomic Gear' },
+      { id: 'e3', date: '2026-07-22', amount: -350000, category: 'Transport', note: 'Fuel & Commute Service' },
+      { id: 'e4', date: '2026-07-20', amount: -450000, category: 'Entertainment', note: 'Books & Audible Subscription' },
+      { id: 'e5', date: '2026-07-18', amount: -220000, category: 'Eating', note: 'Nutrition & Organic Groceries' },
+      { id: 'e6', date: '2026-07-15', amount: -890000, category: 'Study/Equipment', note: 'Cloud Server Ingress Hosting Fee' }
+    ];
+
+    const demoScratchpad = `# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\n1. CORE PRINCIPLE: Simplicity + High Visual Elegance (Dark Frosted Glassmorphism).\n2. COMMERCIAL DISTRIBUTION:\n   - License Tier Standard ($49 Lifetime)\n   - License Tier VIP Coaching ($149 System Integration)\n3. DAILY FOCUS PROTOCOL:\n   - Block 1 (08:00 - 11:00): Core Systems Architecture & Product Code\n   - Block 2 (13:00 - 15:30): Growth Funnels & Marketing Ingress\n   - Block 3 (16:30 - 18:00): Physical Training & Reflection Telemetry`;
+
+    localStorage.setItem('df_goals_todo', JSON.stringify(demoGoals));
+    localStorage.setItem('df_habits_data', JSON.stringify(demoHabits));
+    localStorage.setItem('df_daily_journal', JSON.stringify(demoJournal));
+    localStorage.setItem('df_personal_expenses', JSON.stringify(demoExpenses));
+    localStorage.setItem('df_quick_scratchpad', demoScratchpad);
+
+    for (const g of demoGoals) await saveGoal(g);
+    for (const h of demoHabits) await saveHabit(h);
+    for (const j of demoJournal) await saveJournal(j);
+    for (const e of demoExpenses) await saveExpense(e);
+    await saveScratchpad(demoScratchpad);
+
+    setGoals(demoGoals);
+    setHabits(demoHabits);
+    setJournalEntries(demoJournal);
+    setExpenses(demoExpenses);
+    setScratchpadText(demoScratchpad);
+
+    setIsLoading(false);
+    showNotice(
+      "DEMO DATA POPULATED",
+      "Rich sample data for Goals, Habits, Journals, Expenses, and Scratchpad has been loaded into your admin workspace!"
+    );
+  };
+
   // Reset Session
   const handleResetSession = () => {
     showNotice(
@@ -847,6 +918,16 @@ export default function App() {
             <Search className="w-3.5 h-3.5 text-blue-400" />
             <span className="hidden sm:inline">Search...</span>
             <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-zinc-800 text-zinc-400 rounded border border-zinc-700">Ctrl K</kbd>
+          </button>
+
+          {/* Quick Seed Demo Data Button for Screenshots */}
+          <button
+            onClick={handleSeedDemoData}
+            className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-white transition-all text-xs font-mono font-bold flex items-center gap-1.5"
+            title="Populate rich sample data for goals, habits, journal, and expenses"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span>SEED DEMO DATA</span>
           </button>
           
           {/* Toggle Sidebar Panel (Desktop) */}
