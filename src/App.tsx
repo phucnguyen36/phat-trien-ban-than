@@ -782,18 +782,17 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen bg-black text-zinc-300 font-sans antialiased flex flex-col selection:bg-zinc-800 selection:text-white relative ${isLightMode ? 'light-mode' : ''}`}>
+    <div className={`min-h-screen text-zinc-100 font-sans antialiased flex flex-col relative selection:bg-white/20 selection:text-white ${isLightMode ? 'light-mode' : ''}`}>
       
-      {/* Dynamic Background Glow */}
-      <div 
-        className="fixed inset-0 pointer-events-none opacity-20 z-0 transition-all duration-700 blur-[120px]"
-        style={{
-          background: `radial-gradient(circle at 50% 0%, ${customAccentColor} 0%, transparent 70%)`
-        }}
-      />
+      {/* Vibrant Pastel/Neon Mesh Orbs Background (Matching User Reference Image) */}
+      <div className="glass-background-mesh">
+        <div className="glass-orb-1" />
+        <div className="glass-orb-2" />
+        <div className="glass-orb-3" />
+      </div>
 
-      {/* 1. TOP STATUS BAR HEADER */}
-      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-zinc-900/80 px-6 md:px-12 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      {/* 1. TOP STATUS BAR HEADER (True Glassmorphism) */}
+      <header className="sticky top-0 z-40 bg-white/[0.08] backdrop-blur-2xl border-b border-white/15 px-6 md:px-12 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
         
         {/* Brand & Live System Clock */}
         <div className="flex items-center gap-6">
@@ -958,9 +957,9 @@ export default function App() {
           
           {/* Left Sticky Navigation Panel for Desktop */}
           {!isLoading && isSidebarOpen && (
-            <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28 space-y-3 bg-[#020202]/40 border border-zinc-900/80 p-5 backdrop-blur-md transition-all duration-300">
-              <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
-                <span className="text-[9px] font-mono text-zinc-500 tracking-widest uppercase block">
+            <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28 space-y-3 glass-panel-true p-5 transition-all duration-300">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <span className="text-[9px] font-mono text-zinc-300 tracking-widest uppercase block font-bold">
                   OS NAVIGATION PANEL
                 </span>
                 <button
