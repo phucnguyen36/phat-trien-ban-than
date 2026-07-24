@@ -85,35 +85,35 @@ export default function CommandPalette({
   ).slice(0, 4);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-start justify-center pt-16 md:pt-24 px-4 animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-start justify-center pt-16 md:pt-24 px-4 animate-fadeIn">
       <div 
-        className="w-full max-w-2xl bg-[#020202] border border-zinc-800 rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+        className="w-full max-w-2xl glass-panel rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[80vh] border border-white/20"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 border-b border-zinc-900 bg-[#050506]">
-          <Search className="w-5 h-5 text-zinc-500 mr-3" />
+        <div className="flex items-center px-4 border-b border-white/10 bg-black/40">
+          <Search className="w-5 h-5 text-zinc-400 mr-3" />
           <input 
             type="text" 
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Type to quick search features, goals, habits... (Ctrl + K)"
-            className="w-full py-4 bg-transparent text-white font-mono placeholder-zinc-600 focus:outline-none text-sm md:text-base"
+            className="w-full py-4 bg-transparent text-white font-mono placeholder-zinc-500 focus:outline-none text-sm md:text-base"
           />
           <button 
             onClick={onClose}
-            className="p-1 text-zinc-500 hover:text-white rounded-none hover:bg-zinc-900 transition-colors"
+            className="p-1 text-zinc-400 hover:text-white glass-button rounded-none"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search Results / Actions List */}
-        <div className="p-3 overflow-y-auto space-y-4 text-zinc-300 text-sm font-mono">
+        <div className="p-3 overflow-y-auto space-y-4 text-zinc-200 text-sm font-mono">
           {/* Navigation Section */}
           <div>
-            <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+            <span className="text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider px-3 mb-1 block">
               QUICK NAVIGATION
             </span>
             <div className="space-y-1">
@@ -126,15 +126,15 @@ export default function CommandPalette({
                       onNavigate(item.id);
                       onClose();
                     }}
-                    className="w-full flex items-center justify-between p-2.5 rounded-none hover:bg-zinc-900 text-left transition-colors group"
+                    className="w-full flex items-center justify-between p-2.5 rounded-none glass-card glass-card-hover text-left transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-1.5 rounded-none bg-zinc-900 border border-zinc-800 text-zinc-400 group-hover:text-white">
+                      <div className="p-1.5 rounded-none glass-button text-zinc-300 group-hover:text-white">
                         <Icon className="w-4 h-4" />
                       </div>
                       <span className="font-medium text-zinc-200 group-hover:text-white">{item.label}</span>
                     </div>
-                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 text-zinc-400 transition-all" />
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 text-zinc-300 transition-all" />
                   </button>
                 );
               })}
@@ -144,7 +144,7 @@ export default function CommandPalette({
           {/* Goals Quick Search */}
           {query.trim().length > 0 && filteredGoals.length > 0 && (
             <div>
-              <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+              <span className="text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider px-3 mb-1 block">
                 GOALS & TASKS
               </span>
               <div className="space-y-1">
@@ -155,10 +155,10 @@ export default function CommandPalette({
                       onNavigate('todo-hub');
                       onClose();
                     }}
-                    className="p-2.5 rounded-none hover:bg-zinc-900 cursor-pointer flex justify-between items-center"
+                    className="p-2.5 rounded-none glass-card glass-card-hover cursor-pointer flex justify-between items-center"
                   >
                     <span className="truncate font-medium text-zinc-200">{g.text}</span>
-                    <span className="text-[9px] uppercase tracking-widest text-zinc-400 px-2 py-0.5 rounded-none bg-zinc-900 border border-zinc-800">
+                    <span className="text-[9px] uppercase tracking-widest text-zinc-300 px-2 py-0.5 rounded-none glass-pill">
                       {g.timeframe}
                     </span>
                   </div>
@@ -170,7 +170,7 @@ export default function CommandPalette({
           {/* Habits Quick Search */}
           {query.trim().length > 0 && filteredHabits.length > 0 && (
             <div>
-              <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+              <span className="text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider px-3 mb-1 block">
                 HABITS
               </span>
               <div className="space-y-1">
@@ -181,10 +181,10 @@ export default function CommandPalette({
                       onNavigate('habits');
                       onClose();
                     }}
-                    className="p-2.5 rounded-none hover:bg-zinc-900 cursor-pointer flex justify-between items-center"
+                    className="p-2.5 rounded-none glass-card glass-card-hover cursor-pointer flex justify-between items-center"
                   >
                     <span className="truncate font-medium text-zinc-200">{h.habitName}</span>
-                    <span className="text-[9px] uppercase tracking-widest text-zinc-400 px-2 py-0.5 rounded-none bg-zinc-900 border border-zinc-800">
+                    <span className="text-[9px] uppercase tracking-widest text-zinc-300 px-2 py-0.5 rounded-none glass-pill">
                       {h.completedDays ? h.completedDays.length : 0} Days Logged
                     </span>
                   </div>
@@ -194,8 +194,8 @@ export default function CommandPalette({
           )}
 
           {/* Quick Settings Actions */}
-          <div className="pt-2 border-t border-zinc-900">
-            <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider px-3 mb-1 block">
+          <div className="pt-2 border-t border-white/10">
+            <span className="text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider px-3 mb-1 block">
               QUICK PREFERENCES
             </span>
             <button
@@ -203,10 +203,10 @@ export default function CommandPalette({
                 onToggleThemeMode();
                 onClose();
               }}
-              className="w-full flex items-center justify-between p-2.5 rounded-none hover:bg-zinc-900 text-left transition-colors"
+              className="w-full flex items-center justify-between p-2.5 rounded-none glass-card glass-card-hover text-left transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-none bg-zinc-900 border border-zinc-800 text-zinc-300">
+                <div className="p-1.5 rounded-none glass-button text-zinc-300">
                   {isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                 </div>
                 <span className="font-medium text-zinc-200">
@@ -218,9 +218,9 @@ export default function CommandPalette({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="p-3 bg-[#050506] border-t border-zinc-900 flex justify-between items-center text-[10px] font-mono text-zinc-500">
-          <span>Press <kbd className="px-1.5 py-0.5 rounded-none bg-zinc-900 text-zinc-300 font-mono">ESC</kbd> to exit</span>
-          <span>Quick trigger with <kbd className="px-1.5 py-0.5 rounded-none bg-zinc-900 text-zinc-300 font-mono">Ctrl + K</kbd></span>
+        <div className="p-3 bg-black/40 border-t border-white/10 flex justify-between items-center text-[10px] font-mono text-zinc-400">
+          <span>Press <kbd className="px-1.5 py-0.5 rounded-none glass-pill text-zinc-200 font-mono">ESC</kbd> to exit</span>
+          <span>Quick trigger with <kbd className="px-1.5 py-0.5 rounded-none glass-pill text-zinc-200 font-mono">Ctrl + K</kbd></span>
         </div>
       </div>
     </div>

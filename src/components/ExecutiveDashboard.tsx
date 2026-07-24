@@ -77,15 +77,21 @@ export default function ExecutiveDashboard({
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header Banner - Strict Monochrome + Primary Accent */}
-      <div className="relative overflow-hidden rounded-none bg-[#020202] border border-zinc-900 p-6 md:p-8 text-zinc-100">
+      {/* Header Glass Banner - Glassmorphism System */}
+      <div className="relative overflow-hidden rounded-none glass-panel p-6 md:p-8 text-zinc-100">
+        {/* Glass Ambient Background Radial Glow */}
+        <div 
+          className="absolute -top-24 -right-24 w-96 h-96 pointer-events-none opacity-20 blur-3xl transition-all duration-700"
+          style={{ background: activeTheme.accent }}
+        />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-none text-[10px] font-mono tracking-widest uppercase font-bold bg-zinc-900 ${activeTheme.text} border ${activeTheme.borderMuted}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-none text-[10px] font-mono tracking-widest uppercase font-bold glass-pill ${activeTheme.text}`}>
               <Sparkles className="w-3 h-3 animate-pulse" />
               EXECUTIVE COMMAND CENTER
             </div>
-            <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-zinc-100 font-mono uppercase">
+            <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
               Progress & Energy Telemetry
             </h1>
             <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-sans leading-relaxed">
@@ -93,20 +99,20 @@ export default function ExecutiveDashboard({
             </p>
           </div>
 
-          {/* Level Badge Card - Monochrome + Theme Accent */}
-          <div className="bg-[#050506] border border-zinc-900 rounded-none p-4 md:p-5 flex flex-col gap-3 min-w-[260px]">
+          {/* Level Badge Glass Card */}
+          <div className="glass-card rounded-none p-4 md:p-5 flex flex-col gap-3 min-w-[270px]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className={`p-2 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
+                <div className={`p-2 rounded-none glass-button ${activeTheme.text}`}>
                   <Trophy className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block">CURRENT LEVEL</span>
-                  <span className="text-base font-bold font-mono text-zinc-100">Level {stats.currentLevel}</span>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest block">CURRENT LEVEL</span>
+                  <span className="text-base font-bold font-mono text-white">Level {stats.currentLevel}</span>
                 </div>
               </div>
               <div className="text-right">
-                <span className={`text-[10px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded-none bg-zinc-900 ${activeTheme.text} border ${activeTheme.borderMuted}`}>
+                <span className={`text-[10px] font-mono uppercase tracking-widest font-bold px-2.5 py-0.5 rounded-none glass-pill ${activeTheme.text}`}>
                   {stats.tierName}
                 </span>
               </div>
@@ -114,125 +120,126 @@ export default function ExecutiveDashboard({
 
             {/* XP Progress Bar */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[10px] font-mono text-zinc-400">
+              <div className="flex justify-between text-[10px] font-mono text-zinc-300">
                 <span>{stats.xpInCurrentLevel} / {stats.xpNeededForNextLevel} XP</span>
                 <span>{stats.progressPercent}%</span>
               </div>
-              <div className="w-full bg-zinc-900 rounded-none h-1.5 overflow-hidden border border-zinc-800">
+              <div className="w-full bg-black/60 rounded-none h-1.5 overflow-hidden border border-white/10">
                 <div 
-                  className={`h-full rounded-none transition-all duration-500 ${activeTheme.bgMuted}`}
+                  className={`h-full rounded-none transition-all duration-500`}
                   style={{ 
                     width: `${stats.progressPercent}%`,
-                    backgroundColor: activeTheme.accent 
+                    backgroundColor: activeTheme.accent,
+                    boxShadow: `0 0 12px ${activeTheme.accent}`
                   }}
                 />
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-2 border-t border-zinc-900">
-              <span>TOTAL XP: <strong className="text-zinc-200">{stats.totalXP}</strong></span>
+            <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 pt-2 border-t border-white/10">
+              <span>TOTAL XP: <strong className="text-white">{stats.totalXP}</strong></span>
               <span>BADGES: <strong className={activeTheme.text}>{stats.badgesCount} Unlocked</strong></span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Grid Quick Stats Cards */}
+      {/* Grid Quick Stats Glass Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Habit Stat */}
         <div 
           onClick={() => onNavigate('habits')}
-          className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
+          className="group cursor-pointer rounded-none glass-panel-interactive p-5 space-y-3"
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">TODAY'S HABITS</span>
-            <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">TODAY'S HABITS</span>
+            <div className={`p-1.5 rounded-none glass-button ${activeTheme.text}`}>
               <Activity className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-zinc-100">{todayHabitsDoneCount}/{habits.length}</span>
+            <span className="text-2xl font-bold font-mono text-white">{todayHabitsDoneCount}/{habits.length}</span>
             <span className={`text-xs font-mono font-semibold ${activeTheme.text}`}>{habitCompletionPercent}% DONE</span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>{stats.activeHabitStreaks} ACTIVE HABIT STREAKS</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
+          <p className="text-[10px] font-mono text-zinc-400 flex items-center justify-between uppercase tracking-wider pt-1 border-t border-white/5">
+            <span>{stats.activeHabitStreaks} ACTIVE STREAKS</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-300" />
           </p>
         </div>
 
         {/* Goals Stat */}
         <div 
           onClick={() => onNavigate('todo-hub')}
-          className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
+          className="group cursor-pointer rounded-none glass-panel-interactive p-5 space-y-3"
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">TASKS & GOALS</span>
-            <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">TASKS & GOALS</span>
+            <div className={`p-1.5 rounded-none glass-button ${activeTheme.text}`}>
               <CheckSquare className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-zinc-100">{goals.length - pendingGoals.length}/{goals.length}</span>
+            <span className="text-2xl font-bold font-mono text-white">{goals.length - pendingGoals.length}/{goals.length}</span>
             <span className="text-xs font-mono font-semibold text-zinc-400">COMPLETED</span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
+          <p className="text-[10px] font-mono text-zinc-400 flex items-center justify-between uppercase tracking-wider pt-1 border-t border-white/5">
             <span>{pendingGoals.length} PENDING TASKS</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-300" />
           </p>
         </div>
 
         {/* Expenses Stat */}
         <div 
           onClick={() => onNavigate('expenses')}
-          className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
+          className="group cursor-pointer rounded-none glass-panel-interactive p-5 space-y-3"
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">MONTHLY CASH FLOW</span>
-            <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">MONTHLY CASH FLOW</span>
+            <div className={`p-1.5 rounded-none glass-button ${activeTheme.text}`}>
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold font-mono text-zinc-100">
+            <span className="text-xl font-bold font-mono text-white">
               ${monthlyTotalSpent.toLocaleString('en-US')}
             </span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>CURRENT MONTH EXPENSES</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
+          <p className="text-[10px] font-mono text-zinc-400 flex items-center justify-between uppercase tracking-wider pt-1 border-t border-white/5">
+            <span>MONTHLY EXPENSES</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-300" />
           </p>
         </div>
 
         {/* Journal Stat */}
         <div 
           onClick={() => onNavigate('journal')}
-          className="group cursor-pointer rounded-none bg-[#020202] border border-zinc-900 p-5 hover:border-zinc-700 transition-all duration-200"
+          className="group cursor-pointer rounded-none glass-panel-interactive p-5 space-y-3"
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">DAILY JOURNAL & REFLECTION</span>
-            <div className={`p-1.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text}`}>
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">DAILY JOURNAL</span>
+            <div className={`p-1.5 rounded-none glass-button ${activeTheme.text}`}>
               <BookOpen className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-zinc-100">{journals.length}</span>
+            <span className="text-2xl font-bold font-mono text-white">{journals.length}</span>
             <span className={`text-xs font-mono font-semibold ${activeTheme.text}`}>ENTRIES</span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-2 flex items-center justify-between uppercase tracking-wider">
-            <span>LOG DAILY JOURNAL TODAY</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-400" />
+          <p className="text-[10px] font-mono text-zinc-400 flex items-center justify-between uppercase tracking-wider pt-1 border-t border-white/5">
+            <span>LOG JOURNAL TODAY</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-zinc-300" />
           </p>
         </div>
       </div>
 
-      {/* Main Content Split: Priority Tasks & Today's Habits */}
+      {/* Main Content Split: Priority Tasks & Today's Habits (Glass Cards) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left 7 Columns: Today's Priorities */}
-        <div className="lg:col-span-7 bg-[#020202] border border-zinc-900 rounded-none p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+        <div className="lg:col-span-7 glass-panel rounded-none p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <CheckSquare className={`w-4 h-4 ${activeTheme.text}`} />
-              <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">Priority Tasks</h2>
+              <h2 className="text-sm font-mono uppercase tracking-wider text-white font-bold">Priority Tasks</h2>
             </div>
             <button 
               onClick={() => onNavigate('todo-hub')}
@@ -243,22 +250,22 @@ export default function ExecutiveDashboard({
           </div>
 
           {pendingGoals.length === 0 ? (
-            <div className="text-center py-10 text-zinc-500 space-y-2">
+            <div className="text-center py-10 text-zinc-400 space-y-2">
               <CheckCircle2 className={`w-10 h-10 mx-auto opacity-80 ${activeTheme.text}`} />
-              <p className="font-mono text-xs uppercase tracking-wider text-zinc-300">Outstanding! No pending priority tasks.</p>
-              <p className="text-xs text-zinc-600">All high-priority goals are completed.</p>
+              <p className="font-mono text-xs uppercase tracking-wider text-zinc-200">Outstanding! No pending priority tasks.</p>
+              <p className="text-xs text-zinc-500">All high-priority goals are completed.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {pendingGoals.map(goal => (
                 <div 
                   key={goal.id}
-                  className="flex items-center justify-between p-3 rounded-none bg-[#050506] border border-zinc-900 hover:border-zinc-800 transition-all group"
+                  className="flex items-center justify-between p-3 rounded-none glass-card glass-card-hover transition-all group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <button 
                       onClick={() => onToggleGoal(goal.id, !goal.completed)}
-                      className="text-zinc-600 hover:text-zinc-200 transition-colors flex-shrink-0"
+                      className="text-zinc-500 hover:text-zinc-200 transition-colors flex-shrink-0"
                     >
                       <Circle className="w-4 h-4" />
                     </button>
@@ -266,14 +273,14 @@ export default function ExecutiveDashboard({
                       <span className="text-xs font-sans text-zinc-200 block truncate group-hover:text-white transition-colors">
                         {goal.text}
                       </span>
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-zinc-500">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-zinc-400">
                         {goal.timeframe}
                       </span>
                     </div>
                   </div>
                   <button 
                     onClick={() => onToggleGoal(goal.id, !goal.completed)}
-                    className={`text-[9px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-none bg-zinc-900 text-zinc-200 border border-zinc-800 hover:border-zinc-700 transition-all flex-shrink-0 opacity-0 group-hover:opacity-100`}
+                    className="text-[9px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-none glass-button text-zinc-200 transition-all flex-shrink-0 opacity-0 group-hover:opacity-100"
                   >
                     Mark Done
                   </button>
@@ -284,11 +291,11 @@ export default function ExecutiveDashboard({
         </div>
 
         {/* Right 5 Columns: Daily Habits Quick Check */}
-        <div className="lg:col-span-5 bg-[#020202] border border-zinc-900 rounded-none p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+        <div className="lg:col-span-5 glass-panel rounded-none p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Flame className={`w-4 h-4 ${activeTheme.text}`} />
-              <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">Today's Habits (Day {todayDay})</h2>
+              <h2 className="text-sm font-mono uppercase tracking-wider text-white font-bold">Today's Habits (Day {todayDay})</h2>
             </div>
             <button 
               onClick={() => onNavigate('habits')}
@@ -299,7 +306,7 @@ export default function ExecutiveDashboard({
           </div>
 
           {habits.length === 0 ? (
-            <div className="text-center py-10 text-zinc-500">
+            <div className="text-center py-10 text-zinc-400">
               <p className="text-xs font-mono uppercase tracking-wider">No habits created yet.</p>
             </div>
           ) : (
@@ -309,17 +316,15 @@ export default function ExecutiveDashboard({
                 return (
                   <div 
                     key={habit.id}
-                    className={`flex items-center justify-between p-3 rounded-none border transition-all ${
-                      isDoneToday 
-                        ? 'bg-zinc-900 border-zinc-700 text-zinc-100' 
-                        : 'bg-[#050506] border-zinc-900 text-zinc-300 hover:border-zinc-800'
+                    className={`flex items-center justify-between p-3 rounded-none glass-card transition-all ${
+                      isDoneToday ? 'bg-white/[0.08] border-white/20 text-white' : 'text-zinc-300'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => onToggleHabitDay(habit.id, todayDay)}
                         className={`p-0.5 transition-transform active:scale-95 ${
-                          isDoneToday ? activeTheme.text : 'text-zinc-600 hover:text-zinc-300'
+                          isDoneToday ? activeTheme.text : 'text-zinc-500 hover:text-zinc-200'
                         }`}
                       >
                         {isDoneToday ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
@@ -328,17 +333,15 @@ export default function ExecutiveDashboard({
                         <span className={`text-xs font-sans block ${isDoneToday ? 'line-through opacity-70' : ''}`}>
                           {habit.habitName}
                         </span>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">
+                        <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider">
                           Logged {habit.completedDays ? habit.completedDays.length : 0} days
                         </span>
                       </div>
                     </div>
                     <button
                       onClick={() => onToggleHabitDay(habit.id, todayDay)}
-                      className={`text-[9px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-none font-medium transition-colors ${
-                        isDoneToday 
-                          ? `bg-zinc-900 ${activeTheme.text} border ${activeTheme.border}` 
-                          : 'bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-zinc-700'
+                      className={`text-[9px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-none font-medium glass-button transition-colors ${
+                        isDoneToday ? `${activeTheme.text} border-white/30` : 'text-zinc-300'
                       }`}
                     >
                       {isDoneToday ? 'Done' : 'Check-in'}
@@ -351,13 +354,13 @@ export default function ExecutiveDashboard({
         </div>
       </div>
 
-      {/* Quote Banner - English */}
-      <div className="rounded-none bg-[#050506] p-5 border border-zinc-900 flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-        <div className={`p-2.5 rounded-none bg-zinc-900 border border-zinc-800 ${activeTheme.text} flex-shrink-0`}>
+      {/* Quote Banner - Glass Banner */}
+      <div className="rounded-none glass-panel p-5 flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+        <div className={`p-2.5 rounded-none glass-button ${activeTheme.text} flex-shrink-0`}>
           <Quote className="w-4 h-4" />
         </div>
         <div className="space-y-1">
-          <p className="text-xs md:text-sm font-sans text-zinc-300 italic">
+          <p className="text-xs md:text-sm font-sans text-zinc-200 italic">
             "{quoteObj.quote}"
           </p>
           <span className={`text-[10px] font-mono uppercase tracking-widest ${activeTheme.text} font-semibold block`}>

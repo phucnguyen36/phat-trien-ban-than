@@ -150,15 +150,15 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header Banner - Strict Monochrome */}
-      <div className="relative overflow-hidden rounded-none bg-[#050506] border border-zinc-800 p-6 md:p-8 text-zinc-100 shadow-none">
+      {/* Header Banner - Glassmorphism */}
+      <div className="relative overflow-hidden rounded-none glass-panel p-6 md:p-8 text-zinc-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 text-[10px] font-mono tracking-widest uppercase font-bold bg-zinc-900 text-zinc-200 border border-zinc-800">
+            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-mono tracking-widest uppercase font-bold glass-pill text-zinc-200">
               <ShieldCheck className="w-3.5 h-3.5 text-zinc-300" />
               MASTER ADMIN CONTROL PORTAL
             </div>
-            <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-zinc-100 font-mono uppercase">
+            <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
               License & Customer Management
             </h1>
             <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-sans leading-relaxed">
@@ -172,14 +172,14 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                 generatePassword();
                 setIsAddModalOpen(true);
               }}
-              className="px-4 py-2.5 bg-zinc-100 hover:bg-white text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all shadow-none active:scale-95 border border-zinc-200"
+              className="px-4 py-2.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95 border border-white"
             >
               <UserPlus className="w-4 h-4" />
               + ISSUE CUSTOMER ACCOUNT
             </button>
             <button
               onClick={handleExportRegistry}
-              className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all"
+              className="px-4 py-2.5 glass-button text-zinc-300 font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all"
             >
               <Download className="w-4 h-4" />
               EXPORT REGISTRY JSON
@@ -190,52 +190,52 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
       {/* Overview Business Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#020202] border border-zinc-900 p-5 space-y-2">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+        <div className="glass-panel p-5 space-y-2">
+          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
             <span>TOTAL CUSTOMERS</span>
-            <Users className="w-4 h-4 text-zinc-400" />
+            <Users className="w-4 h-4 text-zinc-300" />
           </div>
-          <div className="text-2xl font-bold font-mono text-zinc-100">
-            {customerList.length} <span className="text-xs text-zinc-500 font-normal">users</span>
+          <div className="text-2xl font-bold font-mono text-white">
+            {customerList.length} <span className="text-xs text-zinc-400 font-normal">users</span>
           </div>
-          <div className="text-[10px] font-mono text-zinc-400">
+          <div className="text-[10px] font-mono text-zinc-300">
             {activeCustomers.length} active customer licenses
           </div>
         </div>
 
-        <div className="bg-[#020202] border border-zinc-900 p-5 space-y-2">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+        <div className="glass-panel p-5 space-y-2">
+          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
             <span>TOTAL REVENUE</span>
-            <DollarSign className="w-4 h-4 text-zinc-400" />
+            <DollarSign className="w-4 h-4 text-zinc-300" />
           </div>
-          <div className="text-2xl font-bold font-mono text-zinc-100">
+          <div className="text-2xl font-bold font-mono text-white">
             ${totalRevenue.toLocaleString('en-US')}
           </div>
-          <div className="text-[10px] font-mono text-zinc-500">
+          <div className="text-[10px] font-mono text-zinc-400">
             Accumulated license sales
           </div>
         </div>
 
-        <div className="bg-[#020202] border border-zinc-900 p-5 space-y-2">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
+        <div className="glass-panel p-5 space-y-2">
+          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
             <span>DEFAULT ADMIN IDENTITY</span>
-            <ShieldCheck className="w-4 h-4 text-zinc-400" />
+            <ShieldCheck className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-xs font-mono font-bold text-zinc-200 truncate">
             {DEFAULT_ADMIN.email}
           </div>
-          <div className="text-[10px] font-mono text-zinc-500">
+          <div className="text-[10px] font-mono text-zinc-400">
             Master system access rights
           </div>
         </div>
       </div>
 
       {/* Customer Registry Table */}
-      <div className="bg-[#020202] border border-zinc-900 p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-900 pb-4">
+      <div className="glass-panel p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-zinc-400" />
-            <h2 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">
+            <Users className="w-4 h-4 text-zinc-300" />
+            <h2 className="text-sm font-mono uppercase tracking-wider text-white font-bold">
               Customer Registry ({customerList.length})
             </h2>
           </div>
@@ -247,13 +247,13 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search Name or Email..."
-              className="w-full pl-9 pr-3 py-1.5 bg-[#050506] border border-zinc-800 text-xs font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 rounded-none"
+              className="w-full pl-9 pr-3 py-1.5 glass-input text-xs font-mono rounded-none"
             />
           </div>
         </div>
 
         {filteredCustomers.length === 0 ? (
-          <div className="text-center py-12 text-zinc-500 space-y-2 font-mono text-xs">
+          <div className="text-center py-12 text-zinc-400 space-y-2 font-mono text-xs">
             <Users className="w-8 h-8 text-zinc-600 mx-auto" />
             <p>No customer accounts match the search query.</p>
           </div>
@@ -261,7 +261,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono border-collapse">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-500 uppercase tracking-widest text-[10px] bg-[#050506]">
+                <tr className="border-b border-white/10 text-zinc-400 uppercase tracking-widest text-[10px] bg-black/40">
                   <th className="p-3">Customer / Email</th>
                   <th className="p-3">Password</th>
                   <th className="p-3">Tier</th>
@@ -271,34 +271,32 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   <th className="p-3 text-right">Delivery Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-900 text-zinc-300">
+              <tbody className="divide-y divide-white/5 text-zinc-300">
                 {filteredCustomers.map(cust => (
-                  <tr key={cust.id} className="hover:bg-zinc-900/40 transition-colors">
+                  <tr key={cust.id} className="hover:bg-white/[0.04] transition-colors">
                     <td className="p-3">
-                      <div className="font-bold text-zinc-100">{cust.name}</div>
-                      <div className="text-[10px] text-zinc-500">{cust.email}</div>
+                      <div className="font-bold text-white">{cust.name}</div>
+                      <div className="text-[10px] text-zinc-400">{cust.email}</div>
                     </td>
                     <td className="p-3">
-                      <span className="bg-zinc-900 text-zinc-200 px-2 py-0.5 border border-zinc-800 text-[11px]">
+                      <span className="glass-pill px-2 py-0.5 text-[11px] text-zinc-200">
                         {cust.password}
                       </span>
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold border bg-zinc-900 text-zinc-300 border-zinc-800">
+                      <span className="px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold glass-pill text-zinc-300">
                         {cust.tier}
                       </span>
                     </td>
-                    <td className="p-3 font-semibold text-zinc-200">
+                    <td className="p-3 font-semibold text-white">
                       ${(cust.pricePaid || 0).toLocaleString('en-US')}
                     </td>
-                    <td className="p-3 text-zinc-500 text-[10px]">
+                    <td className="p-3 text-zinc-400 text-[10px]">
                       {new Date(cust.createdAt).toLocaleDateString('en-US')}
                     </td>
                     <td className="p-3">
-                      <span className={`px-2 py-0.5 text-[9px] uppercase tracking-widest border ${
-                        cust.status === 'active'
-                          ? 'bg-zinc-900 text-zinc-200 border-zinc-700'
-                          : 'bg-zinc-950 text-zinc-500 border-zinc-800'
+                      <span className={`px-2 py-0.5 text-[9px] uppercase tracking-widest glass-pill ${
+                        cust.status === 'active' ? 'text-emerald-400' : 'text-zinc-500'
                       }`}>
                         {cust.status === 'active' ? 'ACTIVE' : 'SUSPENDED'}
                       </span>
@@ -308,11 +306,11 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         {/* Copy Delivery Info */}
                         <button
                           onClick={() => handleCopyDeliveryInfo(cust)}
-                          className="px-2 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all"
+                          className="px-2 py-1 glass-button text-zinc-200 text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all"
                           title="Copy delivery message to customer"
                         >
                           {copiedId === cust.id ? (
-                            <Check className="w-3 h-3 text-zinc-200" />
+                            <Check className="w-3 h-3 text-emerald-400" />
                           ) : (
                             <Copy className="w-3 h-3 text-zinc-400" />
                           )}
@@ -322,7 +320,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         {/* Toggle Suspend/Active */}
                         <button
                           onClick={() => handleToggleStatus(cust)}
-                          className="p-1.5 border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition-all"
+                          className="p-1.5 glass-button text-zinc-400 hover:text-white transition-all"
                           title={cust.status === 'active' ? 'Suspend Account' : 'Reactivate Account'}
                         >
                           {cust.status === 'active' ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -331,7 +329,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         {/* Delete User */}
                         <button
                           onClick={() => handleDeleteUser(cust)}
-                          className="p-1.5 border border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700 transition-all"
+                          className="p-1.5 glass-button text-zinc-500 hover:text-red-400 transition-all"
                           title="Delete Customer Account"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -346,28 +344,28 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
         )}
       </div>
 
-      {/* Modal Add New Customer Account */}
+      {/* Modal Add New Customer Account (Glass Modal) */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-          <div className="w-full max-w-md bg-[#020202] border border-zinc-800 p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+          <div className="w-full max-w-md glass-panel p-6 space-y-5 border border-white/20">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-zinc-300" />
-                <h3 className="text-sm font-mono uppercase tracking-wider text-zinc-100 font-bold">
+                <h3 className="text-sm font-mono uppercase tracking-wider text-white font-bold">
                   Issue New Customer Account
                 </h3>
               </div>
               <button 
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-zinc-500 hover:text-zinc-200 text-xs font-mono"
+                className="text-zinc-400 hover:text-white text-xs font-mono"
               >
                 [X]
               </button>
             </div>
 
             {formError && (
-              <div className="p-3 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs font-mono flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-zinc-400" />
+              <div className="p-3 glass-card border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
                 <span>{formError}</span>
               </div>
             )}
@@ -380,7 +378,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
                   placeholder="e.g. Alexander Pierce"
-                  className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none"
+                  className="w-full p-2.5 glass-input rounded-none"
                   autoFocus
                 />
               </div>
@@ -392,7 +390,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
                   placeholder="customer@domain.com"
-                  className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none"
+                  className="w-full p-2.5 glass-input rounded-none"
                 />
               </div>
 
@@ -402,7 +400,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   <button 
                     type="button" 
                     onClick={generatePassword}
-                    className="text-[9px] text-zinc-400 hover:text-zinc-200 hover:underline"
+                    className="text-[9px] text-zinc-300 hover:text-white hover:underline"
                   >
                     Randomize
                   </button>
@@ -413,9 +411,9 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     placeholder="Password"
-                    className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 font-mono focus:border-zinc-500 focus:outline-none rounded-none"
+                    className="w-full p-2.5 glass-input font-mono rounded-none"
                   />
-                  <Key className="w-4 h-4 text-zinc-600 absolute right-3 top-1/2 -translate-y-1/2" />
+                  <Key className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
@@ -425,10 +423,10 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   <select 
                     value={newTier}
                     onChange={e => setNewTier(e.target.value as 'Standard' | 'VIP')}
-                    className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none"
+                    className="w-full p-2.5 glass-input rounded-none"
                   >
-                    <option value="Standard">Standard ($49 Lifetime)</option>
-                    <option value="VIP">VIP ($149 Coaching)</option>
+                    <option value="Standard" className="bg-black text-white">Standard ($49 Lifetime)</option>
+                    <option value="VIP" className="bg-black text-white">VIP ($149 Coaching)</option>
                   </select>
                 </div>
 
@@ -438,7 +436,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                     type="number" 
                     value={newPrice}
                     onChange={e => setNewPrice(Number(e.target.value))}
-                    className="w-full p-2.5 bg-[#050506] border border-zinc-800 text-zinc-100 focus:border-zinc-500 focus:outline-none rounded-none font-bold"
+                    className="w-full p-2.5 glass-input rounded-none font-bold"
                   />
                 </div>
               </div>
@@ -447,13 +445,13 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="flex-1 py-2.5 border border-zinc-800 text-zinc-400 hover:text-zinc-200 uppercase tracking-widest text-[10px]"
+                  className="flex-1 py-2.5 glass-button text-zinc-400 hover:text-white uppercase tracking-widest text-[10px]"
                 >
                   CANCEL
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-zinc-100 hover:bg-white text-black font-bold uppercase tracking-widest text-[10px]"
+                  className="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-widest text-[10px]"
                 >
                   ISSUE ACCOUNT
                 </button>

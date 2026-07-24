@@ -71,32 +71,32 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
           transition={{ duration: 0.6 }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-zinc-100 p-4 md:p-8"
         >
-          {/* Subtle ambient background glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,58,138,0.15)_0%,rgba(0,0,0,1)_100%)] pointer-events-none" />
+          {/* Subtle ambient radial background glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18)_0%,rgba(0,0,0,1)_100%)] pointer-events-none" />
 
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="w-full max-w-md bg-[#020202] border border-zinc-800/80 p-6 md:p-8 relative z-10 shadow-2xl space-y-6"
+            className="w-full max-w-md glass-panel p-6 md:p-8 relative z-10 shadow-2xl space-y-6 border border-white/15"
           >
             {/* Top Brand Banner */}
             <div className="text-center space-y-2">
-              <span className="text-[9px] font-mono tracking-[0.25em] text-zinc-500 uppercase block">
+              <span className="text-[9px] font-mono tracking-[0.25em] text-zinc-400 uppercase block">
                 DEEP FOCUS SYSTEM INGRESS • v5.0
               </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold font-mono uppercase tracking-tight text-zinc-100">
+              <h1 className="text-2xl md:text-3xl font-extrabold font-mono uppercase tracking-tight text-white">
                 Deep Focus OS
               </h1>
-              <p className="text-xs font-sans text-zinc-400">
+              <p className="text-xs font-sans text-zinc-300">
                 Executive Personal Growth & Performance System
               </p>
             </div>
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-3 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs font-mono flex items-center gap-2 animate-fadeIn">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-zinc-400" />
+              <div className="p-3 glass-card border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2 animate-fadeIn">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -111,10 +111,10 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@domain.com"
-                    className="w-full bg-[#050506] text-zinc-100 py-3 pl-9 pr-3 border border-zinc-800 focus:outline-none focus:border-zinc-500 transition-colors rounded-none"
+                    className="w-full glass-input py-3 pl-9 pr-3 rounded-none"
                     autoFocus
                   />
-                  <Mail className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
@@ -126,15 +126,15 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#050506] text-zinc-100 py-3 pl-9 pr-3 border border-zinc-800 focus:outline-none focus:border-zinc-500 transition-colors rounded-none"
+                    className="w-full glass-input py-3 pl-9 pr-3 rounded-none"
                   />
-                  <Key className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Key className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-zinc-100 hover:bg-white text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 transition-all shadow-none active:scale-98"
+                className="w-full py-3.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 transition-all shadow-xl active:scale-98"
               >
                 <span>CONFIRM SYSTEM INGRESS</span>
                 <ArrowRight className="w-4 h-4" />
@@ -142,22 +142,22 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
             </form>
 
             {/* Demo Presets Bar for Easy Testing */}
-            <div className="pt-4 border-t border-zinc-900 space-y-2">
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block text-center">
+            <div className="pt-4 border-t border-white/10 space-y-2">
+              <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider block text-center">
                 DEMO PRESETS & QUICK INGRESS
               </span>
               <div className="flex gap-2 text-[10px] font-mono">
                 <button
                   type="button"
                   onClick={handleFillAdmin}
-                  className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 transition-colors text-center"
+                  className="flex-1 py-2 glass-button text-zinc-200 hover:text-white transition-colors text-center font-semibold"
                 >
                   👑 ADMIN PORTAL
                 </button>
                 <button
                   type="button"
                   onClick={handleFillDemoClient}
-                  className="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-colors text-center"
+                  className="flex-1 py-2 glass-button text-zinc-300 hover:text-white transition-colors text-center font-semibold"
                 >
                   👤 DEMO CLIENT
                 </button>
@@ -165,7 +165,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
             </div>
 
             {/* Footer Copyright */}
-            <div className="text-center text-[10px] font-mono text-zinc-600 tracking-widest uppercase pt-2">
+            <div className="text-center text-[10px] font-mono text-zinc-500 tracking-widest uppercase pt-2">
               Xuan Phuc © 2026 • Executive Product OS
             </div>
           </motion.div>
