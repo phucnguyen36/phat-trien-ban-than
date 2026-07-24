@@ -223,10 +223,10 @@ export default function AEPicker({ currentColor, onChangeColor }: AEPickerProps)
   }, [hsv.h]);
 
   return (
-    <div className="bg-[#0c0c0e] border border-zinc-800 p-4 font-mono select-none text-zinc-300">
-      <div className="flex justify-between items-center mb-3 pb-2 border-b border-zinc-900">
-        <span className="text-[10px] text-zinc-400 tracking-wider uppercase">COLOR PICKER (AFTER EFFECTS STYLE)</span>
-        <span className="text-[8px] text-zinc-600">v1.2 // NUMERICAL ENGINE</span>
+    <div className="glass-panel-true p-5 font-mono select-none text-zinc-200 border border-white/15 shadow-2xl rounded-2xl">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/10">
+        <span className="text-[10px] text-zinc-300 tracking-wider uppercase font-bold">COLOR PICKER (AFTER EFFECTS STYLE)</span>
+        <span className="text-[8px] text-zinc-400 font-bold">v1.2 // NUMERICAL ENGINE</span>
       </div>
 
       <div className="flex flex-col md:flex-row gap-5">
