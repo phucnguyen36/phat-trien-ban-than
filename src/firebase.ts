@@ -41,7 +41,6 @@ let auth: any = null;
 
 try {
   app = initializeApp(firebaseConfig);
-  // Dynamically resolve database ID from config or fallback to remixed-firestore-database-id
   const dbId = firebaseConfigJson.firestoreDatabaseId || "remixed-firestore-database-id";
   db = getFirestore(app, dbId);
   auth = getAuth(app);
@@ -51,7 +50,6 @@ try {
 
 export { db, auth };
 
-// Error Handling Structures as per SKILL.md
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -59,22 +57,11 @@ export enum OperationType {
   LIST = 'list',
   GET = 'get',
   WRITE = 'write',
+  EXECUTE = 'execute',
 }
 
-export interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-  }
-}
-
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string) {
+  const errInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
       userId: auth?.currentUser?.uid,
@@ -86,23 +73,20 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
 }
 
-// ---------------- LOCAL MODE TRACKER ----------------
 export function isLocalModeEnabled(): boolean {
   if (!db || !auth) return true;
   const saved = localStorage.getItem('deep_focus_os_local_only');
   if (saved === 'true') return true;
   if (saved === 'false') return false;
-  return true; // Default to true as user declined Firebase setup
+  return true;
 }
 
 export function setLocalModeEnabled(enabled: boolean) {
   localStorage.setItem('deep_focus_os_local_only', enabled ? 'true' : 'false');
 }
 
-// Timeout helper for Firebase operations to prevent hanging promises
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -120,54 +104,75 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-// ---------------- LOCAL STORAGE CACHE HELPERS ----------------
-export function loadFromLocalStorage() {
-  const savedGoals = localStorage.getItem('df_goals_todo');
-  const savedHabits = localStorage.getItem('df_habits_data');
-  const savedJournal = localStorage.getItem('df_daily_journal');
-  const savedExpenses = localStorage.getItem('df_personal_expenses');
-  const savedScratchpad = localStorage.getItem('df_quick_scratchpad');
+// Helper to resolve Active Account User ID for Data Isolation
+export function resolveActiveUserId(overrideUserId?: string): string {
+  if (overrideUserId && overrideUserId.trim()) {
+    return overrideUserId.trim().toLowerCase();
+  }
+  const savedUserStr = sessionStorage.getItem('df_os_active_user');
+  if (savedUserStr) {
+    try {
+      const u = JSON.parse(savedUserStr);
+      if (u && u.email) return String(u.email).trim().toLowerCase();
+    } catch (e) {}
+  }
+  if (auth?.currentUser?.email) {
+    return auth.currentUser.email.trim().toLowerCase();
+  }
+  return 'default_user';
+}
+
+// ---------------- ACCOUNT-SCOPED LOCAL STORAGE HELPERS ----------------
+export function loadFromLocalStorage(userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const savedGoals = localStorage.getItem(`df_goals_todo_${uid}`);
+  const savedHabits = localStorage.getItem(`df_habits_data_${uid}`);
+  const savedJournal = localStorage.getItem(`df_daily_journal_${uid}`);
+  const savedExpenses = localStorage.getItem(`df_personal_expenses_${uid}`);
+  const savedScratchpad = localStorage.getItem(`df_quick_scratchpad_${uid}`);
 
   const goals: GoalTodo[] = savedGoals ? JSON.parse(savedGoals) : [];
   const habits: HabitData[] = savedHabits ? JSON.parse(savedHabits) : [];
   const journal: DailyJournal[] = savedJournal ? JSON.parse(savedJournal) : [];
   const expenses: PersonalExpense[] = savedExpenses ? JSON.parse(savedExpenses) : [];
-  const scratchpad: string = savedScratchpad || 'Type your breakthrough idea here...';
+  const scratchpad: string = savedScratchpad || '# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\nStart typing notes for this account...';
 
   return { goals, habits, journal, expenses, scratchpad };
 }
 
-// ---------------- LOAD ALL WORKSPACE DATA ----------------
-export async function loadWorkspaceData() {
+// ---------------- LOAD WORKSPACE DATA PER USER ----------------
+export async function loadWorkspaceData(userId?: string) {
+  const uid = resolveActiveUserId(userId);
+
   if (isLocalModeEnabled()) {
-    return loadFromLocalStorage();
+    return loadFromLocalStorage(uid);
   }
 
   try {
     return await withTimeout((async () => {
-      // Load Goals
-      const goalsSnap = await getDocs(collection(db, 'goals_todo'));
+      // Load User Goals from subcollection: users/{uid}/goals_todo
+      const goalsSnap = await getDocs(collection(db, 'users', uid, 'goals_todo'));
       const goals: GoalTodo[] = [];
       goalsSnap.forEach(d => goals.push({ id: d.id, ...d.data() } as GoalTodo));
 
-      // Load Habits
-      const habitsSnap = await getDocs(collection(db, 'habits_data'));
+      // Load User Habits from subcollection: users/{uid}/habits_data
+      const habitsSnap = await getDocs(collection(db, 'users', uid, 'habits_data'));
       const habits: HabitData[] = [];
       habitsSnap.forEach(d => habits.push({ id: d.id, ...d.data() } as HabitData));
 
-      // Load Journal
-      const journalSnap = await getDocs(collection(db, 'daily_journal'));
+      // Load User Journal from subcollection: users/{uid}/daily_journal
+      const journalSnap = await getDocs(collection(db, 'users', uid, 'daily_journal'));
       const journal: DailyJournal[] = [];
       journalSnap.forEach(d => journal.push({ id: d.id, ...d.data() } as DailyJournal));
 
-      // Load Expenses
-      const expensesSnap = await getDocs(collection(db, 'personal_expenses'));
+      // Load User Expenses from subcollection: users/{uid}/personal_expenses
+      const expensesSnap = await getDocs(collection(db, 'users', uid, 'personal_expenses'));
       const expenses: PersonalExpense[] = [];
       expensesSnap.forEach(d => expenses.push({ id: d.id, ...d.data() } as PersonalExpense));
 
-      // Load Scratchpad
-      const padDoc = await getDoc(doc(db, 'quick_scratchpad', 'single_doc'));
-      let scratchpad = 'Type your breakthrough idea here...';
+      // Load User Scratchpad from: users/{uid}/quick_scratchpad/single_doc
+      const padDoc = await getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'));
+      let scratchpad = '# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\nStart typing notes for this account...';
       if (padDoc.exists()) {
         scratchpad = (padDoc.data() as any).text || '';
       }
@@ -175,198 +180,199 @@ export async function loadWorkspaceData() {
       return { goals, habits, journal, expenses, scratchpad };
     })(), 2000);
   } catch (error) {
-    console.warn('Failed to load Firestore data, falling back to local storage cache.', error);
-    return loadFromLocalStorage();
+    console.warn('Failed to load Firestore data, falling back to account local storage cache.', error);
+    return loadFromLocalStorage(uid);
   }
 }
 
-// ---------------- ACTIONS & SYNCS ----------------
+// ---------------- ACCOUNT-SCOPED ACTIONS & SYNCS ----------------
 
 // Goals To-Do
-export async function saveGoal(goal: GoalTodo) {
-  // Always update local cache first
-  const current = loadFromLocalStorage();
+export async function saveGoal(goal: GoalTodo, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   const index = current.goals.findIndex(g => g.id === goal.id);
   if (index >= 0) current.goals[index] = goal;
   else current.goals.push(goal);
-  localStorage.setItem('df_goals_todo', JSON.stringify(current.goals));
+  localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(current.goals));
 
   if (isLocalModeEnabled()) return;
   try {
-    await setDoc(doc(db, 'goals_todo', goal.id), goal);
+    await setDoc(doc(db, 'users', uid, 'goals_todo', goal.id), { ...goal, userId: uid });
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, `goals_todo/${goal.id}`);
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/goals_todo/${goal.id}`);
   }
 }
 
-export async function deleteGoal(id: string) {
-  const current = loadFromLocalStorage();
+export async function deleteGoal(id: string, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   current.goals = current.goals.filter(g => g.id !== id);
-  localStorage.setItem('df_goals_todo', JSON.stringify(current.goals));
+  localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(current.goals));
 
   if (isLocalModeEnabled()) return;
   try {
-    await deleteDoc(doc(db, 'goals_todo', id));
+    await deleteDoc(doc(db, 'users', uid, 'goals_todo', id));
   } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `goals_todo/${id}`);
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/goals_todo/${id}`);
   }
 }
 
 // Habits
-export async function saveHabit(habit: HabitData) {
-  const current = loadFromLocalStorage();
+export async function saveHabit(habit: HabitData, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   const index = current.habits.findIndex(h => h.id === habit.id);
   if (index >= 0) current.habits[index] = habit;
   else current.habits.push(habit);
-  localStorage.setItem('df_habits_data', JSON.stringify(current.habits));
+  localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(current.habits));
 
   if (isLocalModeEnabled()) return;
   try {
-    await setDoc(doc(db, 'habits_data', habit.id), habit);
+    await setDoc(doc(db, 'users', uid, 'habits_data', habit.id), { ...habit, userId: uid });
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, `habits_data/${habit.id}`);
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/habits_data/${habit.id}`);
   }
 }
 
-export async function deleteHabit(id: string) {
-  const current = loadFromLocalStorage();
+export async function deleteHabit(id: string, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   current.habits = current.habits.filter(h => h.id !== id);
-  localStorage.setItem('df_habits_data', JSON.stringify(current.habits));
+  localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(current.habits));
 
   if (isLocalModeEnabled()) return;
   try {
-    await deleteDoc(doc(db, 'habits_data', id));
+    await deleteDoc(doc(db, 'users', uid, 'habits_data', id));
   } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `habits_data/${id}`);
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/habits_data/${id}`);
   }
 }
 
 // Daily Journal
-export async function saveJournal(journal: DailyJournal) {
-  const current = loadFromLocalStorage();
+export async function saveJournal(journal: DailyJournal, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   const index = current.journal.findIndex(j => j.id === journal.id);
   if (index >= 0) current.journal[index] = journal;
   else current.journal.push(journal);
-  localStorage.setItem('df_daily_journal', JSON.stringify(current.journal));
+  localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(current.journal));
 
   if (isLocalModeEnabled()) return;
   try {
-    await setDoc(doc(db, 'daily_journal', journal.id), journal);
+    await setDoc(doc(db, 'users', uid, 'daily_journal', journal.id), { ...journal, userId: uid });
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, `daily_journal/${journal.id}`);
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/daily_journal/${journal.id}`);
   }
 }
 
 // Expenses Ledger
-export async function saveExpense(expense: PersonalExpense) {
-  const current = loadFromLocalStorage();
+export async function saveExpense(expense: PersonalExpense, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   const index = current.expenses.findIndex(e => e.id === expense.id);
   if (index >= 0) current.expenses[index] = expense;
   else current.expenses.push(expense);
-  localStorage.setItem('df_personal_expenses', JSON.stringify(current.expenses));
+  localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(current.expenses));
 
   if (isLocalModeEnabled()) return;
   try {
-    await setDoc(doc(db, 'personal_expenses', expense.id), expense);
+    await setDoc(doc(db, 'users', uid, 'personal_expenses', expense.id), { ...expense, userId: uid });
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, `personal_expenses/${expense.id}`);
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/personal_expenses/${expense.id}`);
   }
 }
 
-export async function deleteExpense(id: string) {
-  const current = loadFromLocalStorage();
+export async function deleteExpense(id: string, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
   current.expenses = current.expenses.filter(e => e.id !== id);
-  localStorage.setItem('df_personal_expenses', JSON.stringify(current.expenses));
+  localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(current.expenses));
 
   if (isLocalModeEnabled()) return;
   try {
-    await deleteDoc(doc(db, 'personal_expenses', id));
+    await deleteDoc(doc(db, 'users', uid, 'personal_expenses', id));
   } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `personal_expenses/${id}`);
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/personal_expenses/${id}`);
   }
 }
 
 // Quick Scratchpad
-export async function saveScratchpad(text: string) {
-  localStorage.setItem('df_quick_scratchpad', text);
+export async function saveScratchpad(text: string, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  localStorage.setItem(`df_quick_scratchpad_${uid}`, text);
 
   if (isLocalModeEnabled()) return;
   try {
-    await setDoc(doc(db, 'quick_scratchpad', 'single_doc'), {
+    await setDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'), {
       id: 'single_doc',
       text,
+      userId: uid,
       lastUpdated: Date.now()
     });
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, 'quick_scratchpad/single_doc');
+    handleFirestoreError(error, OperationType.WRITE, `users/${uid}/quick_scratchpad/single_doc`);
   }
 }
 
-// ---------------- PURGE DATA ----------------
-export async function purgeAllWorkspaceData() {
-  // Clear local storage keys
-  localStorage.removeItem('df_goals_todo');
-  localStorage.removeItem('df_habits_data');
-  localStorage.removeItem('df_daily_journal');
-  localStorage.removeItem('df_personal_expenses');
-  localStorage.removeItem('df_quick_scratchpad');
-  localStorage.removeItem('df_scratchpad_archive');
-  localStorage.removeItem('df_user_profile');
-  localStorage.removeItem('df_active_theme_id');
-  localStorage.removeItem('df_custom_accent_color');
-  localStorage.removeItem('df_is_light_mode');
+// ---------------- PURGE USER DATA ----------------
+export async function purgeAllWorkspaceData(userId?: string) {
+  const uid = resolveActiveUserId(userId);
+
+  localStorage.removeItem(`df_goals_todo_${uid}`);
+  localStorage.removeItem(`df_habits_data_${uid}`);
+  localStorage.removeItem(`df_daily_journal_${uid}`);
+  localStorage.removeItem(`df_personal_expenses_${uid}`);
+  localStorage.removeItem(`df_quick_scratchpad_${uid}`);
 
   if (isLocalModeEnabled()) return;
 
   try {
-    // Delete goals
-    const goalsSnap = await getDocs(collection(db, 'goals_todo'));
+    const goalsSnap = await getDocs(collection(db, 'users', uid, 'goals_todo'));
     for (const d of goalsSnap.docs) {
-      await deleteDoc(doc(db, 'goals_todo', d.id));
+      await deleteDoc(doc(db, 'users', uid, 'goals_todo', d.id));
     }
-    // Delete habits
-    const habitsSnap = await getDocs(collection(db, 'habits_data'));
+    const habitsSnap = await getDocs(collection(db, 'users', uid, 'habits_data'));
     for (const d of habitsSnap.docs) {
-      await deleteDoc(doc(db, 'habits_data', d.id));
+      await deleteDoc(doc(db, 'users', uid, 'habits_data', d.id));
     }
-    // Delete journal
-    const journalSnap = await getDocs(collection(db, 'daily_journal'));
+    const journalSnap = await getDocs(collection(db, 'users', uid, 'daily_journal'));
     for (const d of journalSnap.docs) {
-      await deleteDoc(doc(db, 'daily_journal', d.id));
+      await deleteDoc(doc(db, 'users', uid, 'daily_journal', d.id));
     }
-    // Delete expenses
-    const expensesSnap = await getDocs(collection(db, 'personal_expenses'));
+    const expensesSnap = await getDocs(collection(db, 'users', uid, 'personal_expenses'));
     for (const d of expensesSnap.docs) {
-      await deleteDoc(doc(db, 'personal_expenses', d.id));
+      await deleteDoc(doc(db, 'users', uid, 'personal_expenses', d.id));
     }
-    // Delete scratchpad
-    await deleteDoc(doc(db, 'quick_scratchpad', 'single_doc'));
+    await deleteDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'));
   } catch (error) {
     console.error('Failed purging Firestore data', error);
   }
 }
 
-// ---------------- REALTIME SNAPSHOT LISTENERS ----------------
-export function syncScratchpadRealtime(callback: (text: string) => void) {
+// ---------------- REALTIME SNAPSHOT LISTENERS PER USER ----------------
+export function syncScratchpadRealtime(callback: (text: string) => void, userId?: string) {
   if (isLocalModeEnabled()) return () => {};
-  
-  return onSnapshot(doc(db, 'quick_scratchpad', 'single_doc'), (snap) => {
+  const uid = resolveActiveUserId(userId);
+
+  return onSnapshot(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'), (snap) => {
     if (snap.exists()) {
       callback((snap.data() as any).text || '');
     }
   }, (error) => {
-    handleFirestoreError(error, OperationType.GET, 'quick_scratchpad/single_doc');
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/quick_scratchpad/single_doc`);
   });
 }
 
-export function syncCollectionRealtime(collectionName: string, callback: (data: any[]) => void) {
+export function syncCollectionRealtime(collectionName: string, callback: (data: any[]) => void, userId?: string) {
   if (isLocalModeEnabled()) return () => {};
+  const uid = resolveActiveUserId(userId);
 
-  return onSnapshot(collection(db, collectionName), (snap) => {
+  return onSnapshot(collection(db, 'users', uid, collectionName), (snap) => {
     const list: any[] = [];
     snap.forEach(d => list.push({ id: d.id, ...d.data() }));
     callback(list);
   }, (error) => {
-    handleFirestoreError(error, OperationType.GET, collectionName);
+    handleFirestoreError(error, OperationType.GET, `users/${uid}/` + collectionName);
   });
 }

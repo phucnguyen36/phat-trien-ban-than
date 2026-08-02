@@ -388,52 +388,52 @@ export default function App() {
     }
   };
 
-  // Load all Workspace Data
+  // Load all Workspace Data for current active account
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      await initializeDefaultDataIfEmpty();
-
-      const data = await loadWorkspaceData();
+      const activeEmail = currentUser?.email;
+      const data = await loadWorkspaceData(activeEmail);
       setGoals(data.goals);
       setHabits(data.habits);
       setJournalEntries(data.journal);
       setExpenses(data.expenses);
       setScratchpadText(data.scratchpad);
     } catch (e) {
-      console.error('Failed loading workspace data', e);
+      console.error('Failed loading workspace data for active account', e);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
-  // Run initial fetch on authenticated state
+  // Run initial fetch when user logs in or switches account
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
     }
-  }, [isAuthenticated, loadData]);
+  }, [isAuthenticated, currentUser, loadData]);
 
-  // Real-time snap subscriptions (Active if localMode is false)
+  // Real-time snap subscriptions per active account (Active if localMode is false)
   useEffect(() => {
     if (!isAuthenticated || localOnlyMode) return;
+    const activeEmail = currentUser?.email;
 
     try {
       const unsubGoals = syncCollectionRealtime('goals_todo', (data) => {
-        if (data && data.length > 0) setGoals(data);
-      });
+        if (data) setGoals(data);
+      }, activeEmail);
       const unsubHabits = syncCollectionRealtime('habits_data', (data) => {
-        if (data && data.length > 0) setHabits(data);
-      });
+        if (data) setHabits(data);
+      }, activeEmail);
       const unsubJournal = syncCollectionRealtime('daily_journal', (data) => {
-        if (data && data.length > 0) setJournalEntries(data);
-      });
+        if (data) setJournalEntries(data);
+      }, activeEmail);
       const unsubExpenses = syncCollectionRealtime('personal_expenses', (data) => {
-        if (data && data.length > 0) setExpenses(data);
-      });
+        if (data) setExpenses(data);
+      }, activeEmail);
       const unsubPad = syncScratchpadRealtime((text) => {
         if (text !== undefined) setScratchpadText(text);
-      });
+      }, activeEmail);
 
       return () => {
         unsubGoals();
@@ -443,9 +443,9 @@ export default function App() {
         unsubPad();
       };
     } catch (error) {
-      console.warn("Real-time listener registration failed. Falling back to poll/local updates.", error);
+      console.warn("Real-time listener registration failed. Falling back to account local updates.", error);
     }
-  }, [isAuthenticated, localOnlyMode]);
+  }, [isAuthenticated, currentUser, localOnlyMode]);
 
   // Handler: Switch local mode
   const handleToggleLocalMode = (val: boolean) => {
@@ -773,17 +773,18 @@ export default function App() {
 
     const demoScratchpad = `# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\n1. CORE PRINCIPLE: Simplicity + High Visual Elegance (Dark Frosted Glassmorphism).\n2. COMMERCIAL DISTRIBUTION:\n   - License Tier Standard ($49 Lifetime)\n   - License Tier VIP Coaching ($149 System Integration)\n3. DAILY FOCUS PROTOCOL:\n   - Block 1 (08:00 - 11:00): Core Systems Architecture & Product Code\n   - Block 2 (13:00 - 15:30): Growth Funnels & Marketing Ingress\n   - Block 3 (16:30 - 18:00): Physical Training & Reflection Telemetry`;
 
-    localStorage.setItem('df_goals_todo', JSON.stringify(demoGoals));
-    localStorage.setItem('df_habits_data', JSON.stringify(demoHabits));
-    localStorage.setItem('df_daily_journal', JSON.stringify(demoJournal));
-    localStorage.setItem('df_personal_expenses', JSON.stringify(demoExpenses));
-    localStorage.setItem('df_quick_scratchpad', demoScratchpad);
+    const activeEmail = currentUser?.email;
+    localStorage.setItem(`df_goals_todo_${activeEmail}`, JSON.stringify(demoGoals));
+    localStorage.setItem(`df_habits_data_${activeEmail}`, JSON.stringify(demoHabits));
+    localStorage.setItem(`df_daily_journal_${activeEmail}`, JSON.stringify(demoJournal));
+    localStorage.setItem(`df_personal_expenses_${activeEmail}`, JSON.stringify(demoExpenses));
+    localStorage.setItem(`df_quick_scratchpad_${activeEmail}`, demoScratchpad);
 
-    for (const g of demoGoals) await saveGoal(g);
-    for (const h of demoHabits) await saveHabit(h);
-    for (const j of demoJournal) await saveJournal(j);
-    for (const e of demoExpenses) await saveExpense(e);
-    await saveScratchpad(demoScratchpad);
+    for (const g of demoGoals) await saveGoal(g, activeEmail);
+    for (const h of demoHabits) await saveHabit(h, activeEmail);
+    for (const j of demoJournal) await saveJournal(j, activeEmail);
+    for (const e of demoExpenses) await saveExpense(e, activeEmail);
+    await saveScratchpad(demoScratchpad, activeEmail);
 
     setGoals(demoGoals);
     setHabits(demoHabits);
