@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Mail, Key, AlertCircle } from 'lucide-react';
-import { authenticateUser, DEFAULT_ADMIN, UserAccount } from '../userRegistry';
+import { authenticateUser, UserAccount } from '../userRegistry';
 
 interface AuthGateProps {
   onAuthenticated: (user: UserAccount) => void;
 }
 
 export default function AuthGate({ onAuthenticated }: AuthGateProps) {
-  // Default to master admin credentials as requested
-  const [email, setEmail] = useState(DEFAULT_ADMIN.email);
-  const [password, setPassword] = useState(DEFAULT_ADMIN.password);
+  // Blank inputs for production client delivery
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
 
@@ -89,7 +89,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
               </div>
             )}
 
-            {/* Login Form (Cleaned Up - Direct Email & Password) */}
+            {/* Login Form (Cleaned Up - Blank inputs for client) */}
             <form onSubmit={handleLogin} className="space-y-4 text-xs font-mono">
               <div className="space-y-1">
                 <label className="text-zinc-300 uppercase tracking-widest text-[10px] font-bold">LOGIN EMAIL:</label>
@@ -99,7 +99,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@domain.com"
-                    className="w-full glass-input-true py-3 pl-9 pr-3 rounded-xl font-sans"
+                    className="w-full glass-input-true py-3 pl-9 pr-3 rounded-xl font-sans text-white"
                     autoFocus
                   />
                   <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -114,7 +114,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full glass-input-true py-3 pl-9 pr-3 rounded-xl font-mono"
+                    className="w-full glass-input-true py-3 pl-9 pr-3 rounded-xl font-mono text-white"
                   />
                   <Key className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>

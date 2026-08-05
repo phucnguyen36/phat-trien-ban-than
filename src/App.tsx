@@ -863,32 +863,32 @@ export default function App() {
         <div className="glass-orb-3" />
       </div>
 
-      {/* 1. TOP STATUS BAR HEADER (True Glassmorphism) */}
-      <header className="sticky top-0 z-40 bg-white/[0.08] backdrop-blur-2xl border-b border-white/15 px-6 md:px-12 py-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+      {/* 1. TOP STATUS BAR HEADER (True Glassmorphism Ultra-Sleek) */}
+      <header className="sticky top-0 z-40 bg-white/[0.06] backdrop-blur-2xl border-b border-white/15 px-4 md:px-8 py-3 flex flex-col md:flex-row justify-between items-center gap-3 shadow-2xl">
         
         {/* Brand & Live System Clock */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${activeTheme.text} ${activeTheme.shadowGlow} animate-pulse inline-block`} />
-            <h1 className="text-sm font-mono tracking-widest text-zinc-100 uppercase font-bold">
-              DEEP FOCUS OS <span className="text-[10px] text-zinc-600 font-normal">v5.0</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 glass-pill-true px-3.5 py-1 text-zinc-100">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-pulse inline-block" />
+            <h1 className="text-xs font-mono tracking-widest uppercase font-extrabold text-white">
+              DEEP FOCUS OS <span className="text-[9px] text-zinc-400 font-normal">v5.0</span>
             </h1>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-zinc-500 border-l border-zinc-900 pl-6 uppercase tracking-wider">
-            <Clock className="w-3 h-3 text-zinc-600" />
+          <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-zinc-300 glass-pill-true px-3 py-1 uppercase tracking-wider font-semibold">
+            <Clock className="w-3.5 h-3.5 text-zinc-400" />
             <span>{currentTime}</span>
           </div>
         </div>
 
         {/* Cloud / Local Mode Selector Bar */}
-        <div className="flex items-center bg-[#050506] border border-zinc-900 p-1">
+        <div className="flex items-center glass-pill-true p-1">
           <button
             onClick={() => handleToggleLocalMode(false)}
-            className={`px-3 py-1.5 font-mono text-[9px] tracking-widest uppercase rounded-none transition-all flex items-center gap-1.5 focus:outline-none ${
+            className={`px-3 py-1 font-mono text-[9px] tracking-widest uppercase rounded-full transition-all flex items-center gap-1.5 focus:outline-none font-bold ${
               !localOnlyMode 
-                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 font-semibold' 
-                : 'text-zinc-600 hover:text-zinc-400'
+                ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 shadow-md' 
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <RefreshCw className={`w-3 h-3 ${!localOnlyMode ? 'animate-spin' : ''}`} />
@@ -896,10 +896,10 @@ export default function App() {
           </button>
           <button
             onClick={() => handleToggleLocalMode(true)}
-            className={`px-3 py-1.5 font-mono text-[9px] tracking-widest uppercase rounded-none transition-all flex items-center gap-1.5 focus:outline-none ${
+            className={`px-3 py-1 font-mono text-[9px] tracking-widest uppercase rounded-full transition-all flex items-center gap-1.5 focus:outline-none font-bold ${
               localOnlyMode 
-                ? 'bg-zinc-800 text-zinc-200 border border-zinc-700/50' 
-                : 'text-zinc-600 hover:text-zinc-400'
+                ? 'bg-white/20 text-white shadow-md' 
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <CloudOff className="w-3 h-3" />
@@ -907,60 +907,59 @@ export default function App() {
           </button>
         </div>
 
-        {/* User Profile Card Triggers & Sidebar Toggle */}
-        <div className="flex items-center gap-3">
+        {/* User Profile Card Triggers & Navigation Controls */}
+        <div className="flex items-center gap-2.5">
           
           {/* Quick Search Command Palette Trigger */}
           <button
             onClick={() => setIsCommandPaletteOpen(true)}
-            className="px-3 py-1.5 border border-zinc-800 hover:border-zinc-700 bg-zinc-900/60 hover:bg-zinc-800/80 text-zinc-300 transition-all rounded-lg flex items-center gap-2 text-xs font-medium"
+            className="px-3 py-1.5 glass-button-true text-zinc-200 hover:text-white transition-all rounded-full flex items-center gap-2 text-xs font-semibold"
             title="Search or Jump to Section (Ctrl + K)"
           >
-            <Search className="w-3.5 h-3.5 text-blue-400" />
+            <Search className="w-3.5 h-3.5 text-cyan-300" />
             <span className="hidden sm:inline">Search...</span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-zinc-800 text-zinc-400 rounded border border-zinc-700">Ctrl K</kbd>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono glass-pill-true text-zinc-300">Ctrl K</kbd>
           </button>
 
-          {/* Quick Seed Demo Data Button for Screenshots */}
+          {/* Quick Seed Demo Data Button */}
           <button
             onClick={handleSeedDemoData}
-            className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-white transition-all text-xs font-mono font-bold flex items-center gap-1.5"
+            className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-white transition-all text-xs font-mono font-bold flex items-center gap-1.5 rounded-full"
             title="Populate rich sample data for goals, habits, journal, and expenses"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>SEED DEMO DATA</span>
+            <span className="hidden sm:inline">SEED DEMO DATA</span>
           </button>
           
           {/* Toggle Sidebar Panel (Desktop) */}
           <button
             onClick={() => setIsSidebarOpen(prev => !prev)}
-            className={`px-3 py-2 border border-zinc-900/80 hover:border-zinc-700 ${
-              isSidebarOpen ? activeTheme.text : 'text-zinc-400'
-            } transition-colors rounded-none hidden lg:flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest bg-black/40`}
+            className={`px-3 py-1.5 glass-button-true text-zinc-200 hover:text-white transition-colors rounded-full hidden lg:flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest font-semibold`}
             title={isSidebarOpen ? "Collapse Navigation Panel" : "Expand Navigation Panel"}
           >
             {isSidebarOpen ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
-            <span>{isSidebarOpen ? "Hide Navigation" : "Show Navigation"}</span>
+            <span>{isSidebarOpen ? "Hide Nav" : "Show Nav"}</span>
           </button>
 
+          {/* User Profile Card */}
           <button
             onClick={() => {
               setTempProfile({ ...profile });
               setIsProfileModalOpen(true);
             }}
-            className="flex items-center gap-3 group text-left focus:outline-none"
+            className="flex items-center gap-2.5 glass-card-true px-3 py-1 rounded-full group text-left focus:outline-none"
             title="Edit Profile Settings"
           >
             <img 
               src={profile.avatarUrl} 
               alt={profile.name} 
-              className="w-8 h-8 rounded-full border border-zinc-800 group-hover:border-zinc-400 transition-colors"
+              className="w-7 h-7 rounded-full border border-white/20 group-hover:border-white/50 transition-colors"
             />
             <div className="hidden sm:flex flex-col">
-              <span className="text-xs font-serif text-zinc-200 group-hover:text-zinc-100 transition-colors">
+              <span className="text-xs font-semibold text-white group-hover:text-cyan-200 transition-colors">
                 {currentUser ? currentUser.name : profile.name}
               </span>
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">
+              <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest font-bold">
                 {currentUser?.role === 'admin' ? 'Master Admin' : profile.role}
               </span>
             </div>
@@ -969,12 +968,13 @@ export default function App() {
           {/* Settings Control Panel button */}
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className={`p-2 border border-zinc-900 ${activeTheme.hoverBorder} ${activeTheme.text} transition-colors rounded-none`}
+            className="p-2 glass-button-true text-zinc-300 hover:text-white transition-colors rounded-full"
             title="OS Configuration & Theme Settings"
           >
             <Settings className="w-3.5 h-3.5" />
           </button>
 
+          {/* Sign Out / Lock Screen button */}
           <button
             onClick={() => {
               sessionStorage.removeItem('df_os_active_user');
@@ -982,7 +982,7 @@ export default function App() {
               setIsAuthenticated(false);
               setCurrentUser(null);
             }}
-            className="p-2 border border-zinc-900 hover:border-zinc-700 text-zinc-500 hover:text-red-400 transition-colors rounded-none"
+            className="p-2 glass-button-true text-zinc-400 hover:text-red-400 transition-colors rounded-full"
             title="Sign Out / Lock Screen"
           >
             <LogOut className="w-3.5 h-3.5" />
