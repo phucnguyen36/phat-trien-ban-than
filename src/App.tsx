@@ -27,6 +27,7 @@ import {
   saveHabit, 
   deleteHabit, 
   saveJournal, 
+  deleteJournal,
   saveExpense, 
   deleteExpense, 
   saveScratchpad,
@@ -547,7 +548,12 @@ export default function App() {
       return [...prev, updatedJournal];
     });
 
-    await saveJournal(updatedJournal);
+    await saveJournal(updatedJournal, currentUser?.email);
+  };
+
+  const handleDeleteJournal = async (id: string) => {
+    setJournalEntries(prev => prev.filter(j => j.id !== id));
+    await deleteJournal(id, currentUser?.email);
   };
 
   // Handler: Expense operations
@@ -1055,13 +1061,13 @@ export default function App() {
               
               <div className="space-y-1.5">
                 {[
-                  ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'License & Users', icon: ShieldCheck }] : []),
-                  { id: 'overview', label: 'Executive Overview', sub: 'Command Center & Stats', icon: LayoutDashboard },
-                  { id: 'todo-hub', label: 'Tactical Roadmap', sub: 'To-Do & Timeline', icon: CheckSquare },
-                  { id: 'habit-matrix', label: 'Habit Matrix', sub: 'Daily Consistency', icon: Activity },
-                  { id: 'daily-journal', label: 'Energy Journal', sub: 'Daily Telemetry', icon: BookOpen },
-                  { id: 'expense-ledger', label: 'Cash Flow Ledger', sub: 'Burn Rate & Budget', icon: DollarSign },
-                  { id: 'scratchpad', label: 'Brain Scratchpad', sub: 'Unfiltered Notes', icon: FileText }
+                  ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'License & customer management', icon: ShieldCheck }] : []),
+                  { id: 'overview', label: 'Executive Overview', sub: 'Command center & performance stats', icon: LayoutDashboard },
+                  { id: 'todo-hub', label: 'Tactical Roadmap', sub: 'To-do tasks & timeline', icon: CheckSquare },
+                  { id: 'habit-matrix', label: 'Habit Matrix', sub: 'Daily consistency & streaks', icon: Activity },
+                  { id: 'daily-journal', label: 'Energy Journal', sub: 'Daily energy & reflection logs', icon: BookOpen },
+                  { id: 'expense-ledger', label: 'Cash Flow Ledger', sub: 'Burn rate & budget', icon: DollarSign },
+                  { id: 'scratchpad', label: 'Brain Scratchpad', sub: 'Ideas & quick notes', icon: FileText }
                 ].map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
@@ -1069,16 +1075,16 @@ export default function App() {
                     <button
                       key={section.id}
                       onClick={() => scrollToSection(section.id)}
-                      className={`w-full text-left p-3 transition-all duration-200 flex items-center gap-3.5 border ${
+                      className={`w-full text-left p-3 transition-all duration-200 flex items-center gap-3.5 border rounded-xl ${
                         isActive 
-                          ? `${activeTheme.border} ${activeTheme.bgMuted} ${activeTheme.text} shadow-[0_0_10px_rgba(255,255,255,0.01)]` 
-                          : 'border-transparent text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/20'
+                          ? `${activeTheme.border} ${activeTheme.bgMuted} text-white shadow-md font-semibold` 
+                          : 'border-transparent text-zinc-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <Icon className="w-4 h-4 shrink-0" />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? activeTheme.text : 'text-zinc-400'}`} />
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-medium leading-none">{section.label}</span>
-                        <span className="text-[8px] font-mono uppercase tracking-widest text-zinc-600 leading-none mt-1">{section.sub}</span>
+                        <span className="text-xs font-sans font-semibold leading-tight text-white">{section.label}</span>
+                        <span className="text-[10px] font-sans font-normal text-zinc-400 leading-tight mt-1 truncate">{section.sub}</span>
                       </div>
                     </button>
                   );
@@ -1086,18 +1092,18 @@ export default function App() {
               </div>
 
               {/* Utility Quick Panel Controls */}
-              <div className="pt-4 mt-2 border-t border-zinc-900/80 flex flex-col gap-2">
+              <div className="pt-4 mt-2 border-t border-white/10 flex flex-col gap-2">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className={`w-full py-2 bg-transparent border border-zinc-900 hover:border-zinc-800 ${activeTheme.text} font-mono text-[9px] uppercase tracking-widest text-center transition-all`}
+                  className="w-full py-2.5 glass-button-true text-zinc-200 hover:text-white font-sans text-xs font-semibold text-center transition-all rounded-xl"
                 >
-                  [ CONFIGURE OS ]
+                  Configure System
                 </button>
                 <button
                   onClick={handleClearAllData}
-                  className="w-full py-2 bg-transparent border border-zinc-900 hover:border-red-950 text-red-500 hover:text-red-400 font-mono text-[9px] uppercase tracking-widest text-center transition-all"
+                  className="w-full py-2.5 glass-button-true text-red-400 hover:text-red-300 font-sans text-xs font-semibold text-center transition-all rounded-xl border-red-500/20"
                 >
-                  [ WIPE ALL DATA ]
+                  Reset Workspace Data
                 </button>
               </div>
             </aside>
@@ -1168,6 +1174,7 @@ export default function App() {
                   <DailyJournalPanel
                     journalEntries={journalEntries}
                     onSaveJournal={handleSaveJournal}
+                    onDeleteJournal={handleDeleteJournal}
                   />
                 </section>
 

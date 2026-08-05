@@ -266,6 +266,20 @@ export async function saveJournal(journal: DailyJournal, userId?: string) {
   }
 }
 
+export async function deleteJournal(id: string, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const current = loadFromLocalStorage(uid);
+  current.journal = current.journal.filter(j => j.id !== id);
+  localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(current.journal));
+
+  if (isLocalModeEnabled()) return;
+  try {
+    await deleteDoc(doc(db, 'users', uid, 'daily_journal', id));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/daily_journal/${id}`);
+  }
+}
+
 // Expenses Ledger
 export async function saveExpense(expense: PersonalExpense, userId?: string) {
   const uid = resolveActiveUserId(userId);
