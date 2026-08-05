@@ -46,6 +46,27 @@ body {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Mobile Touch & Scroll Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .glass-panel-true {
+    border-radius: 1rem !important;
+    padding: 1.25rem !important;
+  }
+  .glass-panel-interactive-true {
+    border-radius: 1rem !important;
+    padding: 1.25rem !important;
+  }
+}
+
 /* DARK FROSTED GLASSMORPHISM SYSTEM (MATCHING REFERENCE IMAGE 2) */
 .glass-background-mesh {
   position: fixed;
