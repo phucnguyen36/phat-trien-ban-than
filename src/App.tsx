@@ -326,28 +326,6 @@ export default function App() {
     }
   };
 
-  // Scroll listener for section activation
-  useEffect(() => {
-    const sections = ['overview', 'todo-hub', 'habit-matrix', 'daily-journal', 'expense-ledger', 'scratchpad'];
-    const handleScroll = () => {
-      let current = 'overview';
-      for (const id of sections) {
-        const el = document.getElementById(id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 180) {
-            current = id;
-          }
-        }
-      }
-      setActiveSection(current);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   // Custom Confirm/Alert Overlay state
   const [customNotice, setCustomNotice] = useState<{
     isOpen: boolean;
@@ -556,19 +534,15 @@ export default function App() {
   };
 
   const handleEditGoal = async (id: string, newText: string) => {
-    let updated: GoalTodo | undefined;
-    setGoals(prev => prev.map(g => {
-      if (g.id === id) {
-        const match = g.text.match(/^(\[[DWMY]:[^\]]+\]\s*)/);
-        const prefix = match ? match[1] : '';
-        updated = { ...g, text: prefix + newText };
-        return updated;
-      }
-      return g;
-    }));
-    if (updated) {
-      await saveGoal(updated);
-    }
+    const goal = goals.find(g => g.id === id);
+    if (!goal) return;
+
+    const match = goal.text.match(/^(\[[DWMY]:[^\]]+\]\s*)/);
+    const prefix = match ? match[1] : '';
+    const updatedGoal: GoalTodo = { ...goal, text: prefix + newText };
+
+    setGoals(prev => prev.map(g => g.id === id ? updatedGoal : g));
+    await saveGoal(updatedGoal);
   };
 
   // A4 — Morning Prompt: submit 3 priorities as daily tasks
@@ -627,17 +601,13 @@ export default function App() {
   };
 
   const handleEditHabit = async (id: string, newName: string) => {
-    let updated: HabitData | undefined;
-    setHabits(prev => prev.map(h => {
-      if (h.id === id) {
-        updated = { ...h, habitName: newName };
-        return updated;
-      }
-      return h;
-    }));
-    if (updated) {
-      await saveHabit(updated);
-    }
+    const habit = habits.find(h => h.id === id);
+    if (!habit) return;
+
+    const updatedHabit: HabitData = { ...habit, habitName: newName };
+
+    setHabits(prev => prev.map(h => h.id === id ? updatedHabit : h));
+    await saveHabit(updatedHabit);
   };
 
   // Handler: Journal operations
