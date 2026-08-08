@@ -465,6 +465,9 @@ export default function App() {
   // Run initial fetch when user logs in or switches account
   useEffect(() => {
     if (isAuthenticated) {
+      // Ensure Cloud Sync is active for authenticated user across all devices & apps
+      setLocalModeEnabled(false);
+      setLocalOnlyMode(false);
       loadData();
 
       // A4 — Morning Prompt: show once per calendar day

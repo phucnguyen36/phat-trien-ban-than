@@ -41,8 +41,7 @@ let auth: any = null;
 
 try {
   app = initializeApp(firebaseConfig);
-  const dbId = firebaseConfigJson.firestoreDatabaseId || "remixed-firestore-database-id";
-  db = getFirestore(app, dbId);
+  db = getFirestore(app);
   auth = getAuth(app);
 } catch (e) {
   console.warn("Firebase initialization failed. Operating in Pure Local Mode.", e);
@@ -106,20 +105,23 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 // Helper to resolve Active Account User ID for Data Isolation
 export function resolveActiveUserId(overrideUserId?: string): string {
+  let raw = '';
   if (overrideUserId && overrideUserId.trim()) {
-    return overrideUserId.trim().toLowerCase();
+    raw = overrideUserId.trim().toLowerCase();
+  } else {
+    const savedUserStr = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    if (savedUserStr) {
+      try {
+        const u = JSON.parse(savedUserStr);
+        if (u && u.email) raw = String(u.email).trim().toLowerCase();
+      } catch (e) {}
+    }
   }
-  const savedUserStr = sessionStorage.getItem('df_os_active_user');
-  if (savedUserStr) {
-    try {
-      const u = JSON.parse(savedUserStr);
-      if (u && u.email) return String(u.email).trim().toLowerCase();
-    } catch (e) {}
+  if (!raw && auth?.currentUser?.email) {
+    raw = auth.currentUser.email.trim().toLowerCase();
   }
-  if (auth?.currentUser?.email) {
-    return auth.currentUser.email.trim().toLowerCase();
-  }
-  return 'default_user';
+  if (!raw) return 'default_user';
+  return raw.replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
 // ---------------- ACCOUNT-SCOPED LOCAL STORAGE HELPERS ----------------

@@ -15,8 +15,8 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
-    // Check if user session stored in sessionStorage
-    const savedUser = sessionStorage.getItem('df_os_active_user');
+    // Check if user session stored in localStorage or sessionStorage
+    const savedUser = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
     if (savedUser) {
       try {
         const user = JSON.parse(savedUser) as UserAccount;
@@ -24,6 +24,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
           onAuthenticated(user);
         }
       } catch (e) {
+        localStorage.removeItem('df_os_active_user');
         sessionStorage.removeItem('df_os_active_user');
       }
     }
@@ -41,6 +42,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
     const res = authenticateUser(email, password);
     if (res.success && res.user) {
       setIsUnlocked(true);
+      localStorage.setItem('df_os_active_user', JSON.stringify(res.user));
       sessionStorage.setItem('df_os_active_user', JSON.stringify(res.user));
       setTimeout(() => {
         onAuthenticated(res.user!);
