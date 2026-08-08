@@ -188,6 +188,13 @@ export default function App() {
   // App settings state
   const [localOnlyMode, setLocalOnlyMode] = useState<boolean>(isLocalModeEnabled());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // A4 — Morning Priority Prompt: show once per day on first login
+  const [showMorningPrompt, setShowMorningPrompt] = useState<boolean>(false);
+  const [morningPriorities, setMorningPriorities] = useState<[string, string, string]>(['', '', '']);
+
+  // A2 — Weekly Review panel open state
+  const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState<boolean>(false);
   
   // Real-time Clock State (local time)
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -228,12 +235,37 @@ export default function App() {
   // Command Palette Open State
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
-  // Global Ctrl+K / Cmd+K listener
+  // C4 — Keyboard Shortcuts Modal & Hotkeys
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+
+  // D2 — Onboarding Wizard Modal State
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [showAdvancedPicker, setShowAdvancedPicker] = useState(false);
+
+  // Global Keyboard Shortcuts (C4)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger hotkeys when typing in inputs/textareas
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen(prev => !prev);
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setIsShortcutsModalOpen(prev => !prev);
+      } else if (e.key === 'j' || e.key === 'J') {
+        scrollToSection('daily-journal');
+      } else if (e.key === 'h' || e.key === 'H') {
+        scrollToSection('habit-matrix');
+      } else if (e.key === 'e' || e.key === 'E') {
+        scrollToSection('expense-ledger');
+      } else if (e.key === 'n' || e.key === 'N' || e.key === 't' || e.key === 'T') {
+        scrollToSection('todo-hub');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -407,10 +439,46 @@ export default function App() {
     }
   }, [currentUser]);
 
+  // D3 — Export All Workspace Data to JSON file
+  const handleExportAllData = () => {
+    const backupData = {
+      exportDate: new Date().toISOString(),
+      user: currentUser?.email,
+      goals,
+      habits,
+      journalEntries,
+      expenses,
+      scratchpadText
+    };
+    const jsonStr = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DeepFocus_Backup_${currentUser?.email?.split('@')[0]}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Run initial fetch when user logs in or switches account
   useEffect(() => {
     if (isAuthenticated) {
       loadData();
+
+      // D2 — Onboarding Wizard Check: show if first time user
+      const onboardKey = `df_onboarding_completed_${currentUser?.email}`;
+      if (!localStorage.getItem(onboardKey)) {
+        setTimeout(() => setShowOnboarding(true), 600);
+      } else {
+        // A4 — Morning Prompt: show once per calendar day if onboarding done
+        const todayKey = `df_morning_prompt_shown_${new Date().toISOString().split('T')[0]}_${currentUser?.email}`;
+        if (!sessionStorage.getItem(todayKey)) {
+          setTimeout(() => setShowMorningPrompt(true), 1200);
+          sessionStorage.setItem(todayKey, 'shown');
+        }
+      }
     }
   }, [isAuthenticated, currentUser, loadData]);
 
@@ -462,14 +530,15 @@ export default function App() {
   };
 
   // Handler: Goal operations
-  const handleAddGoal = async (text: string, timeframe: TimeframeType) => {
+  const handleAddGoal = async (text: string, timeframe: TimeframeType, timeEstimate?: import('./types').TimeEstimate) => {
     const id = 'g_' + Math.random().toString(36).substring(2, 9);
     const newGoal: GoalTodo = {
       id,
       text,
       timeframe,
       completed: false,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      ...(timeEstimate ? { timeEstimate } : {})
     };
     
     setGoals(prev => [...prev, newGoal]);
@@ -487,6 +556,18 @@ export default function App() {
   const handleDeleteGoal = async (id: string) => {
     setGoals(prev => prev.filter(g => g.id !== id));
     await deleteGoal(id);
+  };
+
+  // A4 — Morning Prompt: submit 3 priorities as daily tasks
+  const handleMorningPromptSubmit = async () => {
+    const filled = morningPriorities.filter(p => p.trim());
+    for (const text of filled) {
+      if (text.trim()) {
+        await handleAddGoal(text.trim(), 'daily');
+      }
+    }
+    setShowMorningPrompt(false);
+    setMorningPriorities(['', '', '']);
   };
 
   // Handler: Habit operations
@@ -862,11 +943,11 @@ export default function App() {
   return (
     <div className={`min-h-screen text-zinc-100 font-sans antialiased flex flex-col relative selection:bg-white/20 selection:text-white ${isLightMode ? 'light-mode' : ''}`}>
       
-      {/* Vibrant Pastel/Neon Mesh Orbs Background (Matching User Reference Image) */}
+      {/* Vercel Aesthetic Dark Gradient Mesh + Noise Overlay + Ambient Glow Streaks */}
       <div className="glass-background-mesh">
-        <div className="glass-orb-1" />
-        <div className="glass-orb-2" />
-        <div className="glass-orb-3" />
+        <div className="noise-overlay" />
+        <div className="glow-streak-top" />
+        <div className="glow-streak-bottom" />
       </div>
 
       {/* 1. TOP STATUS BAR HEADER (True Glassmorphism Ultra-Sleek) */}
@@ -927,16 +1008,8 @@ export default function App() {
             <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono glass-pill-true text-zinc-300">Ctrl K</kbd>
           </button>
 
-          {/* Quick Seed Demo Data Button */}
-          <button
-            onClick={handleSeedDemoData}
-            className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-white transition-all text-xs font-mono font-bold flex items-center gap-1.5 rounded-full"
-            title="Populate rich sample data for goals, habits, journal, and expenses"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span className="hidden sm:inline">SEED DEMO DATA</span>
-          </button>
-          
+
+
           {/* Toggle Sidebar Panel (Desktop) */}
           <button
             onClick={() => setIsSidebarOpen(prev => !prev)}
@@ -1026,11 +1099,11 @@ export default function App() {
               return (
                 <button
                   key={section.id}
-                  onClick={() => scrollToSection(section.id)}
-                  className={`px-3 py-2 flex items-center gap-1.5 border shrink-0 text-[10px] font-mono uppercase tracking-widest transition-all ${
+                  onClick={() => setActiveSection(section.id)}
+                  className={`px-3 py-2 flex items-center gap-1.5 border shrink-0 text-[10px] font-mono uppercase tracking-widest transition-all rounded-full ${
                     isActive 
-                      ? `${activeTheme.border} ${activeTheme.bgMuted} ${activeTheme.text}` 
-                      : 'border-zinc-900/60 bg-[#020202]/30 text-zinc-500'
+                      ? `${activeTheme.border} ${activeTheme.bgMuted} ${activeTheme.text} font-bold` 
+                      : 'border-white/10 bg-black/20 text-zinc-400 hover:text-white'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -1063,7 +1136,7 @@ export default function App() {
                 {[
                   ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'License & customer management', icon: ShieldCheck }] : []),
                   { id: 'overview', label: 'Executive Overview', sub: 'Command center & performance stats', icon: LayoutDashboard },
-                  { id: 'todo-hub', label: 'Tactical Roadmap', sub: 'To-do tasks & timeline', icon: CheckSquare },
+                  { id: 'todo-hub', label: 'Tactical Roadmap', sub: 'Tasks, timeline & review dashboard', icon: CheckSquare },
                   { id: 'habit-matrix', label: 'Habit Matrix', sub: 'Daily consistency & streaks', icon: Activity },
                   { id: 'daily-journal', label: 'Energy Journal', sub: 'Daily energy & reflection logs', icon: BookOpen },
                   { id: 'expense-ledger', label: 'Cash Flow Ledger', sub: 'Burn rate & budget', icon: DollarSign },
@@ -1074,7 +1147,7 @@ export default function App() {
                   return (
                     <button
                       key={section.id}
-                      onClick={() => scrollToSection(section.id)}
+                      onClick={() => setActiveSection(section.id)}
                       className={`w-full text-left p-3 transition-all duration-200 flex items-center gap-3.5 border rounded-xl ${
                         isActive 
                           ? `${activeTheme.border} ${activeTheme.bgMuted} text-white shadow-md font-semibold` 
@@ -1083,7 +1156,7 @@ export default function App() {
                     >
                       <Icon className={`w-4 h-4 shrink-0 ${isActive ? activeTheme.text : 'text-zinc-400'}`} />
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-semibold leading-tight text-white">{section.label}</span>
+                        <span className="text-xs font-sans font-semibold leading-tight text-zinc-100">{section.label}</span>
                         <span className="text-[10px] font-sans font-normal text-zinc-400 leading-tight mt-1 truncate">{section.sub}</span>
                       </div>
                     </button>
@@ -1091,19 +1164,39 @@ export default function App() {
                 })}
               </div>
 
-              {/* Utility Quick Panel Controls */}
-              <div className="pt-4 mt-2 border-t border-white/10 flex flex-col gap-2">
+              {/* Streamlined Utility Controls (Tối giản khu vực panel) */}
+              <div className="pt-3 mt-2 border-t border-white/10 grid grid-cols-2 gap-2 text-center">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className="w-full py-2.5 glass-button-true text-zinc-200 hover:text-white font-sans text-xs font-semibold text-center transition-all rounded-xl"
+                  className="py-2 px-2.5 glass-button-true text-zinc-300 hover:text-white font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  title="Configure System Settings"
                 >
-                  Configure System
+                  <Settings className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Config</span>
+                </button>
+                <button
+                  onClick={handleExportAllData}
+                  className="py-2 px-2.5 glass-button-true text-zinc-300 hover:text-white font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  title="Export Backup Data (JSON)"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Backup</span>
+                </button>
+                <button
+                  onClick={() => setIsShortcutsModalOpen(true)}
+                  className="py-2 px-2.5 glass-button-true text-zinc-300 hover:text-white font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  title="Keyboard Shortcuts Cheatsheet (?)"
+                >
+                  <span>⌨️</span>
+                  <span>Shortcuts</span>
                 </button>
                 <button
                   onClick={handleClearAllData}
-                  className="w-full py-2.5 glass-button-true text-red-400 hover:text-red-300 font-sans text-xs font-semibold text-center transition-all rounded-xl border-red-500/20"
+                  className="py-2 px-2.5 glass-button-true text-red-400 hover:text-red-300 font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5 border-red-500/20"
+                  title="Reset Workspace Data"
                 >
-                  Reset Workspace Data
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Reset</span>
                 </button>
               </div>
             </aside>
@@ -1119,83 +1212,96 @@ export default function App() {
                 </span>
               </div>
             ) : (
-              <div className="space-y-12">
+              <div className="min-h-[650px] animate-fadeIn">
                 
                 {/* Module Admin: Master Admin Control Portal */}
-                {currentUser?.role === 'admin' && (
-                  <section id="admin-portal" className="scroll-mt-28">
+                {currentUser?.role === 'admin' && activeSection === 'admin-portal' && (
+                  <section id="admin-portal">
                     <AdminDashboard onNotice={showNotice} />
                   </section>
                 )}
 
                 {/* Module 0: Executive Command Center Overview */}
-                <section id="overview" className="scroll-mt-28">
-                  <ExecutiveDashboard
-                    goals={goals}
-                    habits={habits}
-                    journals={journalEntries}
-                    expenses={expenses}
-                    onNavigate={(sec) => {
-                      if (sec === 'habits') scrollToSection('habit-matrix');
-                      else if (sec === 'journal') scrollToSection('daily-journal');
-                      else if (sec === 'expenses') scrollToSection('expense-ledger');
-                      else scrollToSection(sec);
-                    }}
-                    onToggleGoal={handleToggleGoal}
-                    onToggleHabitDay={handleToggleHabitDay}
-                    activeTheme={activeTheme}
-                  />
-                </section>
+                {activeSection === 'overview' && (
+                  <section id="overview">
+                    <ExecutiveDashboard
+                      goals={goals}
+                      habits={habits}
+                      journals={journalEntries}
+                      expenses={expenses}
+                      onNavigate={(sec) => {
+                        if (sec === 'habits') setActiveSection('habit-matrix');
+                        else if (sec === 'journal') setActiveSection('daily-journal');
+                        else if (sec === 'expenses') setActiveSection('expense-ledger');
+                        else setActiveSection(sec);
+                      }}
+                      onToggleGoal={handleToggleGoal}
+                      onToggleHabitDay={handleToggleHabitDay}
+                      activeTheme={activeTheme}
+                    />
+                  </section>
+                )}
 
                 {/* Module 1: Tactical Roadmap & To-Do Hub */}
-                <section id="todo-hub" className="scroll-mt-28">
-                  <TodoHub 
-                    goals={goals}
-                    onAddGoal={handleAddGoal}
-                    onToggleGoal={handleToggleGoal}
-                    onDeleteGoal={handleDeleteGoal}
-                    isLightMode={isLightMode}
-                  />
-                </section>
+                {activeSection === 'todo-hub' && (
+                  <section id="todo-hub">
+                    <TodoHub 
+                      goals={goals}
+                      onAddGoal={handleAddGoal}
+                      onToggleGoal={handleToggleGoal}
+                      onDeleteGoal={handleDeleteGoal}
+                      isLightMode={isLightMode}
+                    />
+                  </section>
+                )}
 
                 {/* Module 2: Self-Mastery Habit Matrix */}
-                <section id="habit-matrix" className="scroll-mt-28">
-                  <HabitTracker
-                    habits={habits}
-                    onAddHabit={handleAddHabit}
-                    onToggleHabitDay={handleToggleHabitDay}
-                    onDeleteHabit={handleDeleteHabit}
-                    isLightMode={isLightMode}
-                  />
-                </section>
+                {activeSection === 'habit-matrix' && (
+                  <section id="habit-matrix">
+                    <HabitTracker
+                      habits={habits}
+                      goals={goals}
+                      onAddHabit={handleAddHabit}
+                      onToggleHabitDay={handleToggleHabitDay}
+                      onDeleteHabit={handleDeleteHabit}
+                      isLightMode={isLightMode}
+                    />
+                  </section>
+                )}
 
                 {/* Module 3: Daily Journal & Energy Flow */}
-                <section id="daily-journal" className="scroll-mt-28">
-                  <DailyJournalPanel
-                    journalEntries={journalEntries}
-                    onSaveJournal={handleSaveJournal}
-                    onDeleteJournal={handleDeleteJournal}
-                  />
-                </section>
+                {activeSection === 'daily-journal' && (
+                  <section id="daily-journal">
+                    <DailyJournalPanel
+                      journalEntries={journalEntries}
+                      onSaveJournal={handleSaveJournal}
+                      onDeleteJournal={handleDeleteJournal}
+                    />
+                  </section>
+                )}
 
                 {/* Module 4: Personal Cash Burn-Rate Ledger */}
-                <section id="expense-ledger" className="scroll-mt-28">
-                  <ExpenseLedger
-                    expenses={expenses}
-                    onAddExpense={handleAddExpense}
-                    onDeleteExpense={handleDeleteExpense}
-                    isLightMode={isLightMode}
-                  />
-                </section>
+                {activeSection === 'expense-ledger' && (
+                  <section id="expense-ledger">
+                    <ExpenseLedger
+                      expenses={expenses}
+                      onAddExpense={handleAddExpense}
+                      onDeleteExpense={handleDeleteExpense}
+                      isLightMode={isLightMode}
+                    />
+                  </section>
+                )}
 
                 {/* Module 5: Quick Scratchpad / Brain Dump */}
-                <section id="scratchpad" className="scroll-mt-28">
-                  <Scratchpad
-                    initialText={scratchpadText}
-                    isCloudConnected={!localOnlyMode}
-                    onSaveText={handleSaveScratchpadText}
-                  />
-                </section>
+                {activeSection === 'scratchpad' && (
+                  <section id="scratchpad">
+                    <Scratchpad
+                      initialText={scratchpadText}
+                      isCloudConnected={!localOnlyMode}
+                      onSaveText={handleSaveScratchpadText}
+                    />
+                  </section>
+                )}
 
               </div>
             )}
@@ -1218,82 +1324,122 @@ export default function App() {
 
       {/* 3. PROFILE SETTINGS MODAL OVERLAY */}
       {isProfileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-6 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#020202] border border-zinc-900 p-8 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6 backdrop-blur-md">
+          <div className="w-full max-w-md glass-panel-true border border-white/15 p-7 shadow-2xl relative rounded-2xl">
             
             {/* Close Button */}
             <button 
               onClick={() => setIsProfileModalOpen(false)}
-              className="absolute right-6 top-6 text-zinc-600 hover:text-zinc-100 transition-colors focus:outline-none"
+              className="absolute right-5 top-5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Header */}
-            <h3 className="text-lg font-medium tracking-tight text-zinc-100 mb-1">
+            <h3 className="text-lg font-bold tracking-tight text-white mb-1">
               Master Profile Settings
             </h3>
-            <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-6 border-b border-zinc-950 pb-4">
+            <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/10 pb-4 font-bold">
               USER IDENTITY & MISSION STATEMENT
             </p>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               
               <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-mono text-zinc-500 uppercase">DISPLAY NAME</label>
+                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">DISPLAY NAME</label>
                 <input
                   type="text"
                   required
                   value={tempProfile.name}
                   onChange={(e) => setTempProfile(prev => ({ ...prev, name: e.target.value }))}
-                  className="bg-[#050506] border border-zinc-900 px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 rounded-none font-sans"
+                  className="glass-input-true px-3 py-2.5 text-xs text-white focus:outline-none rounded-xl font-sans"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-mono text-zinc-500 uppercase">ROLE / TITLE</label>
+                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">ROLE / TITLE</label>
                 <input
                   type="text"
                   required
                   value={tempProfile.role}
                   onChange={(e) => setTempProfile(prev => ({ ...prev, role: e.target.value }))}
-                  className="bg-[#050506] border border-zinc-900 px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 rounded-none font-sans"
+                  className="glass-input-true px-3 py-2.5 text-xs text-white focus:outline-none rounded-xl font-sans"
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-mono text-zinc-500 uppercase">AVATAR URL</label>
-                <input
-                  type="text"
-                  required
-                  value={tempProfile.avatarUrl}
-                  onChange={(e) => setTempProfile(prev => ({ ...prev, avatarUrl: e.target.value }))}
-                  className="bg-[#050506] border border-zinc-900 px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 rounded-none font-mono text-[10px]"
-                />
+              {/* Avatar Image Upload & URL Input */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">AVATAR IMAGE</label>
+                <div className="flex items-center gap-4 glass-card-true p-3 rounded-xl border border-white/10">
+                  <img
+                    src={tempProfile.avatarUrl}
+                    alt="Preview"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+                    }}
+                  />
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              if (typeof reader.result === 'string') {
+                                setTempProfile(prev => ({ ...prev, avatarUrl: reader.result as string }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                        title="Upload avatar image from computer"
+                      />
+                      <button
+                        type="button"
+                        className="w-full py-2 glass-button-true text-cyan-300 hover:text-cyan-100 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 border border-cyan-500/30"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload Image File</span>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={tempProfile.avatarUrl}
+                      onChange={(e) => setTempProfile(prev => ({ ...prev, avatarUrl: e.target.value }))}
+                      placeholder="Or paste image URL..."
+                      className="w-full glass-input-true px-2.5 py-1.5 text-[10px] text-white focus:outline-none rounded-lg font-mono truncate"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[9px] font-mono text-zinc-500 uppercase">BIO / MISSION STATEMENT</label>
+                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">BIO / MISSION STATEMENT</label>
                 <textarea
                   required
                   value={tempProfile.bio}
                   onChange={(e) => setTempProfile(prev => ({ ...prev, bio: e.target.value }))}
-                  className="bg-[#050506] border border-zinc-900 p-3 h-24 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 rounded-none font-sans resize-none"
+                  className="glass-input-true p-3 h-24 text-xs text-white focus:outline-none rounded-xl font-sans resize-none"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setIsProfileModalOpen(false)}
-                  className="flex-1 py-2 border border-zinc-900 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300 font-mono text-xs uppercase rounded-none transition-all"
+                  className="flex-1 py-2.5 border border-white/10 hover:border-white/25 text-zinc-400 hover:text-white font-mono text-xs uppercase tracking-widest rounded-xl transition-all font-bold"
                 >
                   CANCEL
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 py-2 bg-transparent border border-zinc-800 ${activeTheme.hoverBorder} ${activeTheme.text} font-mono text-xs uppercase rounded-none transition-all`}
+                  className="flex-1 py-2.5 glass-button-true text-cyan-300 hover:text-cyan-100 font-mono text-xs uppercase tracking-widest rounded-xl transition-all font-bold border border-cyan-500/30"
                 >
                   SAVE PROFILE
                 </button>
@@ -1307,124 +1453,82 @@ export default function App() {
 
       {/* 4. SYSTEM SETTINGS & THEMES CONFIGURATION MODAL */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-6 backdrop-blur-md">
-          <div className={`w-full max-w-lg bg-[#020202] border ${activeTheme.border} p-8 shadow-2xl relative transition-all duration-300 max-h-[90vh] overflow-y-auto scrollbar-none`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6 backdrop-blur-md">
+          <div className="w-full max-w-lg glass-panel-true border border-white/15 p-7 shadow-2xl relative transition-all duration-300 max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-none">
             
             {/* Close Button */}
             <button 
               onClick={() => setIsSettingsOpen(false)}
-              className="absolute right-6 top-6 text-zinc-600 hover:text-zinc-100 transition-colors focus:outline-none"
+              className="absolute right-5 top-5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Header */}
-            <h3 className="text-lg font-medium tracking-tight text-zinc-100 mb-1">
-              System Configuration & Theme Settings
+            <h3 className="text-lg font-bold tracking-tight text-white mb-1">
+              System Configuration Settings
             </h3>
-            <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-6 border-b border-zinc-900 pb-4">
-              COLOR ACCENTS, THEME MODE & DATA MANAGEMENT
+            <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/10 pb-4 font-bold">
+              THEME MODE & DATA MANAGEMENT
             </p>
 
             {/* Section 0: Theme Mode (Light / Dark) */}
             <div className="mb-6">
-              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                {isLightMode ? <Sun className="w-3.5 h-3.5 text-zinc-500" /> : <Moon className="w-3.5 h-3.5 text-zinc-500" />}
-                THEME MODE
+              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 font-bold">
+                {isLightMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-violet-400" />}
+                THEME MODE (LIGHT / DARK)
               </h4>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsLightMode(false)}
-                  className={`flex items-center justify-center gap-2 py-2.5 border transition-all duration-300 rounded-none text-xs font-mono uppercase ${
+                  onClick={() => {
+                    setIsLightMode(false);
+                    document.documentElement.classList.remove('light-mode');
+                    localStorage.setItem('df_is_light_mode', 'false');
+                  }}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-mono uppercase font-bold transition-all border ${
                     !isLightMode 
-                      ? `${activeTheme.border} ${activeTheme.bgMuted} ${activeTheme.text}` 
-                      : 'border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:border-zinc-300'
+                      ? 'bg-white text-black border-white shadow-lg font-black' 
+                      : 'glass-button-true text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <Moon className="w-3.5 h-3.5" />
-                  DARK MODE
+                  <Moon className="w-4 h-4" />
+                  <span>DARK MODE {!isLightMode && '✓'}</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsLightMode(true)}
-                  className={`flex items-center justify-center gap-2 py-2.5 border transition-all duration-300 rounded-none text-xs font-mono uppercase ${
+                  onClick={() => {
+                    setIsLightMode(true);
+                    document.documentElement.classList.add('light-mode');
+                    localStorage.setItem('df_is_light_mode', 'true');
+                  }}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-mono uppercase font-bold transition-all border ${
                     isLightMode 
-                      ? `${activeTheme.border} ${activeTheme.bgMuted} ${activeTheme.text}` 
-                      : 'border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                      ? 'bg-white text-black border-white shadow-lg font-black' 
+                      : 'glass-button-true text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <Sun className="w-3.5 h-3.5" />
-                  LIGHT MODE
+                  <Sun className="w-4 h-4" />
+                  <span>LIGHT MODE {isLightMode && '✓'}</span>
                 </button>
-              </div>
-            </div>
-
-            {/* Section 1: Color Themes Selection */}
-            <div className="mb-6">
-              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-zinc-500" />
-                ACCENT PRESETS
-              </h4>
-              
-              <div className="grid grid-cols-2 gap-2.5">
-                {THEMES.map((themeOption) => {
-                  const isActive = themeOption.id === activeThemeId;
-                  return (
-                    <button
-                      key={themeOption.id}
-                      type="button"
-                      onClick={() => {
-                        setActiveThemeId(themeOption.id);
-                        setCustomAccentColor(themeOption.accent);
-                      }}
-                      className={`flex items-center justify-between p-3 border transition-all duration-300 rounded-none text-left focus:outline-none ${
-                        isActive 
-                          ? `${themeOption.border} ${themeOption.bgMuted} shadow-[0_0_10px_rgba(255,255,255,0.03)]` 
-                          : 'border-zinc-900 hover:border-zinc-800 bg-[#050506]'
-                      }`}
-                    >
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-medium text-zinc-200 truncate">
-                          {themeOption.name}
-                        </span>
-                      </div>
-                      <div 
-                        className="w-3.5 h-3.5 rounded-full border border-black animate-pulse shrink-0 ml-2"
-                        style={{ backgroundColor: themeOption.accent }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Custom Accent Color Picker - After Effects Style */}
-              <div className="mt-4">
-                <AEPicker 
-                  currentColor={customAccentColor}
-                  onChangeColor={(hex) => {
-                    setActiveThemeId('custom');
-                    setCustomAccentColor(hex);
-                  }}
-                />
               </div>
             </div>
 
             {/* Section 2: Storage Status & Import/Export */}
             <div className="mb-6">
-              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-zinc-500" />
+              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 font-bold">
+                <Database className="w-3.5 h-3.5 text-zinc-400" />
                 DATA PERSISTENCE & BACKUP
               </h4>
 
-              <div className="bg-[#050506] border border-zinc-900 p-4 mb-4">
-                <div className="flex items-center justify-between mb-2 pb-2 border-b border-zinc-950">
-                  <span className="text-[9px] font-mono text-zinc-500 uppercase">STORAGE ARCHITECTURE</span>
+              <div className="glass-card-true p-4 mb-4 rounded-xl border border-white/10">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">STORAGE ARCHITECTURE</span>
                   <span className={`text-[9px] font-mono font-bold uppercase ${localOnlyMode ? 'text-zinc-400' : 'text-emerald-400 animate-pulse'}`}>
                     {localOnlyMode ? 'PURE LOCAL (OFFLINE)' : 'CLOUD FIRESTORE (CONNECTED)'}
                   </span>
                 </div>
-                <p className="text-[10px] text-zinc-400 leading-relaxed font-sans">
+                <p className="text-[10px] text-zinc-300 leading-relaxed font-sans">
                   {localOnlyMode 
                     ? 'All application telemetry is securely stored in your browser LocalStorage.' 
                     : 'Data is synchronized in real-time with Cloud Firestore for multi-device availability.'}
@@ -1436,7 +1540,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleExportData}
-                  className="flex items-center justify-center gap-2 py-2.5 bg-[#050506] border border-zinc-900 hover:border-zinc-500 text-zinc-300 font-mono text-xs uppercase rounded-none transition-all"
+                  className="flex items-center justify-center gap-2 py-2.5 glass-button-true text-zinc-200 hover:text-white font-mono text-xs uppercase rounded-xl transition-all font-bold"
                 >
                   <Download className="w-4 h-4" />
                   EXPORT JSON
@@ -1453,7 +1557,7 @@ export default function App() {
                   />
                   <button
                     type="button"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#050506] border border-zinc-900 hover:border-zinc-500 text-zinc-300 font-mono text-xs uppercase rounded-none transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 glass-button-true text-zinc-200 hover:text-white font-mono text-xs uppercase rounded-xl transition-all font-bold"
                   >
                     <Upload className="w-4 h-4" />
                     IMPORT JSON
@@ -1465,7 +1569,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleClearAllData}
-                className="w-full flex items-center justify-center gap-2.5 py-2.5 bg-red-950/20 border border-red-900 hover:border-red-500 text-red-400 hover:text-red-300 font-mono text-xs uppercase rounded-none transition-all"
+                className="w-full flex items-center justify-center gap-2.5 py-2.5 bg-red-950/30 border border-red-500/30 hover:border-red-400 text-red-400 hover:text-red-200 font-mono text-xs uppercase rounded-xl transition-all font-bold"
               >
                 <Trash2 className="w-4 h-4" />
                 PERMANENTLY WIPE ALL DATA
@@ -1473,13 +1577,13 @@ export default function App() {
             </div>
 
             {/* Close Button */}
-            <div className="pt-4 border-t border-zinc-900">
+            <div className="pt-4 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setIsSettingsOpen(false)}
-                className="w-full py-2.5 border border-zinc-900 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300 font-mono text-xs uppercase rounded-none transition-all text-center"
+                className="w-full py-2.5 glass-button-true text-zinc-300 hover:text-white font-mono text-xs uppercase rounded-xl transition-all font-bold"
               >
-                CLOSE CONTROL PANEL
+                CLOSE CONFIGURATION
               </button>
             </div>
 
@@ -1548,6 +1652,279 @@ export default function App() {
         isLightMode={isLightMode}
         onToggleThemeMode={() => setIsLightMode(prev => !prev)}
       />
+
+      {/* A4 — MORNING PRIORITY PROMPT MODAL */}
+      {showMorningPrompt && (
+        <div className="fixed inset-0 z-[9000] flex items-center justify-center bg-black/70 backdrop-blur-md">
+          <div className="relative w-full max-w-md mx-4 glass-card-true border border-amber-500/30 rounded-2xl p-7 shadow-2xl shadow-amber-900/20">
+            {/* Glow accent */}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-6 rounded-full bg-amber-400/20 blur-2xl pointer-events-none" />
+
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-2xl">🌅</span>
+              <div>
+                <h2 className="text-white font-semibold text-lg leading-tight">Good morning, {currentUser?.email?.split('@')[0] || 'Chief'}</h2>
+                <p className="text-zinc-400 text-xs mt-0.5">What are your 3 most important tasks today?</p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {([0, 1, 2] as const).map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                    {i + 1}
+                  </span>
+                  <input
+                    type="text"
+                    value={morningPriorities[i]}
+                    onChange={(e) => setMorningPriorities(prev => {
+                      const next = [prev[0], prev[1], prev[2]] as [string, string, string];
+                      next[i] = e.target.value;
+                      return next;
+                    })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleMorningPromptSubmit(); }}
+                    placeholder={['Most important task...', 'Second priority...', 'Third priority...'][i]}
+                    className="flex-1 bg-zinc-900/60 border border-zinc-700/50 focus:border-amber-500/60 text-zinc-200 placeholder-zinc-600 rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                    autoFocus={i === 0}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowMorningPrompt(false)}
+                className="flex-1 py-2 text-zinc-500 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 rounded-lg text-xs font-mono uppercase tracking-widest transition-all"
+              >
+                Skip
+              </button>
+              <button
+                onClick={handleMorningPromptSubmit}
+                className="flex-[2] py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 hover:border-amber-400/60 text-amber-300 hover:text-amber-200 rounded-lg text-xs font-mono uppercase tracking-widest font-bold transition-all"
+              >
+                Lock In & Start Day →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* A2 — WEEKLY REVIEW FLOATING PANEL */}
+      {isWeeklyReviewOpen && (
+        <div className="fixed inset-0 z-[8900] flex items-center justify-center bg-black/65 backdrop-blur-md">
+          <div className="relative w-full max-w-lg mx-4 glass-card-true border border-violet-500/30 rounded-2xl p-7 shadow-2xl shadow-violet-900/20 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsWeeklyReviewOpen(false)}
+              className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-2xl">📊</span>
+              <div>
+                <h2 className="text-white font-semibold text-lg">Weekly Debrief</h2>
+                <p className="text-zinc-400 text-xs">Week of {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+              </div>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {(() => {
+                const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                const weekGoals = goals.filter(g => g.createdAt >= weekAgo);
+                const completedCount = weekGoals.filter(g => g.completed).length;
+                const totalCount = weekGoals.length;
+                const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                const weekJournals = journalEntries.filter(j => j.updatedAt >= weekAgo);
+                const avgEnergy = weekJournals.length > 0
+                  ? (weekJournals.reduce((s, j) => s + j.energy, 0) / weekJournals.length).toFixed(1)
+                  : '—';
+                const today = new Date();
+                const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+                const thisMonthHabits = habits.filter(h => h.monthYear === monthKey);
+                const daysInMonth = today.getDate();
+                const habitAvg = thisMonthHabits.length > 0
+                  ? Math.round((thisMonthHabits.reduce((s, h) => s + h.completedDays.filter(d => d <= daysInMonth).length, 0) / thisMonthHabits.length / daysInMonth) * 100)
+                  : 0;
+                return [
+                  { label: 'Tasks Done', value: `${pct}%`, sub: `${completedCount}/${totalCount}`, color: 'text-emerald-400' },
+                  { label: 'Avg Energy', value: avgEnergy, sub: `${weekJournals.length} logs`, color: 'text-amber-400' },
+                  { label: 'Habit Rate', value: `${habitAvg}%`, sub: 'this month', color: 'text-violet-400' },
+                ].map(stat => (
+                  <div key={stat.label} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 text-center">
+                    <div className={`text-2xl font-bold font-mono ${stat.color}`}>{stat.value}</div>
+                    <div className="text-zinc-300 text-[10px] font-semibold mt-1">{stat.label}</div>
+                    <div className="text-zinc-600 text-[9px] mt-0.5">{stat.sub}</div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* 3 Reflection Questions */}
+            <div className="space-y-4">
+              {[
+                { emoji: '🔑', q: 'What was your highest-leverage task this week?' },
+                { emoji: '🚫', q: 'What wasted the most time? (Be honest)' },
+                { emoji: '⚡', q: 'What is the #1 priority for next week?' },
+              ].map((item, i) => (
+                <div key={i}>
+                  <label className="text-zinc-400 text-xs font-medium flex items-center gap-1.5 mb-1.5">
+                    <span>{item.emoji}</span> {item.q}
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Write your honest answer..."
+                    className="w-full bg-zinc-900/60 border border-zinc-700/50 focus:border-violet-500/60 text-zinc-200 placeholder-zinc-600 rounded-lg px-3 py-2 text-sm outline-none transition-all resize-none"
+                    onChange={(e) => {
+                      const key = `df_weekly_review_q${i}_${new Date().getFullYear()}_W${Math.ceil(new Date().getDate() / 7)}`;
+                      localStorage.setItem(key, e.target.value);
+                    }}
+                    defaultValue={(() => {
+                      const key = `df_weekly_review_q${i}_${new Date().getFullYear()}_W${Math.ceil(new Date().getDate() / 7)}`;
+                      return localStorage.getItem(key) || '';
+                    })()}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setIsWeeklyReviewOpen(false)}
+              className="mt-5 w-full py-2.5 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 hover:border-violet-400/50 text-violet-300 rounded-lg text-xs font-mono uppercase tracking-widest font-bold transition-all"
+            >
+              Save & Close Review
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* C4 — KEYBOARD SHORTCUTS MODAL (?) */}
+      {isShortcutsModalOpen && (
+        <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/75 backdrop-blur-md">
+          <div className="relative w-full max-w-md mx-4 glass-card-true border border-cyan-500/30 rounded-2xl p-7 shadow-2xl">
+            <button
+              onClick={() => setIsShortcutsModalOpen(false)}
+              className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-2xl">⌨️</span>
+              <div>
+                <h2 className="text-white font-semibold text-lg">Keyboard Shortcuts</h2>
+                <p className="text-zinc-400 text-xs">Navigate Deep Focus OS with speed</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs font-mono">
+              {[
+                { key: 'Ctrl + K / Cmd + K', label: 'Command Palette Search' },
+                { key: 'N / T', label: 'Jump to Tactical Roadmap (Tasks)' },
+                { key: 'H', label: 'Jump to Habit Matrix' },
+                { key: 'J', label: 'Jump to Energy Journal' },
+                { key: 'E', label: 'Jump to Cash Flow Ledger' },
+                { key: '?', label: 'Open this Shortcuts Modal' },
+              ].map(s => (
+                <div key={s.key} className="flex justify-between items-center p-2 rounded bg-zinc-900/60 border border-zinc-800">
+                  <span className="text-zinc-300 font-sans">{s.label}</span>
+                  <kbd className="px-2 py-0.5 text-[10px] bg-zinc-800 text-cyan-300 rounded border border-zinc-700 font-bold">{s.key}</kbd>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setIsShortcutsModalOpen(false)}
+              className="mt-5 w-full py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg text-xs font-mono uppercase font-bold"
+            >
+              Close Cheatsheet
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* D2 — ONBOARDING WIZARD MODAL */}
+      {showOnboarding && (
+        <div className="fixed inset-0 z-[9900] flex items-center justify-center bg-black/80 backdrop-blur-lg">
+          <div className="relative w-full max-w-lg mx-4 glass-card-true border border-pink-500/30 rounded-2xl p-8 shadow-2xl">
+            {/* Step indicator */}
+            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-pink-400" />
+                <h3 className="text-white font-bold text-base">Welcome to Deep Focus OS</h3>
+              </div>
+              <span className="text-xs font-mono text-pink-400 font-bold">Step {onboardingStep} of 3</span>
+            </div>
+
+            {onboardingStep === 1 && (
+              <div className="space-y-4">
+                <div className="text-center py-2">
+                  <span className="text-4xl">🚀</span>
+                  <h4 className="text-lg font-bold text-white mt-3">Welcome, {currentUser?.name || 'Architect'}!</h4>
+                  <p className="text-zinc-300 text-xs mt-1 leading-relaxed">
+                    Deep Focus OS is your high-leverage personal operating system designed for extreme discipline, focus, and financial clarity.
+                  </p>
+                </div>
+                <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2 text-xs text-zinc-300">
+                  <p>✨ <strong>Multi-Tier Roadmap:</strong> Organize objectives by Day, Week, Month & Year.</p>
+                  <p>📊 <strong>Habit Matrix:</strong> Build unshakeable daily consistency.</p>
+                  <p>🔋 <strong>Energy Journal:</strong> Track peak state and reflect daily.</p>
+                </div>
+                <button
+                  onClick={() => setOnboardingStep(2)}
+                  className="w-full py-2.5 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-all"
+                >
+                  Continue → Set Up First Habits
+                </button>
+              </div>
+            )}
+
+            {onboardingStep === 2 && (
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>⚡</span> Step 2: Core Daily Habits
+                </h4>
+                <p className="text-xs text-zinc-400">Your default habits are pre-loaded into your Habit Matrix:</p>
+                <div className="space-y-2">
+                  {['Morning Deep Focus Work Block (90m)', 'Hydration & Daily Physical Training', 'Evening Reflection & Energy Log'].map((h, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2.5 bg-zinc-900/60 rounded-lg border border-zinc-800 text-xs text-zinc-200">
+                      <span className="text-emerald-400 font-bold">✓</span> {h}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setOnboardingStep(3)}
+                  className="w-full py-2.5 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-all"
+                >
+                  Next → Final Step
+                </button>
+              </div>
+            )}
+
+            {onboardingStep === 3 && (
+              <div className="space-y-4">
+                <div className="text-center py-2">
+                  <span className="text-4xl">🎯</span>
+                  <h4 className="text-lg font-bold text-white mt-3">You're Ready to Execute!</h4>
+                  <p className="text-zinc-300 text-xs mt-1">
+                    Press <kbd className="px-1.5 py-0.5 bg-zinc-800 text-pink-300 font-mono rounded">Ctrl + K</kbd> anytime to search or navigate. Press <kbd className="px-1.5 py-0.5 bg-zinc-800 text-pink-300 font-mono rounded">?</kbd> for keyboard shortcuts.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.setItem(`df_onboarding_completed_${currentUser?.email}`, 'true');
+                    setShowOnboarding(false);
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-pink-900/40 transition-all"
+                >
+                  🚀 Launch Deep Focus OS
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

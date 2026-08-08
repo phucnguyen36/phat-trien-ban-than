@@ -8,6 +8,7 @@ export interface UserAccount {
   status: 'active' | 'suspended' | 'expired';
   createdAt: number;
   pricePaid: number;
+  expiresAt?: string; // D1 — License Expiry Date (YYYY-MM-DD)
 }
 
 const STORAGE_KEY = 'df_user_registry_v1';
@@ -32,7 +33,7 @@ const INITIAL_USERS: UserAccount[] = [
     id: 'usr_cust_101',
     email: 'client.demo@gmail.com',
     password: 'client123',
-    name: 'Khách Hàng Dùng Thử',
+    name: 'Demo Client User',
     role: 'customer',
     tier: 'Standard',
     status: 'active',
@@ -83,19 +84,28 @@ export function authenticateUser(emailInput: string, passwordInput: string): {
 
   const found = users.find(u => u.email.toLowerCase() === cleanEmail);
   if (!found) {
-    return { success: false, message: 'Email chưa được đăng ký trong hệ thống!' };
+    return { success: false, message: 'Email is not registered in the system!' };
   }
 
   if (found.password !== passwordInput) {
-    return { success: false, message: 'Mật khẩu không chính xác!' };
+    return { success: false, message: 'Incorrect password!' };
   }
 
   if (found.status === 'suspended') {
-    return { success: false, message: 'Tài khoản của bạn tạm thời bị tạm khóa. Vui lòng liên hệ Admin!' };
+    return { success: false, message: 'Your account is suspended. Please contact System Administrator!' };
+  }
+
+  // D1 — Check License Expiry Date
+  if (found.expiresAt) {
+    const today = new Date().toISOString().split('T')[0];
+    if (found.expiresAt < today) {
+      updateUserStatus(found.id, 'expired');
+      return { success: false, message: `Your license key expired on ${found.expiresAt}. Please renew your subscription!` };
+    }
   }
 
   if (found.status === 'expired') {
-    return { success: false, message: 'Gói bản quyền của bạn đã hết hạn. Vui lòng nâng cấp gói mới!' };
+    return { success: false, message: 'Your subscription package has expired. Please upgrade or renew!' };
   }
 
   return { success: true, user: found };
@@ -106,13 +116,14 @@ export function createUserAccount(
   password: string,
   name: string,
   tier: 'Standard' | 'VIP',
-  pricePaid: number = 399000
+  pricePaid: number = 399000,
+  expiresAt?: string
 ): { success: boolean; user?: UserAccount; message?: string } {
   const users = getUsersRegistry();
   const cleanEmail = email.trim().toLowerCase();
 
   if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
-    return { success: false, message: 'Email này đã tồn tại trong danh sách khách hàng!' };
+    return { success: false, message: 'This email already exists in the client database!' };
   }
 
   const newUser: UserAccount = {
@@ -124,7 +135,8 @@ export function createUserAccount(
     tier,
     status: 'active',
     createdAt: Date.now(),
-    pricePaid
+    pricePaid,
+    ...(expiresAt ? { expiresAt } : {})
   };
 
   const updated = [newUser, ...users];

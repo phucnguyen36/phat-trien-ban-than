@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { HabitData } from '../types';
+import { HabitData, GoalTodo } from '../types';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -28,6 +28,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tool
 
 interface HabitTrackerProps {
   habits: HabitData[];
+  goals?: GoalTodo[]; // A3 — Goal-Habit linking
   onAddHabit: (habitName: string) => void;
   onToggleHabitDay: (habitId: string, day: number) => void;
   onDeleteHabit: (habitId: string) => void;
@@ -36,12 +37,22 @@ interface HabitTrackerProps {
 
 export default function HabitTracker({
   habits,
+  goals = [],
   onAddHabit,
   onToggleHabitDay,
   onDeleteHabit,
   isLightMode
 }: HabitTrackerProps) {
   const [newHabitName, setNewHabitName] = useState('');
+  // A3 — Goal-Habit linking: track which habitId is expanded for goal-link
+  const [habitGoalLinks, setHabitGoalLinks] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('df_habit_goal_links') || '{}'); } catch { return {}; }
+  });
+  const saveHabitGoalLink = (habitId: string, goalId: string) => {
+    const next = { ...habitGoalLinks, [habitId]: goalId };
+    setHabitGoalLinks(next);
+    localStorage.setItem('df_habit_goal_links', JSON.stringify(next));
+  };
   
   // Current local month YYYY-MM
   const today = useMemo(() => new Date(), []);
@@ -285,18 +296,36 @@ export default function HabitTracker({
                 key={h.id} 
                 className="grid grid-cols-[200px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
               >
-                {/* Habit Label + Delete Button */}
-                <div className="flex items-center justify-between pl-4 pr-3 min-w-0">
-                  <span className="text-xs font-semibold text-white truncate pr-2">
-                    {h.habitName}
-                  </span>
-                  <button
-                    onClick={() => onDeleteHabit(h.id)}
-                    className="opacity-0 group-hover/row:opacity-100 text-zinc-400 hover:text-red-400 transition-all p-0.5"
+                {/* Habit Label + Delete Button + A3 Goal Link */}
+                <div className="flex flex-col pl-4 pr-3 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-white truncate pr-2">
+                      {h.habitName}
+                    </span>
+                    <button
+                      onClick={() => onDeleteHabit(h.id)}
+                      className="opacity-0 group-hover/row:opacity-100 text-zinc-400 hover:text-red-400 transition-all p-0.5"
                     title="Delete habit"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    </button>
+                  </div>
+                  {/* A3 — Linked Goal */}
+                  {goals.length > 0 && (
+                    <select
+                      value={habitGoalLinks[h.id] || ''}
+                      onChange={e => saveHabitGoalLink(h.id, e.target.value)}
+                      className="mt-0.5 bg-transparent text-[9px] font-mono text-zinc-500 hover:text-zinc-300 focus:outline-none cursor-pointer truncate max-w-[160px] transition-colors"
+                      title="Link to a Goal"
+                    >
+                      <option value="">+ link goal</option>
+                      {goals.filter(g => !g.completed).map(g => (
+                        <option key={g.id} value={g.id} className="bg-zinc-900 text-white">
+                          {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 30)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* Habit Grid squares */}

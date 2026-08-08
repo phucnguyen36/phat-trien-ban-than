@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { GoalTodo, TimeframeType } from '../types';
+import { GoalTodo, TimeframeType, TimeEstimate } from '../types';
 import { Bar } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -24,22 +24,26 @@ import {
   Sliders, 
   LayoutGrid, 
   CalendarDays,
-  Check
+  Check,
+  Play,
+  Pause,
+  Repeat,
+  Clock
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface TodoHubProps {
   goals: GoalTodo[];
-  onAddGoal: (text: string, timeframe: TimeframeType) => void;
+  onAddGoal: (text: string, timeframe: TimeframeType, timeEstimate?: TimeEstimate) => void;
   onToggleGoal: (id: string, completed: boolean) => void;
   onDeleteGoal: (id: string) => void;
   isLightMode?: boolean;
 }
 
 export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, isLightMode }: TodoHubProps) {
-  // View mode toggle: Multi-column view vs Calendar Grid view
-  const [viewMode, setViewMode] = useState<'columns' | 'calendar'>('columns');
+  // View mode toggle: Multi-column view vs Calendar Grid view vs Weekly/Monthly Review Dashboard
+  const [viewMode, setViewMode] = useState<'columns' | 'calendar' | 'review'>('columns');
 
   // Current local date defaults to 2026-07-16
   const [selectedYear, setSelectedYear] = useState('2026');
@@ -82,6 +86,38 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
     monthly: '',
     yearly: ''
   });
+
+  // A1 — Time Estimate state per column
+  const TIME_ESTIMATES: { value: TimeEstimate; label: string; color: string }[] = [
+    { value: '15m', label: '15m', color: 'text-emerald-400' },
+    { value: '30m', label: '30m', color: 'text-emerald-400' },
+    { value: '1h', label: '1h', color: 'text-amber-400' },
+    { value: '2h', label: '2h', color: 'text-amber-400' },
+    { value: 'half-day', label: '½day', color: 'text-red-400' },
+  ];
+  const [estimates, setEstimates] = useState<Record<TimeframeType, TimeEstimate | ''>>({ daily: '', weekly: '', monthly: '', yearly: '' });
+
+  // B2 — Live Stopwatch Timer State
+  const [activeTimerId, setActiveTimerId] = useState<string | null>(null);
+  const [timerSeconds, setTimerSeconds] = useState<Record<string, number>>({});
+
+  // Timer Tick Effect
+  React.useEffect(() => {
+    if (!activeTimerId) return;
+    const interval = setInterval(() => {
+      setTimerSeconds(prev => ({
+        ...prev,
+        [activeTimerId]: (prev[activeTimerId] || 0) + 1
+      }));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activeTimerId]);
+
+  // C2 — Recurring Tasks State (in-memory toggle)
+  const [recurringTasks, setRecurringTasks] = useState<Record<string, boolean>>({});
+  const toggleRecurring = (id: string) => {
+    setRecurringTasks(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Calendar Quick-Add Input state
   const [calendarInputText, setCalendarInputText] = useState('');
@@ -155,8 +191,10 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
     if (timeframe === 'monthly') tag = `[M:${ctxKey}] `;
     if (timeframe === 'yearly') tag = `[Y:${ctxKey}] `;
 
-    onAddGoal(`${tag}${val}`, timeframe);
+    const est = estimates[timeframe] || undefined;
+    onAddGoal(`${tag}${val}`, timeframe, est as TimeEstimate | undefined);
     setInputs(prev => ({ ...prev, [timeframe]: '' }));
+    setEstimates(prev => ({ ...prev, [timeframe]: '' }));
   };
 
   // Calendar Add Goal
@@ -282,20 +320,40 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
           </div>
 
           {/* Quick Add Form */}
-          <form onSubmit={(e) => handleAdd(e, timeframe)} className="mb-6 flex gap-2 w-full">
-            <input
-              type="text"
-              value={inputs[timeframe]}
-              onChange={(e) => setInputs(prev => ({ ...prev, [timeframe]: e.target.value }))}
-              placeholder={`Add ${label.toLowerCase()} objective...`}
-              className="w-full glass-input-true px-3 py-2 text-xs text-white placeholder-zinc-500 font-sans"
-            />
-            <button 
-              type="submit"
-              className="p-2 glass-button-true text-white transition-all flex-shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+          <form onSubmit={(e) => handleAdd(e, timeframe)} className="mb-6 flex flex-col gap-2 w-full">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={inputs[timeframe]}
+                onChange={(e) => setInputs(prev => ({ ...prev, [timeframe]: e.target.value }))}
+                placeholder={`Add ${label.toLowerCase()} objective...`}
+                className="w-full glass-input-true px-3 py-2 text-xs text-white placeholder-zinc-500 font-sans"
+              />
+              <button 
+                type="submit"
+                className="p-2 glass-button-true text-white transition-all flex-shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            {/* A1 — Time Estimate Quick Picker */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">⏱ Est:</span>
+              {TIME_ESTIMATES.map(({ value, label: lbl, color }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setEstimates(prev => ({ ...prev, [timeframe]: prev[timeframe] === value ? '' : value }))}
+                  className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold border transition-all ${
+                    estimates[timeframe] === value
+                      ? `border-current bg-white/10 ${color}`
+                      : 'border-zinc-700 text-zinc-600 hover:text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {lbl}
+                </button>
+              ))}
+            </div>
           </form>
 
           {/* To-Do Items List */}
@@ -305,36 +363,101 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
                 No objectives set
               </div>
             ) : (
-              list.map(g => (
-                <div 
-                  key={g.id} 
-                  className="group flex items-start justify-between gap-3 p-3 glass-card-true transition-all"
-                >
-                  <button
-                    type="button"
-                    onClick={() => onToggleGoal(g.id, !g.completed)}
-                    className="mt-0.5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
+              list.map(g => {
+                const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
+                const isTimerRunning = activeTimerId === g.id;
+                const secs = timerSeconds[g.id] || 0;
+                const mins = Math.floor(secs / 60);
+                const remainingSecs = secs % 60;
+                const timeStr = `${String(mins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
+                const isRec = recurringTasks[g.id] || g.isRecurring;
+
+                return (
+                  <div 
+                    key={g.id} 
+                    className={`group flex items-start justify-between gap-3 p-3 glass-card-true transition-all ${
+                      isTimerRunning ? 'border-amber-500/50 bg-amber-500/10' : ''
+                    }`}
                   >
-                    {g.completed ? (
-                      <CheckSquare className={`w-4 h-4 ${accentClass}`} />
-                    ) : (
-                      <Square className="w-4 h-4 text-zinc-500" />
-                    )}
-                  </button>
-                  <span className={`flex-1 text-xs break-words whitespace-normal leading-relaxed transition-all duration-300 font-medium ${
-                    g.completed ? 'text-zinc-500 line-through' : 'text-zinc-100'
-                  }`}>
-                    {getDisplayGoalText(g.text)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteGoal(g.id)}
-                    className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-400 transition-colors focus:outline-none p-0.5"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))
+                    <button
+                      type="button"
+                      onClick={() => onToggleGoal(g.id, !g.completed)}
+                      className="mt-0.5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
+                    >
+                      {g.completed ? (
+                        <CheckSquare className={`w-4 h-4 ${accentClass}`} />
+                      ) : (
+                        <Square className="w-4 h-4 text-zinc-500" />
+                      )}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs break-words whitespace-normal leading-relaxed transition-all duration-300 font-medium block ${
+                        g.completed ? 'text-zinc-500 line-through' : 'text-zinc-100'
+                      }`}>
+                        {getDisplayGoalText(g.text)}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        {/* A1 — Time Estimate Badge */}
+                        {estMeta && (
+                          <span className={`inline-flex items-center gap-0.5 text-[9px] font-mono font-bold ${estMeta.color} opacity-80`}>
+                            ⏱ {estMeta.label}
+                          </span>
+                        )}
+                        {/* B2 — Live Timer Badge */}
+                        {secs > 0 && (
+                          <span className={`inline-flex items-center gap-0.5 text-[9px] font-mono font-bold ${isTimerRunning ? 'text-amber-400 animate-pulse' : 'text-zinc-400'}`}>
+                            <Clock className="w-3 h-3" /> {timeStr}
+                          </span>
+                        )}
+                        {/* C2 — Recurring Badge */}
+                        {isRec && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-mono font-bold text-sky-400 bg-sky-500/10 border border-sky-500/30 px-1 rounded">
+                            🔁 Auto-Reset
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action buttons: B2 Timer, C2 Repeat, Delete */}
+                    <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      {/* B2 Stopwatch Button */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTimerId(isTimerRunning ? null : g.id)}
+                        className={`p-1 rounded transition-colors ${
+                          isTimerRunning 
+                            ? 'text-amber-400 bg-amber-500/20 hover:bg-amber-500/30' 
+                            : 'text-zinc-500 hover:text-amber-300'
+                        }`}
+                        title={isTimerRunning ? 'Pause Stopwatch' : 'Start Time Tracking'}
+                      >
+                        {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                      </button>
+
+                      {/* C2 Recurring Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => toggleRecurring(g.id)}
+                        className={`p-1 rounded transition-colors ${
+                          isRec ? 'text-sky-400' : 'text-zinc-600 hover:text-zinc-400'
+                        }`}
+                        title="Toggle Recurring Task (Auto-Reset)"
+                      >
+                        <Repeat className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => onDeleteGoal(g.id)}
+                        className="text-zinc-500 hover:text-red-400 transition-colors focus:outline-none p-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
@@ -381,7 +504,18 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
-              <span>CALENDAR VIEW</span>
+              <span>CALENDAR</span>
+            </button>
+            <button
+              onClick={() => setViewMode('review')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
+                viewMode === 'review'
+                  ? 'bg-violet-500/30 text-violet-200 font-extrabold shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <span>📊</span>
+              <span>WEEKLY & MONTHLY REVIEW</span>
             </button>
           </div>
 
@@ -591,6 +725,119 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
           </div>
         </div>
       )}
+      {/* ---------------------------------------------------- */}
+      {/* 3. WEEKLY & MONTHLY REVIEW DASHBOARD MODE */}
+      {/* ---------------------------------------------------- */}
+      {viewMode === 'review' && (
+        <div className="space-y-8 animate-fadeIn">
+          {/* Top Review Stats Header */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {(() => {
+              const dailyCount = goals.filter(g => g.timeframe === 'daily').length;
+              const dailyDone = goals.filter(g => g.timeframe === 'daily' && g.completed).length;
+              const weeklyCount = goals.filter(g => g.timeframe === 'weekly').length;
+              const weeklyDone = goals.filter(g => g.timeframe === 'weekly' && g.completed).length;
+              const monthlyCount = goals.filter(g => g.timeframe === 'monthly').length;
+              const monthlyDone = goals.filter(g => g.timeframe === 'monthly' && g.completed).length;
+
+              return [
+                { label: 'Daily Win Rate', done: dailyDone, total: dailyCount, color: 'text-emerald-400' },
+                { label: 'Weekly Execution', done: weeklyDone, total: weeklyCount, color: 'text-violet-400' },
+                { label: 'Monthly Targets', done: monthlyDone, total: monthlyCount, color: 'text-amber-400' },
+              ].map(s => {
+                const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+                return (
+                  <div key={s.label} className="p-4 glass-card-true border border-white/10 rounded-2xl text-center space-y-1">
+                    <div className={`text-3xl font-black font-mono ${s.color}`}>{pct}%</div>
+                    <div className="text-xs font-semibold text-white uppercase tracking-wider">{s.label}</div>
+                    <div className="text-[10px] text-zinc-400 font-mono">{s.done} completed / {s.total} total</div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          {/* Bar Chart: Target Completion Velocity */}
+          <div className="glass-card-true p-6 border border-white/10 rounded-2xl space-y-4">
+            <h3 className="text-xs font-mono font-bold text-violet-300 uppercase tracking-widest flex items-center gap-2">
+              <span>📊</span> Target Velocity Dashboard (Completion rate by Tier)
+            </h3>
+            <div className="h-64 relative">
+              <Bar 
+                data={{
+                  labels: ['Daily Tasks', 'Weekly Goals', 'Monthly Objectives', 'Yearly Vision'],
+                  datasets: [
+                    {
+                      label: 'Completed Tasks',
+                      data: [
+                        goals.filter(g => g.timeframe === 'daily' && g.completed).length,
+                        goals.filter(g => g.timeframe === 'weekly' && g.completed).length,
+                        goals.filter(g => g.timeframe === 'monthly' && g.completed).length,
+                        goals.filter(g => g.timeframe === 'yearly' && g.completed).length,
+                      ],
+                      backgroundColor: 'rgba(167, 139, 250, 0.7)',
+                      borderColor: '#a78bfa',
+                      borderWidth: 1,
+                    },
+                    {
+                      label: 'Pending Tasks',
+                      data: [
+                        goals.filter(g => g.timeframe === 'daily' && !g.completed).length,
+                        goals.filter(g => g.timeframe === 'weekly' && !g.completed).length,
+                        goals.filter(g => g.timeframe === 'monthly' && !g.completed).length,
+                        goals.filter(g => g.timeframe === 'yearly' && !g.completed).length,
+                      ],
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      borderWidth: 1,
+                    }
+                  ]
+                }} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { labels: { color: '#e4e4e7', font: { family: 'Inter', size: 10 } } }
+                  },
+                  scales: {
+                    x: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                  }
+                }} 
+              />
+            </div>
+          </div>
+
+          {/* Weekly Reflection Questions */}
+          <div className="glass-card-true p-6 border border-white/10 rounded-2xl space-y-4">
+            <h3 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-widest flex items-center gap-2">
+              <span>⚡</span> Weekly & Monthly Review Reflections
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { emoji: '🔑', q: 'Highest Leverage Win', key: `df_weekly_review_q0_${new Date().getFullYear()}` },
+                { emoji: '🚫', q: 'Biggest Time Waster', key: `df_weekly_review_q1_${new Date().getFullYear()}` },
+                { emoji: '🎯', q: 'Next Focus Priority', key: `df_weekly_review_q2_${new Date().getFullYear()}` },
+              ].map((item) => (
+                <div key={item.key} className="space-y-1.5">
+                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                    <span>{item.emoji}</span> {item.q}
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter reflection note..."
+                    className="w-full glass-input-true p-3 text-xs text-white rounded-xl resize-none font-sans"
+                    onChange={(e) => localStorage.setItem(item.key, e.target.value)}
+                    defaultValue={localStorage.getItem(item.key) || ''}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -10,6 +10,7 @@ interface NoteSnapshot {
   id: string;
   title: string;
   text: string;
+  tag?: '#idea' | '#todo' | '#reference' | '';
   createdAt: number;
 }
 
@@ -36,6 +37,14 @@ export default function Scratchpad({
   const [snapshots, setSnapshots] = useState<NoteSnapshot[]>([]);
   const [isArchiveOpen, setIsArchiveOpen] = useState<boolean>(false);
   const [noticeMessage, setNoticeMessage] = useState<string>('');
+  // C1 — Tag for next snapshot save + active filter
+  const SNAP_TAGS = [
+    { value: '#idea' as const, color: 'text-violet-400 border-violet-500/40 bg-violet-500/10' },
+    { value: '#todo' as const, color: 'text-amber-400 border-amber-500/40 bg-amber-500/10' },
+    { value: '#reference' as const, color: 'text-cyan-400 border-cyan-500/40 bg-cyan-500/10' },
+  ];
+  const [nextTag, setNextTag] = useState<'#idea' | '#todo' | '#reference' | ''>('');
+  const [filterTag, setFilterTag] = useState<'#idea' | '#todo' | '#reference' | ''>('');
 
   useEffect(() => {
     setText(initialText || '');
@@ -77,12 +86,14 @@ export default function Scratchpad({
       id: 'snap_' + Date.now(),
       title: titleSnippet || 'Note Snapshot',
       text: text,
+      tag: nextTag || undefined,
       createdAt: Date.now()
     };
     const updated = [newSnap, ...snapshots];
     saveSnapshotsToStorage(updated);
-    setNoticeMessage('Note snapshot saved to archive!');
+    setNoticeMessage(`Note saved${nextTag ? ` as ${nextTag}` : ''} to archive!`);
     setTimeout(() => setNoticeMessage(''), 3000);
+    setNextTag('');
   };
 
   const handleRestoreSnapshot = (snapText: string) => {
@@ -136,6 +147,21 @@ export default function Scratchpad({
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>Save Snapshot</span>
           </button>
+          {/* C1 — Pre-tag selector */}
+          <div className="flex items-center gap-1">
+            {SNAP_TAGS.map(({ value, color }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setNextTag(prev => prev === value ? '' : value)}
+                className={`px-2 py-1 text-[9px] font-mono font-bold border rounded-full transition-all ${
+                  nextTag === value ? color : 'text-zinc-600 border-zinc-700 hover:text-zinc-400'
+                }`}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => setIsArchiveOpen(prev => !prev)}
             className="px-3 py-1.5 glass-button-true text-xs font-sans font-semibold text-zinc-200 hover:text-white flex items-center gap-1.5 rounded-full"
@@ -192,9 +218,25 @@ export default function Scratchpad({
               <History className="w-4 h-4 text-cyan-400" />
               <span>Saved Scratchpad Note Snapshots</span>
             </h3>
-            <span className="text-[10px] font-mono text-zinc-400">
-              {snapshots.length} saved snapshots
-            </span>
+            <div className="flex items-center gap-2">
+              {/* C1 — Tag filter */}
+              <span className="text-[9px] font-mono text-zinc-500">FILTER:</span>
+              {SNAP_TAGS.map(({ value, color }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilterTag(prev => prev === value ? '' : value)}
+                  className={`px-2 py-0.5 text-[9px] font-mono font-bold border rounded-full transition-all ${
+                    filterTag === value ? color : 'text-zinc-600 border-zinc-700 hover:text-zinc-400'
+                  }`}
+                >
+                  {value}
+                </button>
+              ))}
+              <span className="text-[10px] font-mono text-zinc-400 ml-2">
+                {snapshots.length} saved
+              </span>
+            </div>
           </div>
 
           {snapshots.length === 0 ? (
@@ -203,7 +245,9 @@ export default function Scratchpad({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-1 no-scrollbar">
-              {snapshots.map((snap) => (
+              {snapshots.filter(s => !filterTag || s.tag === filterTag).map((snap) => {
+                const tagMeta = snap.tag ? SNAP_TAGS.find(t => t.value === snap.tag) : null;
+                return (
                 <div
                   key={snap.id}
                   className="p-4 glass-card-true transition-all rounded-xl flex flex-col justify-between space-y-3 border border-white/10"
@@ -212,9 +256,16 @@ export default function Scratchpad({
                     <span className="text-xs font-sans font-bold text-cyan-300 truncate max-w-[200px]">
                       {snap.title}
                     </span>
-                    <span className="text-[10px] font-mono text-zinc-500">
-                      {new Date(snap.createdAt).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {tagMeta && (
+                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border ${tagMeta.color}`}>
+                          {snap.tag}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono text-zinc-500">
+                        {new Date(snap.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-xs font-mono text-zinc-300 line-clamp-3 leading-relaxed bg-black/20 p-2.5 rounded-lg whitespace-pre-wrap">
@@ -246,7 +297,8 @@ export default function Scratchpad({
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

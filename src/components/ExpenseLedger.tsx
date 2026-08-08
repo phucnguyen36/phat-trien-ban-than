@@ -31,6 +31,30 @@ interface ExpenseLedgerProps {
   isLightMode?: boolean;
 }
 
+interface CurrencyMeta {
+  symbol: string;
+  label: string;
+  rate: number;
+  prefix?: string;
+  suffix?: string;
+}
+
+// Supported Multi-Currency Exchange Rates relative to VND
+const CURRENCIES: Record<string, CurrencyMeta> = {
+  VND: { symbol: '₫', label: 'VND (Vietnamese Dong)', rate: 1, suffix: '₫' },
+  USD: { symbol: '$', label: 'USD (US Dollar)', rate: 25400, prefix: '$' },
+  EUR: { symbol: '€', label: 'EUR (Euro)', rate: 27500, prefix: '€' },
+  GBP: { symbol: '£', label: 'GBP (British Pound)', rate: 32000, prefix: '£' },
+  JPY: { symbol: '¥', label: 'JPY (Japanese Yen)', rate: 165, prefix: '¥' },
+  KRW: { symbol: '₩', label: 'KRW (Korean Won)', rate: 18.5, prefix: '₩' },
+  SGD: { symbol: 'S$', label: 'SGD (Singapore Dollar)', rate: 19000, prefix: 'S$' },
+  AUD: { symbol: 'A$', label: 'AUD (Australian Dollar)', rate: 16500, prefix: 'A$' },
+  THB: { symbol: '฿', label: 'THB (Thai Baht)', rate: 720, prefix: '฿' },
+  CNY: { symbol: '¥', label: 'CNY (Chinese Yuan)', rate: 3500, prefix: '¥' },
+};
+
+type CurrencyCode = keyof typeof CURRENCIES;
+
 export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense, isLightMode }: ExpenseLedgerProps) {
   // Local Form state
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -39,9 +63,21 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
   const [noteInput, setNoteInput] = useState<string>('');
   const [dateInput, setDateInput] = useState<string>(todayStr);
 
-  // Currency selection: 'VND' or 'USD'
-  const [currency, setCurrency] = useState<'VND' | 'USD'>('VND');
-  const USD_EXCHANGE_RATE = 25400; // 1 USD = 25,400 VND
+  // Multi-Currency Selection State
+  const [currency, setCurrency] = useState<CurrencyCode>('VND');
+
+  // Currency Formatter Helper
+  const formatMoney = (vndAmount: number, code: CurrencyCode = currency) => {
+    const meta = CURRENCIES[code] || CURRENCIES.VND;
+    const converted = Math.abs(vndAmount) / meta.rate;
+    const isZeroDecimal = code === 'VND' || code === 'KRW' || code === 'JPY';
+    const formattedNum = isZeroDecimal 
+      ? Math.round(converted).toLocaleString() 
+      : converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (meta.prefix) return `${meta.prefix}${formattedNum}`;
+    return `${formattedNum} ${meta.suffix || meta.symbol}`;
+  };
 
   // Filter Mode State: 'all' vs 'monthly'
   const [filterMode, setFilterMode] = useState<'all' | 'monthly'>('monthly');
@@ -72,8 +108,9 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
     if (isNaN(num) || num <= 0) return;
 
     let finalVndAmount = num;
-    if (currency === 'USD') {
-      finalVndAmount = Math.round(num * USD_EXCHANGE_RATE);
+    const meta = CURRENCIES[currency] || CURRENCIES.VND;
+    if (currency !== 'VND') {
+      finalVndAmount = Math.round(num * meta.rate);
     }
 
     const finalAmount = -Math.abs(finalVndAmount);
@@ -140,7 +177,8 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           }),
           values: sortedKeys.map(k => {
             const vnd = dailyTotals[k];
-            return currency === 'USD' ? +(vnd / USD_EXCHANGE_RATE).toFixed(2) : vnd;
+            const meta = CURRENCIES[currency] || CURRENCIES.VND;
+            return +(vnd / meta.rate).toFixed(2);
           })
         };
       }
@@ -158,10 +196,11 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       }),
       values: sortedKeys.map(k => {
         const vnd = summary[k];
-        return currency === 'USD' ? +(vnd / USD_EXCHANGE_RATE).toFixed(2) : vnd;
+        const meta = CURRENCIES[currency] || CURRENCIES.VND;
+        return +(vnd / meta.rate).toFixed(2);
       })
     };
-  }, [filteredExpenses, filterMode, filterMonthYear, currency, USD_EXCHANGE_RATE]);
+  }, [filteredExpenses, filterMode, filterMonthYear, currency]);
 
   // Pie Chart Config
   const pieChartData = useMemo(() => {
@@ -173,9 +212,8 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       categorySummary.Others
     ];
 
-    const displayData = currency === 'USD' 
-      ? rawData.map(v => +(v / USD_EXCHANGE_RATE).toFixed(2))
-      : rawData;
+    const meta = CURRENCIES[currency] || CURRENCIES.VND;
+    const displayData = rawData.map(v => +(v / meta.rate).toFixed(2));
 
     return {
       labels: ['EATING', 'TRANSPORT', 'STUDY/GEAR', 'ENTERTAINMENT', 'OTHERS'],
@@ -194,7 +232,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         }
       ]
     };
-  }, [categorySummary, currency, USD_EXCHANGE_RATE]);
+  }, [categorySummary, currency]);
 
   const pieChartOptions = {
     responsive: true,
@@ -218,7 +256,8 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         callbacks: {
           label: (context: any) => {
             const val = context.raw;
-            return currency === 'USD' ? ` $${val}` : ` ${val.toLocaleString()} ₫`;
+            const meta = CURRENCIES[currency] || CURRENCIES.VND;
+            return ` ${meta.symbol}${val}`;
           }
         }
       }
@@ -288,25 +327,21 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         {/* Currency Switcher & Month Filter Toolbar */}
         <div className="flex flex-wrap items-center gap-3 glass-pill-true p-2 w-full lg:w-auto justify-between lg:justify-end">
           
-          {/* VND / USD Currency Switcher Toggle */}
-          <div className="flex items-center gap-2 glass-card-true p-1">
-            <span className="text-[9px] font-mono text-zinc-300 uppercase px-1 font-bold">CURRENCY:</span>
-            <button
-              onClick={() => setCurrency('VND')}
-              className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase transition-all rounded-full ${
-                currency === 'VND' ? 'bg-white/30 text-white shadow-md' : 'text-zinc-400 hover:text-white'
-              }`}
+          {/* Multi-Currency Dropdown Selector */}
+          <div className="flex items-center gap-2 glass-card-true px-3 py-1 rounded-full border border-white/10">
+            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-[10px] font-mono text-zinc-300 uppercase font-bold">CURRENCY:</span>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+              className="bg-transparent text-xs font-mono font-bold text-white focus:outline-none cursor-pointer"
             >
-              ₫ VND
-            </button>
-            <button
-              onClick={() => setCurrency('USD')}
-              className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase transition-all rounded-full ${
-                currency === 'USD' ? 'bg-emerald-500/30 text-emerald-300 shadow-md' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              $ USD
-            </button>
+              {Object.entries(CURRENCIES).map(([code, meta]) => (
+                <option key={code} value={code} className="bg-zinc-900 text-white font-mono text-xs">
+                  {meta.symbol} {code} - {meta.label.split('(')[1]?.replace(')', '') || code}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Filter Mode Switcher */}
@@ -344,6 +379,44 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         </div>
       </div>
 
+      {/* B4 — Automatic Monthly Financial Summary Card */}
+      {(() => {
+        const totalVnd = filteredExpenses.reduce((s, e) => s + Math.abs(e.amount), 0);
+        const displayTotal = formatMoney(totalVnd);
+        
+        // Find top spending category
+        const cats: Record<string, number> = {};
+        filteredExpenses.forEach(e => {
+          cats[e.category] = (cats[e.category] || 0) + Math.abs(e.amount);
+        });
+        let topCat = 'None';
+        let topCatAmt = 0;
+        Object.entries(cats).forEach(([cat, amt]) => {
+          if (amt > topCatAmt) { topCatAmt = amt; topCat = cat; }
+        });
+        const topCatDisplay = formatMoney(topCatAmt);
+
+        return (
+          <div className="mb-6 p-4 glass-card-true border border-emerald-500/20 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">💵</span>
+              <div>
+                <h4 className="text-xs font-mono font-bold text-emerald-300 uppercase tracking-widest">
+                  Monthly Capital Intelligence Summary ({filterMonthYear})
+                </h4>
+                <p className="text-zinc-300 text-xs mt-0.5 font-sans">
+                  Total Burn: <strong className="text-white font-mono">{displayTotal}</strong> across <strong className="text-white font-mono">{filteredExpenses.length}</strong> items.
+                  Top Category: <strong className="text-amber-300 font-mono">{topCat}</strong> ({topCatDisplay}).
+                </p>
+              </div>
+            </div>
+            <div className="text-[10px] font-mono text-zinc-400 bg-black/40 px-3 py-1.5 rounded-lg border border-white/10 shrink-0">
+              ⚡ Status: {totalVnd > 15000000 ? '⚠️ High Burn Rate' : '✅ Within Budget'}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Main Grid: Form Logger + Analytics Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
         
@@ -358,18 +431,18 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-mono text-zinc-300 uppercase tracking-wider font-bold">Amount Spent:</label>
+              <label className="text-[10px] font-mono text-zinc-300 uppercase tracking-wider font-bold">Amount Spent ({currency}):</label>
               <div className="relative">
                 <input
                   type="number"
                   step="any"
                   value={amountInput}
                   onChange={(e) => setAmountInput(e.target.value)}
-                  placeholder={currency === 'USD' ? '50.00' : '200000'}
-                  className="w-full glass-input-true py-2.5 pl-8 pr-3 text-xs text-white placeholder-zinc-500 font-bold"
+                  placeholder={currency === 'VND' ? '200000' : '50.00'}
+                  className="w-full glass-input-true py-2.5 pl-9 pr-3 text-xs text-white placeholder-zinc-500 font-bold"
                 />
-                <span className="text-xs font-mono text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 font-bold">
-                  {currency === 'USD' ? '$' : '₫'}
+                <span className="text-xs font-mono text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 font-bold">
+                  {CURRENCIES[currency]?.symbol || '$'}
                 </span>
               </div>
             </div>
@@ -430,9 +503,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                 TOTAL BURN ({filterMode === 'monthly' ? filterMonthYear : 'ALL TIME'})
               </span>
               <div className="text-2xl font-extrabold font-mono text-rose-300">
-                {currency === 'USD'
-                  ? `$${(totalBurnVnd / USD_EXCHANGE_RATE).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-                  : `${totalBurnVnd.toLocaleString('vi-VN')} ₫`}
+                {formatMoney(totalBurnVnd)}
               </div>
               <span className="text-[10px] font-mono text-zinc-400 block">
                 {filteredExpenses.length} transactions logged
@@ -444,9 +515,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                 AVERAGE DAILY BURN
               </span>
               <div className="text-2xl font-extrabold font-mono text-white">
-                {currency === 'USD'
-                  ? `$${((totalBurnVnd / (monthlyDailyBurnSummary.labels.length || 1)) / USD_EXCHANGE_RATE).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-                  : `${Math.round(totalBurnVnd / (monthlyDailyBurnSummary.labels.length || 1)).toLocaleString('vi-VN')} ₫`}
+                {formatMoney(totalBurnVnd / (monthlyDailyBurnSummary.labels.length || 1))}
               </div>
               <span className="text-[10px] font-mono text-zinc-400 block">
                 Based on active period telemetry
@@ -505,9 +574,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
               <tbody className="divide-y divide-white/5 text-zinc-200">
                 {filteredExpenses.map(item => {
                   const absVnd = Math.abs(Number(item.amount) || 0);
-                  const displayAmount = currency === 'USD'
-                    ? `$${(absVnd / USD_EXCHANGE_RATE).toFixed(2)}`
-                    : `${absVnd.toLocaleString('vi-VN')} ₫`;
+                  const displayAmount = formatMoney(absVnd);
 
                   return (
                     <tr key={item.id} className="hover:bg-white/[0.06] transition-colors">

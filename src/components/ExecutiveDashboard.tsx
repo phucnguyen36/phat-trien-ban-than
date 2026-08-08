@@ -126,10 +126,26 @@ export default function ExecutiveDashboard({
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-[11px] text-zinc-300 pt-2 border-t border-white/10">
-              <span>TOTAL XP: <strong className="text-white font-extrabold">{stats.totalXP}</strong></span>
-              <span>BADGES: <strong className="text-purple-300 font-extrabold">{stats.badgesCount} Unlocked</strong></span>
-            </div>
+            {/* B1 — Productivity Score */}
+            {(() => {
+              const taskScore = goals.length > 0 ? (goals.filter(g => g.completed).length / goals.length) * 35 : 15;
+              const habitScore = habits.length > 0 ? (todayHabitsDoneCount / habits.length) * 35 : 15;
+              const recentJournal = journals.some(j => (Date.now() - j.updatedAt) < 3 * 86400000);
+              const journalScore = recentJournal ? 15 : 0;
+              const energyScore = journals.length > 0 ? (journals.reduce((a, b) => a + b.energy, 0) / journals.length / 5) * 15 : 10;
+              const score = Math.min(100, Math.round(taskScore + habitScore + journalScore + energyScore));
+              const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-pink-400';
+              const scoreLabel = score >= 80 ? 'Apex Focus' : score >= 50 ? 'Steady Pace' : 'Needs Calibration';
+              return (
+                <div className="flex justify-between items-center text-[11px] text-zinc-300 pt-2 border-t border-white/10">
+                  <span className="flex items-center gap-1 font-mono">
+                    ⚡ SCORE: <strong className={`font-extrabold text-sm ml-1 ${scoreColor}`}>{score}/100</strong>
+                    <span className="text-[9px] text-zinc-400 font-sans">({scoreLabel})</span>
+                  </span>
+                  <span>BADGES: <strong className="text-purple-300 font-extrabold">{stats.badgesCount} Unlocked</strong></span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
