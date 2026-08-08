@@ -103,23 +103,27 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+// Helper to get raw user email if available
+export function getRawUserEmail(userId?: string): string {
+  if (userId && userId.trim()) {
+    return userId.trim().toLowerCase();
+  }
+  const savedUserStr = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+  if (savedUserStr) {
+    try {
+      const u = JSON.parse(savedUserStr);
+      if (u && u.email) return String(u.email).trim().toLowerCase();
+    } catch (e) {}
+  }
+  if (auth?.currentUser?.email) {
+    return auth.currentUser.email.trim().toLowerCase();
+  }
+  return '';
+}
+
 // Helper to resolve Active Account User ID for Data Isolation
 export function resolveActiveUserId(overrideUserId?: string): string {
-  let raw = '';
-  if (overrideUserId && overrideUserId.trim()) {
-    raw = overrideUserId.trim().toLowerCase();
-  } else {
-    const savedUserStr = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
-    if (savedUserStr) {
-      try {
-        const u = JSON.parse(savedUserStr);
-        if (u && u.email) raw = String(u.email).trim().toLowerCase();
-      } catch (e) {}
-    }
-  }
-  if (!raw && auth?.currentUser?.email) {
-    raw = auth.currentUser.email.trim().toLowerCase();
-  }
+  let raw = getRawUserEmail(overrideUserId);
   if (!raw) return 'default_user';
   return raw.replace(/[^a-zA-Z0-9_]/g, '_');
 }
@@ -127,17 +131,44 @@ export function resolveActiveUserId(overrideUserId?: string): string {
 // ---------------- ACCOUNT-SCOPED LOCAL STORAGE HELPERS ----------------
 export function loadFromLocalStorage(userId?: string) {
   const uid = resolveActiveUserId(userId);
-  const savedGoals = localStorage.getItem(`df_goals_todo_${uid}`);
-  const savedHabits = localStorage.getItem(`df_habits_data_${uid}`);
-  const savedJournal = localStorage.getItem(`df_daily_journal_${uid}`);
-  const savedExpenses = localStorage.getItem(`df_personal_expenses_${uid}`);
-  const savedScratchpad = localStorage.getItem(`df_quick_scratchpad_${uid}`);
+  const rawEmail = getRawUserEmail(userId);
+
+  // Fallback reader across sanitized key, raw email key, and legacy keys
+  const getStorageItem = (baseKey: string) => {
+    return localStorage.getItem(`${baseKey}_${uid}`) ||
+           (rawEmail ? localStorage.getItem(`${baseKey}_${rawEmail}`) : null) ||
+           localStorage.getItem(`${baseKey}_default_user`) ||
+           localStorage.getItem(baseKey);
+  };
+
+  const savedGoals = getStorageItem('df_goals_todo');
+  const savedHabits = getStorageItem('df_habits_data');
+  const savedJournal = getStorageItem('df_daily_journal');
+  const savedExpenses = getStorageItem('df_personal_expenses');
+  const savedScratchpad = getStorageItem('df_quick_scratchpad');
 
   const goals: GoalTodo[] = savedGoals ? JSON.parse(savedGoals) : [];
   const habits: HabitData[] = savedHabits ? JSON.parse(savedHabits) : [];
   const journal: DailyJournal[] = savedJournal ? JSON.parse(savedJournal) : [];
   const expenses: PersonalExpense[] = savedExpenses ? JSON.parse(savedExpenses) : [];
   const scratchpad: string = savedScratchpad || '# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\nStart typing notes for this account...';
+
+  // Automatically cache to standardized key
+  if (savedGoals && !localStorage.getItem(`df_goals_todo_${uid}`)) {
+    localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
+  }
+  if (savedHabits && !localStorage.getItem(`df_habits_data_${uid}`)) {
+    localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
+  }
+  if (savedJournal && !localStorage.getItem(`df_daily_journal_${uid}`)) {
+    localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
+  }
+  if (savedExpenses && !localStorage.getItem(`df_personal_expenses_${uid}`)) {
+    localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
+  }
+  if (savedScratchpad && !localStorage.getItem(`df_quick_scratchpad_${uid}`)) {
+    localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpad);
+  }
 
   return { goals, habits, journal, expenses, scratchpad };
 }
@@ -154,33 +185,64 @@ export async function loadWorkspaceData(userId?: string) {
     return await withTimeout((async () => {
       // Load User Goals from subcollection: users/{uid}/goals_todo
       const goalsSnap = await getDocs(collection(db, 'users', uid, 'goals_todo'));
-      const goals: GoalTodo[] = [];
+      let goals: GoalTodo[] = [];
       goalsSnap.forEach(d => goals.push({ id: d.id, ...d.data() } as GoalTodo));
 
       // Load User Habits from subcollection: users/{uid}/habits_data
       const habitsSnap = await getDocs(collection(db, 'users', uid, 'habits_data'));
-      const habits: HabitData[] = [];
+      let habits: HabitData[] = [];
       habitsSnap.forEach(d => habits.push({ id: d.id, ...d.data() } as HabitData));
 
       // Load User Journal from subcollection: users/{uid}/daily_journal
       const journalSnap = await getDocs(collection(db, 'users', uid, 'daily_journal'));
-      const journal: DailyJournal[] = [];
+      let journal: DailyJournal[] = [];
       journalSnap.forEach(d => journal.push({ id: d.id, ...d.data() } as DailyJournal));
 
       // Load User Expenses from subcollection: users/{uid}/personal_expenses
       const expensesSnap = await getDocs(collection(db, 'users', uid, 'personal_expenses'));
-      const expenses: PersonalExpense[] = [];
+      let expenses: PersonalExpense[] = [];
       expensesSnap.forEach(d => expenses.push({ id: d.id, ...d.data() } as PersonalExpense));
 
       // Load User Scratchpad from: users/{uid}/quick_scratchpad/single_doc
       const padDoc = await getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'));
-      let scratchpad = '# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\nStart typing notes for this account...';
+      let scratchpad = '';
       if (padDoc.exists()) {
         scratchpad = (padDoc.data() as any).text || '';
       }
 
+      // AUTO-MIGRATE LOCAL TO CLOUD: If Cloud Firestore has empty data, but local storage has user data, auto-upload!
+      const local = loadFromLocalStorage(uid);
+      if (goals.length === 0 && local.goals.length > 0) {
+        goals = local.goals;
+        for (const g of goals) {
+          await saveGoal(g, uid);
+        }
+      }
+      if (habits.length === 0 && local.habits.length > 0) {
+        habits = local.habits;
+        for (const h of habits) {
+          await saveHabit(h, uid);
+        }
+      }
+      if (journal.length === 0 && local.journal.length > 0) {
+        journal = local.journal;
+        for (const j of journal) {
+          await saveJournal(j, uid);
+        }
+      }
+      if (expenses.length === 0 && local.expenses.length > 0) {
+        expenses = local.expenses;
+        for (const e of expenses) {
+          await saveExpense(e, uid);
+        }
+      }
+      if (!scratchpad && local.scratchpad) {
+        scratchpad = local.scratchpad;
+        await saveScratchpad(scratchpad, uid);
+      }
+
       return { goals, habits, journal, expenses, scratchpad };
-    })(), 2000);
+    })(), 5000);
   } catch (error) {
     console.warn('Failed to load Firestore data, falling back to account local storage cache.', error);
     return loadFromLocalStorage(uid);

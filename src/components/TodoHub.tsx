@@ -184,7 +184,7 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
       if (g.timeframe === 'yearly') {
         const ctxKey = `${selectedYear}`;
         if (text.startsWith(`[Y:${ctxKey}]`)) return true;
-        if (!text.startsWith('[Y:') && ctxKey === todayYearStr) return true;
+        if (!text.startsWith('[Y:')) return true;
         return false;
       }
 
