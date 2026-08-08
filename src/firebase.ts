@@ -184,92 +184,123 @@ export async function loadWorkspaceData(userId?: string) {
 
   try {
     return await withTimeout((async () => {
-      // 1. Fetch Remote Firestore Data
-      const goalsSnap = await getDocs(collection(db, 'users', uid, 'goals_todo'));
+      // 1. Fetch Remote Firestore Data in Parallel for Fast Response
+      const [goalsSnap, habitsSnap, journalSnap, expensesSnap, padDoc] = await Promise.all([
+        getDocs(collection(db, 'users', uid, 'goals_todo')),
+        getDocs(collection(db, 'users', uid, 'habits_data')),
+        getDocs(collection(db, 'users', uid, 'daily_journal')),
+        getDocs(collection(db, 'users', uid, 'personal_expenses')),
+        getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'))
+      ]);
+
       const remoteGoals: GoalTodo[] = [];
       goalsSnap.forEach(d => remoteGoals.push({ id: d.id, ...d.data() } as GoalTodo));
 
-      const habitsSnap = await getDocs(collection(db, 'users', uid, 'habits_data'));
       const remoteHabits: HabitData[] = [];
       habitsSnap.forEach(d => remoteHabits.push({ id: d.id, ...d.data() } as HabitData));
 
-      const journalSnap = await getDocs(collection(db, 'users', uid, 'daily_journal'));
       const remoteJournal: DailyJournal[] = [];
       journalSnap.forEach(d => remoteJournal.push({ id: d.id, ...d.data() } as DailyJournal));
 
-      const expensesSnap = await getDocs(collection(db, 'users', uid, 'personal_expenses'));
       const remoteExpenses: PersonalExpense[] = [];
       expensesSnap.forEach(d => remoteExpenses.push({ id: d.id, ...d.data() } as PersonalExpense));
 
-      const padDoc = await getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'));
       const remoteScratchpad = padDoc.exists() ? (padDoc.data() as any).text || '' : '';
 
       // 2. SMART TWO-WAY MERGE BY UNIQUE ID (ZERO DATA LOSS)
-      // Merge Goals: combine local + remote without duplicates
       const mergedGoalsMap = new Map<string, GoalTodo>();
       local.goals.forEach(g => mergedGoalsMap.set(g.id, g));
       remoteGoals.forEach(g => mergedGoalsMap.set(g.id, g));
       const goals = Array.from(mergedGoalsMap.values());
 
-      // Upload any local goals missing from remote Firestore
-      for (const g of local.goals) {
-        if (!remoteGoals.some(rg => rg.id === g.id)) {
-          await saveGoal(g, uid);
-        }
-      }
-
-      // Merge Habits: combine local + remote
       const mergedHabitsMap = new Map<string, HabitData>();
       local.habits.forEach(h => mergedHabitsMap.set(h.id, h));
       remoteHabits.forEach(h => mergedHabitsMap.set(h.id, h));
       const habits = Array.from(mergedHabitsMap.values());
-      for (const h of local.habits) {
-        if (!remoteHabits.some(rh => rh.id === h.id)) {
-          await saveHabit(h, uid);
-        }
-      }
 
-      // Merge Journal
       const mergedJournalMap = new Map<string, DailyJournal>();
       local.journal.forEach(j => mergedJournalMap.set(j.id, j));
       remoteJournal.forEach(j => mergedJournalMap.set(j.id, j));
       const journal = Array.from(mergedJournalMap.values());
-      for (const j of local.journal) {
-        if (!remoteJournal.some(rj => rj.id === j.id)) {
-          await saveJournal(j, uid);
-        }
-      }
 
-      // Merge Expenses
       const mergedExpensesMap = new Map<string, PersonalExpense>();
       local.expenses.forEach(e => mergedExpensesMap.set(e.id, e));
       remoteExpenses.forEach(e => mergedExpensesMap.set(e.id, e));
       const expenses = Array.from(mergedExpensesMap.values());
-      for (const e of local.expenses) {
-        if (!remoteExpenses.some(re => re.id === e.id)) {
-          await saveExpense(e, uid);
-        }
-      }
 
-      // Scratchpad: prefer remote if non-empty, otherwise local
       const scratchpad = remoteScratchpad || local.scratchpad;
-      if (local.scratchpad && !remoteScratchpad) {
-        await saveScratchpad(local.scratchpad, uid);
-      }
 
-      // Update local storage cache with unified merged result
+      // 3. Update local storage cache INSTANTLY
       localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
       localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
       localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
       localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
       localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpad);
 
+      // 4. Background Non-Blocking Cloud Upload of Missing Local Items
+      setTimeout(async () => {
+        try {
+          const missingGoals = local.goals.filter(g => !remoteGoals.some(rg => rg.id === g.id));
+          const missingHabits = local.habits.filter(h => !remoteHabits.some(rh => rh.id === h.id));
+          const missingJournal = local.journal.filter(j => !remoteJournal.some(rj => rj.id === j.id));
+          const missingExpenses = local.expenses.filter(e => !remoteExpenses.some(re => re.id === e.id));
+
+          await Promise.all([
+            ...missingGoals.map(g => saveGoal(g, uid)),
+            ...missingHabits.map(h => saveHabit(h, uid)),
+            ...missingJournal.map(j => saveJournal(j, uid)),
+            ...missingExpenses.map(e => saveExpense(e, uid)),
+            local.scratchpad && !remoteScratchpad ? saveScratchpad(local.scratchpad, uid) : Promise.resolve()
+          ]);
+        } catch (err) {
+          console.warn('Background sync warning:', err);
+        }
+      }, 100);
+
       return { goals, habits, journal, expenses, scratchpad };
-    })(), 6000);
+    })(), 8000);
   } catch (error) {
     console.warn('Failed to load Firestore data, using account local storage cache.', error);
     return local;
   }
+}
+
+// ---------------- FAST & RELIABLE JSON BACKUP IMPORT ----------------
+export async function importWorkspaceData(backupData: any, userId?: string) {
+  const uid = resolveActiveUserId(userId);
+  const goals: GoalTodo[] = Array.isArray(backupData.goals) ? backupData.goals : [];
+  const habits: HabitData[] = Array.isArray(backupData.habits) ? backupData.habits : [];
+  const journal: DailyJournal[] = Array.isArray(backupData.journalEntries) 
+    ? backupData.journalEntries 
+    : (Array.isArray(backupData.journal) ? backupData.journal : []);
+  const expenses: PersonalExpense[] = Array.isArray(backupData.expenses) ? backupData.expenses : [];
+  const scratchpad: string = backupData.scratchpadText || backupData.scratchpad || '';
+
+  // 1. Save to LocalStorage INSTANTLY under standardized account key
+  localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
+  localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
+  localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
+  localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
+  if (scratchpad) {
+    localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpad);
+  }
+
+  // 2. Parallel Cloud Firestore Sync (Fast non-blocking batch execution)
+  if (!isLocalModeEnabled()) {
+    try {
+      await Promise.all([
+        ...goals.map(g => saveGoal(g, uid)),
+        ...habits.map(h => saveHabit(h, uid)),
+        ...journal.map(j => saveJournal(j, uid)),
+        ...expenses.map(e => saveExpense(e, uid)),
+        scratchpad ? saveScratchpad(scratchpad, uid) : Promise.resolve()
+      ]);
+    } catch (err) {
+      console.warn('Firestore import sync warning:', err);
+    }
+  }
+
+  return { goals, habits, journal, expenses, scratchpad };
 }
 
 // ---------------- ACCOUNT-SCOPED ACTIONS & SYNCS ----------------

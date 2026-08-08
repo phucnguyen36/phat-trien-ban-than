@@ -22,6 +22,7 @@ import {
 
 import { 
   loadWorkspaceData, 
+  importWorkspaceData,
   saveGoal, 
   deleteGoal, 
   saveHabit, 
@@ -756,46 +757,20 @@ export default function App() {
                 localStorage.setItem('df_scratchpad_archive', JSON.stringify(backup.localArchives));
               }
 
-              if (hasGoals) {
-                localStorage.setItem('df_goals_todo', JSON.stringify([]));
-                for (const g of backup.goals) {
-                  await saveGoal(g);
-                }
-                setGoals(backup.goals);
-              }
+              // Fast, instant LocalStorage update + parallel non-blocking Firestore sync
+              const restored = await importWorkspaceData(backup, currentUser?.email);
 
-              if (hasHabits) {
-                localStorage.setItem('df_habits_data', JSON.stringify([]));
-                for (const h of backup.habits) {
-                  await saveHabit(h);
-                }
-                setHabits(backup.habits);
-              }
-
-              if (hasJournal) {
-                localStorage.setItem('df_daily_journal', JSON.stringify([]));
-                for (const j of backup.journalEntries) {
-                  await saveJournal(j);
-                }
-                setJournalEntries(backup.journalEntries);
-              }
-
-              if (hasExpenses) {
-                localStorage.setItem('df_personal_expenses', JSON.stringify([]));
-                for (const exp of backup.expenses) {
-                  await saveExpense(exp);
-                }
-                setExpenses(backup.expenses);
-              }
-
-              if (backup.scratchpadText !== undefined) {
-                await saveScratchpad(backup.scratchpadText);
-                setScratchpadText(backup.scratchpadText);
+              setGoals(restored.goals);
+              setHabits(restored.habits);
+              setJournalEntries(restored.journal);
+              setExpenses(restored.expenses);
+              if (restored.scratchpad) {
+                setScratchpadText(restored.scratchpad);
               }
 
               showNotice(
                 "RESTORATION SUCCESSFUL",
-                "All workspace parameters, historical logs, and task structures were successfully restored from backup."
+                "All workspace parameters, historical logs, and task structures were successfully restored from backup instantly."
               );
             } catch (err) {
               console.error('Failed to import backup data', err);
