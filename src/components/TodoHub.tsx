@@ -33,7 +33,10 @@ import {
   Zap,
   Key,
   Ban,
-  Target
+  Target,
+  AlertCircle,
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -50,31 +53,38 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
   // View mode toggle: Multi-column view vs Calendar Grid view vs Weekly/Monthly Review Dashboard
   const [viewMode, setViewMode] = useState<'columns' | 'calendar' | 'review'>('columns');
 
-  // Current local date defaults to 2026-07-16
-  const [selectedYear, setSelectedYear] = useState('2026');
-  const [selectedMonth, setSelectedMonth] = useState('07');
-  const [selectedWeek, setSelectedWeek] = useState('W3');
-  const [selectedDay, setSelectedDay] = useState('16');
-
-  // Calculate current actual date for Today highlight
+  // Calculate current actual date for Today highlight and default selection
   const today = useMemo(() => new Date(), []);
   const todayDayStr = useMemo(() => String(today.getDate()).padStart(2, '0'), [today]);
   const todayMonthStr = useMemo(() => String(today.getMonth() + 1).padStart(2, '0'), [today]);
   const todayYearStr = useMemo(() => String(today.getFullYear()), [today]);
+  const todayWeekStr = useMemo(() => `W${Math.ceil(today.getDate() / 7)}`, [today]);
+
+  const [selectedYear, setSelectedYear] = useState(todayYearStr);
+  const [selectedMonth, setSelectedMonth] = useState(todayMonthStr);
+  const [selectedWeek, setSelectedWeek] = useState(todayWeekStr);
+  const [selectedDay, setSelectedDay] = useState(todayDayStr);
 
   const isTodayActive = useMemo(() => {
     return selectedDay === todayDayStr && selectedMonth === todayMonthStr && selectedYear === todayYearStr;
   }, [selectedDay, selectedMonth, selectedYear, todayDayStr, todayMonthStr, todayYearStr]);
 
   const weekRangeStr = useMemo(() => {
-    return `FROM '15/07/2026' TO '21/07/2026'`;
+    const d = new Date();
+    const day = d.getDay();
+    const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1);
+    const mon = new Date(d.setDate(diffToMon));
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const fmt = (dt: Date) => `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
+    return `FROM '${fmt(mon)}' TO '${fmt(sun)}'`;
   }, []);
 
   const monthNameStr = useMemo(() => {
     const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
     const idx = parseInt(selectedMonth) - 1;
-    return months[idx] || 'JULY';
-  }, [selectedMonth]);
+    return months[idx] || months[today.getMonth()];
+  }, [selectedMonth, today]);
 
   // Filters for Column visibility
   const [visibleColumns, setVisibleColumns] = useState<Record<TimeframeType, boolean>>({
@@ -143,40 +153,69 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
 
   // Filtered goals by Context
   const filteredGoals = useMemo(() => {
+    const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
+    const activeCtxKey = `${selectedYear}-${selectedMonth}-${selectedDay}`;
+
     return goals.filter(g => {
       const text = g.text;
 
       if (g.timeframe === 'daily') {
-        const ctxKey = `${selectedYear}-${selectedMonth}-${selectedDay}`;
-        if (text.startsWith(`[D:${ctxKey}]`)) return true;
-        if (!text.startsWith('[D:') && ctxKey === '2026-07-16') return true;
+        if (text.startsWith(`[D:${activeCtxKey}]`)) return true;
+        if (!text.startsWith('[D:') && activeCtxKey === todayCtxKey) return true;
         return false;
       }
 
       if (g.timeframe === 'weekly') {
         const ctxKey = `${selectedYear}-${selectedMonth}-${selectedWeek}`;
+        const todayWeekKey = `${todayYearStr}-${todayMonthStr}-${todayWeekStr}`;
         if (text.startsWith(`[W:${ctxKey}]`)) return true;
-        if (!text.startsWith('[W:') && ctxKey === '2026-07-W3') return true;
+        if (!text.startsWith('[W:') && ctxKey === todayWeekKey) return true;
         return false;
       }
 
       if (g.timeframe === 'monthly') {
         const ctxKey = `${selectedYear}-${selectedMonth}`;
+        const todayMonthKey = `${todayYearStr}-${todayMonthStr}`;
         if (text.startsWith(`[M:${ctxKey}]`)) return true;
-        if (!text.startsWith('[M:') && ctxKey === '2026-07') return true;
+        if (!text.startsWith('[M:') && ctxKey === todayMonthKey) return true;
         return false;
       }
 
       if (g.timeframe === 'yearly') {
         const ctxKey = `${selectedYear}`;
         if (text.startsWith(`[Y:${ctxKey}]`)) return true;
-        if (!text.startsWith('[Y:') && ctxKey === '2026') return true;
+        if (!text.startsWith('[Y:') && ctxKey === todayYearStr) return true;
         return false;
       }
 
       return true;
     });
-  }, [goals, selectedYear, selectedMonth, selectedWeek, selectedDay]);
+  }, [goals, selectedYear, selectedMonth, selectedWeek, selectedDay, todayYearStr, todayMonthStr, todayDayStr, todayWeekStr]);
+
+  // Overdue / Incomplete Goals Reminder Logic
+  const overdueIncompleteGoals = useMemo(() => {
+    const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
+    return goals.filter(g => {
+      if (g.completed) return false;
+      if (g.timeframe === 'daily' && g.text.startsWith('[D:')) {
+        const match = g.text.match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
+        if (match && match[1] < todayCtxKey) return true;
+      }
+      return false;
+    });
+  }, [goals, todayYearStr, todayMonthStr, todayDayStr]);
+
+  const [isOverdueBannerDismissed, setIsOverdueBannerDismissed] = useState(false);
+
+  // Rollover all overdue tasks to today
+  const handleRolloverOverdueGoals = async () => {
+    const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
+    for (const g of overdueIncompleteGoals) {
+      const cleanText = g.text.replace(/^\[D:\d{4}-\d{2}-\d{2}\]\s*/, '');
+      await onAddGoal(`[D:${todayCtxKey}] ${cleanText}`, g.timeframe);
+      await onDeleteGoal(g.id);
+    }
+  };
 
   // Strip context tag from display text
   const getDisplayGoalText = (text: string): string => {
@@ -473,6 +512,41 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
   return (
     <div id="todo-hub" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl">
       
+      {/* Overdue / Incomplete Target Reminder Banner */}
+      {!isOverdueBannerDismissed && overdueIncompleteGoals.length > 0 && (
+        <div className="mb-6 p-4 glass-card-true border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-950/20 animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 animate-pulse" />
+            <div>
+              <h4 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-widest">
+                Pending Targets Reminder ({overdueIncompleteGoals.length} Overdue)
+              </h4>
+              <p className="text-zinc-300 text-xs mt-0.5 font-sans">
+                You have {overdueIncompleteGoals.length} incomplete daily target{overdueIncompleteGoals.length > 1 ? 's' : ''} from previous days.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleRolloverOverdueGoals}
+              className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-amber-200 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 rounded-xl"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>ROLLOVER TO TODAY</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOverdueBannerDismissed(true)}
+              className="p-1.5 text-zinc-400 hover:text-white transition-colors"
+              title="Dismiss Reminder"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Module Title & Mode Switcher Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 border-b border-white/15 pb-6">
         <div>

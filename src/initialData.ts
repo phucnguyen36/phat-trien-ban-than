@@ -20,30 +20,32 @@ export const INITIAL_GOALS: GoalTodo[] = [
   { id: 'g_m2', text: 'Optimize Automated Personal Investment Protocols', timeframe: 'monthly', completed: true, createdAt: Date.now() }
 ];
 
+const currentMonthYearStr = new Date().toISOString().slice(0, 7);
+
 export const INITIAL_HABITS: HabitData[] = [
   {
     id: 'h1',
-    monthYear: '2026-07',
+    monthYear: currentMonthYearStr,
     habitName: '15m Meditation',
-    completedDays: [1, 2, 3, 5, 6, 7, 9, 10, 12, 13, 14, 15, 16]
+    completedDays: [1, 2, 3, 4, 5, 6, 7, 8]
   },
   {
     id: 'h2',
-    monthYear: '2026-07',
+    monthYear: currentMonthYearStr,
     habitName: '4h Deep Work Focus',
-    completedDays: [1, 2, 4, 5, 6, 8, 9, 11, 12, 13, 15]
+    completedDays: [1, 2, 4, 5, 6, 7, 8]
   },
   {
     id: 'h3',
-    monthYear: '2026-07',
+    monthYear: currentMonthYearStr,
     habitName: '30m Reading & Synthesis',
-    completedDays: [1, 3, 4, 5, 7, 8, 10, 11, 12, 14, 16]
+    completedDays: [1, 3, 4, 5, 7, 8]
   },
   {
     id: 'h4',
-    monthYear: '2026-07',
+    monthYear: currentMonthYearStr,
     habitName: '5km Cardio / Fitness',
-    completedDays: [2, 4, 6, 9, 11, 13, 15]
+    completedDays: [2, 4, 6, 8]
   }
 ];
 
