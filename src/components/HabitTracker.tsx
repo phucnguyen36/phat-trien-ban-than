@@ -21,7 +21,8 @@ import {
   Trash2, 
   Activity, 
   Calendar,
-  Check
+  Check,
+  ArrowUpDown
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -93,6 +94,24 @@ export default function HabitTracker({
       return selectedMonthYear === defaultMonthStr;
     });
   }, [habits, selectedMonthYear, defaultMonthStr]);
+
+  // Habit Sorting State (Default to A-Z Name sorting)
+  const [sortOrder, setSortOrder] = useState<'name-asc' | 'name-desc' | 'consistency' | 'default'>('name-asc');
+
+  // Sorted Habits Memo
+  const sortedFilteredHabits = useMemo(() => {
+    const list = [...filteredHabits];
+    if (sortOrder === 'name-asc') {
+      return list.sort((a, b) => a.habitName.localeCompare(b.habitName, undefined, { sensitivity: 'base' }));
+    }
+    if (sortOrder === 'name-desc') {
+      return list.sort((a, b) => b.habitName.localeCompare(a.habitName, undefined, { sensitivity: 'base' }));
+    }
+    if (sortOrder === 'consistency') {
+      return list.sort((a, b) => b.completedDays.length - a.completedDays.length);
+    }
+    return list;
+  }, [filteredHabits, sortOrder]);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,6 +250,22 @@ export default function HabitTracker({
                 className="bg-transparent text-xs text-white focus:outline-none font-mono cursor-pointer font-bold"
               />
             </div>
+
+            {/* Habit Sorting Selector */}
+            <div className="flex items-center gap-2 glass-pill-true px-3 py-1">
+              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-300" />
+              <span className="text-[9px] font-mono text-zinc-300 uppercase font-bold">SORT BY:</span>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as any)}
+                className="bg-transparent text-xs text-white focus:outline-none font-mono cursor-pointer font-bold border-none"
+              >
+                <option value="name-asc" className="bg-zinc-950 text-white font-mono">Name (A ➔ Z)</option>
+                <option value="name-desc" className="bg-zinc-950 text-white font-mono">Name (Z ➔ A)</option>
+                <option value="consistency" className="bg-zinc-950 text-white font-mono">Most Consistent</option>
+                <option value="default" className="bg-zinc-950 text-white font-mono">Creation Order</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -286,12 +321,12 @@ export default function HabitTracker({
           </div>
 
           {/* Matrix Rows */}
-          {filteredHabits.length === 0 ? (
+          {sortedFilteredHabits.length === 0 ? (
             <div className="text-center py-12 text-zinc-400 font-mono text-xs uppercase tracking-widest">
               No habits recorded for {formattedMonthYearString}. Add a new habit above.
             </div>
           ) : (
-            filteredHabits.map(h => (
+            sortedFilteredHabits.map(h => (
               <div 
                 key={h.id} 
                 className="grid grid-cols-[200px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
