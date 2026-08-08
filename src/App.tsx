@@ -555,6 +555,22 @@ export default function App() {
     await deleteGoal(id);
   };
 
+  const handleEditGoal = async (id: string, newText: string) => {
+    let updated: GoalTodo | undefined;
+    setGoals(prev => prev.map(g => {
+      if (g.id === id) {
+        const match = g.text.match(/^(\[[DWMY]:[^\]]+\]\s*)/);
+        const prefix = match ? match[1] : '';
+        updated = { ...g, text: prefix + newText };
+        return updated;
+      }
+      return g;
+    }));
+    if (updated) {
+      await saveGoal(updated);
+    }
+  };
+
   // A4 — Morning Prompt: submit 3 priorities as daily tasks
   const handleMorningPromptSubmit = async () => {
     const filled = morningPriorities.filter(p => p.trim());
@@ -608,6 +624,20 @@ export default function App() {
         await deleteHabit(id);
       }
     );
+  };
+
+  const handleEditHabit = async (id: string, newName: string) => {
+    let updated: HabitData | undefined;
+    setHabits(prev => prev.map(h => {
+      if (h.id === id) {
+        updated = { ...h, habitName: newName };
+        return updated;
+      }
+      return h;
+    }));
+    if (updated) {
+      await saveHabit(updated);
+    }
   };
 
   // Handler: Journal operations
@@ -1250,6 +1280,7 @@ export default function App() {
                       onAddGoal={handleAddGoal}
                       onToggleGoal={handleToggleGoal}
                       onDeleteGoal={handleDeleteGoal}
+                      onEditGoal={handleEditGoal}
                       isLightMode={isLightMode}
                     />
                   </section>
@@ -1264,6 +1295,7 @@ export default function App() {
                       onAddHabit={handleAddHabit}
                       onToggleHabitDay={handleToggleHabitDay}
                       onDeleteHabit={handleDeleteHabit}
+                      onEditHabit={handleEditHabit}
                       isLightMode={isLightMode}
                     />
                   </section>

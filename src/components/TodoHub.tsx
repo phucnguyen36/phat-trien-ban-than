@@ -36,7 +36,8 @@ import {
   Target,
   AlertCircle,
   RefreshCw,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -46,10 +47,18 @@ interface TodoHubProps {
   onAddGoal: (text: string, timeframe: TimeframeType, timeEstimate?: TimeEstimate) => void;
   onToggleGoal: (id: string, completed: boolean) => void;
   onDeleteGoal: (id: string) => void;
+  onEditGoal?: (id: string, newText: string) => void;
   isLightMode?: boolean;
 }
 
-export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, isLightMode }: TodoHubProps) {
+export default function TodoHub({
+  goals,
+  onAddGoal,
+  onToggleGoal,
+  onDeleteGoal,
+  onEditGoal,
+  isLightMode
+}: TodoHubProps) {
   // View mode toggle: Multi-column view vs Calendar Grid view vs Weekly/Monthly Review Dashboard
   const [viewMode, setViewMode] = useState<'columns' | 'calendar' | 'review'>('columns');
 
@@ -132,6 +141,22 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
   const [recurringTasks, setRecurringTasks] = useState<Record<string, boolean>>({});
   const toggleRecurring = (id: string) => {
     setRecurringTasks(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Inline Editing Goal State
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
+  const [editingGoalText, setEditingGoalText] = useState('');
+
+  const handleStartEditGoal = (goal: GoalTodo) => {
+    setEditingGoalId(goal.id);
+    setEditingGoalText(getDisplayGoalText(goal.text));
+  };
+
+  const handleSaveEditGoal = (id: string) => {
+    if (editingGoalText.trim() && onEditGoal) {
+      onEditGoal(id, editingGoalText.trim());
+    }
+    setEditingGoalId(null);
   };
 
   // Calendar Quick-Add Input state
@@ -435,11 +460,45 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
                       )}
                     </button>
                     <div className="flex-1 min-w-0">
-                      <span className={`text-xs break-words whitespace-normal leading-relaxed transition-all duration-300 font-medium block ${
-                        g.completed ? 'text-zinc-500 line-through' : 'text-zinc-100'
-                      }`}>
-                        {getDisplayGoalText(g.text)}
-                      </span>
+                      {editingGoalId === g.id ? (
+                        <div className="flex items-center gap-1 my-0.5">
+                          <input
+                            type="text"
+                            value={editingGoalText}
+                            onChange={(e) => setEditingGoalText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveEditGoal(g.id);
+                              if (e.key === 'Escape') setEditingGoalId(null);
+                            }}
+                            className="w-full glass-input-true px-2 py-1 text-xs text-white"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEditGoal(g.id)}
+                            className="p-1 glass-button-true text-emerald-400 text-xs font-bold"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingGoalId(null)}
+                            className="p-1 text-zinc-400 hover:text-white text-xs"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span 
+                          onDoubleClick={() => handleStartEditGoal(g)}
+                          className={`text-xs break-words whitespace-normal leading-relaxed transition-all duration-300 font-medium block cursor-pointer ${
+                            g.completed ? 'text-zinc-500 line-through' : 'text-zinc-100'
+                          }`}
+                          title="Double-click to edit goal"
+                        >
+                          {getDisplayGoalText(g.text)}
+                        </span>
+                      )}
                       <div className="flex flex-wrap items-center gap-2 mt-1">
                         {/* A1 — Time Estimate Badge */}
                         {estMeta && (
@@ -462,8 +521,18 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
                       </div>
                     </div>
 
-                    {/* Action buttons: B2 Timer, C2 Repeat, Delete */}
+                    {/* Action buttons: B2 Timer, C2 Repeat, Edit, Delete */}
                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      {/* Edit Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditGoal(g)}
+                        className="p-1 rounded text-zinc-500 hover:text-white transition-colors"
+                        title="Edit Goal Name"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+
                       {/* B2 Stopwatch Button */}
                       <button
                         type="button"

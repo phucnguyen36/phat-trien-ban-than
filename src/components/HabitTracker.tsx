@@ -22,7 +22,9 @@ import {
   Activity, 
   Calendar,
   Check,
-  ArrowUpDown
+  ArrowUpDown,
+  Pencil,
+  X
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -33,6 +35,7 @@ interface HabitTrackerProps {
   onAddHabit: (habitName: string, monthYear?: string) => void;
   onToggleHabitDay: (habitId: string, day: number) => void;
   onDeleteHabit: (habitId: string) => void;
+  onEditHabit?: (id: string, newName: string) => void;
   isLightMode?: boolean;
 }
 
@@ -42,9 +45,26 @@ export default function HabitTracker({
   onAddHabit,
   onToggleHabitDay,
   onDeleteHabit,
+  onEditHabit,
   isLightMode
 }: HabitTrackerProps) {
   const [newHabitName, setNewHabitName] = useState('');
+
+  // Inline Habit Editing State
+  const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
+  const [editingHabitName, setEditingHabitName] = useState('');
+
+  const handleStartEditHabit = (habit: HabitData) => {
+    setEditingHabitId(habit.id);
+    setEditingHabitName(habit.habitName);
+  };
+
+  const handleSaveEditHabit = (id: string) => {
+    if (editingHabitName.trim() && onEditHabit) {
+      onEditHabit(id, editingHabitName.trim());
+    }
+    setEditingHabitId(null);
+  };
   // A3 — Goal-Habit linking: track which habitId is expanded for goal-link
   const [habitGoalLinks, setHabitGoalLinks] = useState<Record<string, string>>(() => {
     try { return JSON.parse(localStorage.getItem('df_habit_goal_links') || '{}'); } catch { return {}; }
@@ -334,16 +354,61 @@ export default function HabitTracker({
                 {/* Habit Label + Delete Button + A3 Goal Link */}
                 <div className="flex flex-col pl-4 pr-3 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-white truncate pr-2">
-                      {h.habitName}
-                    </span>
-                    <button
-                      onClick={() => onDeleteHabit(h.id)}
-                      className="opacity-0 group-hover/row:opacity-100 text-zinc-400 hover:text-red-400 transition-all p-0.5"
-                    title="Delete habit"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {editingHabitId === h.id ? (
+                      <div className="flex items-center gap-1 w-full my-0.5">
+                        <input
+                          type="text"
+                          value={editingHabitName}
+                          onChange={(e) => setEditingHabitName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEditHabit(h.id);
+                            if (e.key === 'Escape') setEditingHabitId(null);
+                          }}
+                          className="w-full glass-input-true px-1.5 py-0.5 text-xs text-white"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveEditHabit(h.id)}
+                          className="p-0.5 text-emerald-400 hover:text-emerald-300"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingHabitId(null)}
+                          className="p-0.5 text-zinc-400 hover:text-white"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          onDoubleClick={() => handleStartEditHabit(h)}
+                          className="text-xs font-semibold text-white truncate pr-2 cursor-pointer hover:text-zinc-200"
+                          title="Double-click to edit habit name"
+                        >
+                          {h.habitName}
+                        </span>
+                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleStartEditHabit(h)}
+                            className="text-zinc-400 hover:text-white transition-all p-0.5"
+                            title="Edit habit name"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteHabit(h.id)}
+                            className="text-zinc-400 hover:text-red-400 transition-all p-0.5"
+                            title="Delete habit"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                   {/* A3 — Linked Goal */}
                   {goals.length > 0 && (
