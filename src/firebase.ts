@@ -173,79 +173,102 @@ export function loadFromLocalStorage(userId?: string) {
   return { goals, habits, journal, expenses, scratchpad };
 }
 
-// ---------------- LOAD WORKSPACE DATA PER USER ----------------
+// ---------------- LOAD WORKSPACE DATA PER USER WITH SMART MERGE ----------------
 export async function loadWorkspaceData(userId?: string) {
   const uid = resolveActiveUserId(userId);
+  const local = loadFromLocalStorage(uid);
 
   if (isLocalModeEnabled()) {
-    return loadFromLocalStorage(uid);
+    return local;
   }
 
   try {
     return await withTimeout((async () => {
-      // Load User Goals from subcollection: users/{uid}/goals_todo
+      // 1. Fetch Remote Firestore Data
       const goalsSnap = await getDocs(collection(db, 'users', uid, 'goals_todo'));
-      let goals: GoalTodo[] = [];
-      goalsSnap.forEach(d => goals.push({ id: d.id, ...d.data() } as GoalTodo));
+      const remoteGoals: GoalTodo[] = [];
+      goalsSnap.forEach(d => remoteGoals.push({ id: d.id, ...d.data() } as GoalTodo));
 
-      // Load User Habits from subcollection: users/{uid}/habits_data
       const habitsSnap = await getDocs(collection(db, 'users', uid, 'habits_data'));
-      let habits: HabitData[] = [];
-      habitsSnap.forEach(d => habits.push({ id: d.id, ...d.data() } as HabitData));
+      const remoteHabits: HabitData[] = [];
+      habitsSnap.forEach(d => remoteHabits.push({ id: d.id, ...d.data() } as HabitData));
 
-      // Load User Journal from subcollection: users/{uid}/daily_journal
       const journalSnap = await getDocs(collection(db, 'users', uid, 'daily_journal'));
-      let journal: DailyJournal[] = [];
-      journalSnap.forEach(d => journal.push({ id: d.id, ...d.data() } as DailyJournal));
+      const remoteJournal: DailyJournal[] = [];
+      journalSnap.forEach(d => remoteJournal.push({ id: d.id, ...d.data() } as DailyJournal));
 
-      // Load User Expenses from subcollection: users/{uid}/personal_expenses
       const expensesSnap = await getDocs(collection(db, 'users', uid, 'personal_expenses'));
-      let expenses: PersonalExpense[] = [];
-      expensesSnap.forEach(d => expenses.push({ id: d.id, ...d.data() } as PersonalExpense));
+      const remoteExpenses: PersonalExpense[] = [];
+      expensesSnap.forEach(d => remoteExpenses.push({ id: d.id, ...d.data() } as PersonalExpense));
 
-      // Load User Scratchpad from: users/{uid}/quick_scratchpad/single_doc
       const padDoc = await getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'));
-      let scratchpad = '';
-      if (padDoc.exists()) {
-        scratchpad = (padDoc.data() as any).text || '';
-      }
+      const remoteScratchpad = padDoc.exists() ? (padDoc.data() as any).text || '' : '';
 
-      // AUTO-MIGRATE LOCAL TO CLOUD: If Cloud Firestore has empty data, but local storage has user data, auto-upload!
-      const local = loadFromLocalStorage(uid);
-      if (goals.length === 0 && local.goals.length > 0) {
-        goals = local.goals;
-        for (const g of goals) {
+      // 2. SMART TWO-WAY MERGE BY UNIQUE ID (ZERO DATA LOSS)
+      // Merge Goals: combine local + remote without duplicates
+      const mergedGoalsMap = new Map<string, GoalTodo>();
+      local.goals.forEach(g => mergedGoalsMap.set(g.id, g));
+      remoteGoals.forEach(g => mergedGoalsMap.set(g.id, g));
+      const goals = Array.from(mergedGoalsMap.values());
+
+      // Upload any local goals missing from remote Firestore
+      for (const g of local.goals) {
+        if (!remoteGoals.some(rg => rg.id === g.id)) {
           await saveGoal(g, uid);
         }
       }
-      if (habits.length === 0 && local.habits.length > 0) {
-        habits = local.habits;
-        for (const h of habits) {
+
+      // Merge Habits: combine local + remote
+      const mergedHabitsMap = new Map<string, HabitData>();
+      local.habits.forEach(h => mergedHabitsMap.set(h.id, h));
+      remoteHabits.forEach(h => mergedHabitsMap.set(h.id, h));
+      const habits = Array.from(mergedHabitsMap.values());
+      for (const h of local.habits) {
+        if (!remoteHabits.some(rh => rh.id === h.id)) {
           await saveHabit(h, uid);
         }
       }
-      if (journal.length === 0 && local.journal.length > 0) {
-        journal = local.journal;
-        for (const j of journal) {
+
+      // Merge Journal
+      const mergedJournalMap = new Map<string, DailyJournal>();
+      local.journal.forEach(j => mergedJournalMap.set(j.id, j));
+      remoteJournal.forEach(j => mergedJournalMap.set(j.id, j));
+      const journal = Array.from(mergedJournalMap.values());
+      for (const j of local.journal) {
+        if (!remoteJournal.some(rj => rj.id === j.id)) {
           await saveJournal(j, uid);
         }
       }
-      if (expenses.length === 0 && local.expenses.length > 0) {
-        expenses = local.expenses;
-        for (const e of expenses) {
+
+      // Merge Expenses
+      const mergedExpensesMap = new Map<string, PersonalExpense>();
+      local.expenses.forEach(e => mergedExpensesMap.set(e.id, e));
+      remoteExpenses.forEach(e => mergedExpensesMap.set(e.id, e));
+      const expenses = Array.from(mergedExpensesMap.values());
+      for (const e of local.expenses) {
+        if (!remoteExpenses.some(re => re.id === e.id)) {
           await saveExpense(e, uid);
         }
       }
-      if (!scratchpad && local.scratchpad) {
-        scratchpad = local.scratchpad;
-        await saveScratchpad(scratchpad, uid);
+
+      // Scratchpad: prefer remote if non-empty, otherwise local
+      const scratchpad = remoteScratchpad || local.scratchpad;
+      if (local.scratchpad && !remoteScratchpad) {
+        await saveScratchpad(local.scratchpad, uid);
       }
 
+      // Update local storage cache with unified merged result
+      localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
+      localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
+      localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
+      localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
+      localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpad);
+
       return { goals, habits, journal, expenses, scratchpad };
-    })(), 5000);
+    })(), 6000);
   } catch (error) {
-    console.warn('Failed to load Firestore data, falling back to account local storage cache.', error);
-    return loadFromLocalStorage(uid);
+    console.warn('Failed to load Firestore data, using account local storage cache.', error);
+    return local;
   }
 }
 
