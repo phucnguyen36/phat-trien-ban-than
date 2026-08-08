@@ -399,19 +399,19 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         return (
           <div className="mb-6 p-4 glass-card-true border border-emerald-500/20 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">💵</span>
+              <DollarSign className="w-5 h-5 text-zinc-300 shrink-0" />
               <div>
-                <h4 className="text-xs font-mono font-bold text-emerald-300 uppercase tracking-widest">
+                <h4 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-widest">
                   Monthly Capital Intelligence Summary ({filterMonthYear})
                 </h4>
                 <p className="text-zinc-300 text-xs mt-0.5 font-sans">
                   Total Burn: <strong className="text-white font-mono">{displayTotal}</strong> across <strong className="text-white font-mono">{filteredExpenses.length}</strong> items.
-                  Top Category: <strong className="text-amber-300 font-mono">{topCat}</strong> ({topCatDisplay}).
+                  Top Category: <strong className="text-zinc-200 font-mono">{topCat}</strong> ({topCatDisplay}).
                 </p>
               </div>
             </div>
             <div className="text-[10px] font-mono text-zinc-400 bg-black/40 px-3 py-1.5 rounded-lg border border-white/10 shrink-0">
-              ⚡ Status: {totalVnd > 15000000 ? '⚠️ High Burn Rate' : '✅ Within Budget'}
+              Status: {totalVnd > 15000000 ? 'High Burn Rate' : 'Within Budget'}
             </div>
           </div>
         );
@@ -454,11 +454,11 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                 onChange={(e) => setCategoryInput(e.target.value as ExpenseCategory)}
                 className="w-full glass-input-true p-2.5 text-xs text-white font-semibold cursor-pointer"
               >
-                <option value="Eating" className="bg-black text-white">🍔 Eating & Food</option>
-                <option value="Transport" className="bg-black text-white">🚗 Transport & Fuel</option>
-                <option value="Study/Equipment" className="bg-black text-white">📚 Study & Gear</option>
-                <option value="Entertainment" className="bg-black text-white">🎬 Entertainment & Leisure</option>
-                <option value="Others" className="bg-black text-white">📦 Others & Miscellaneous</option>
+                <option value="Eating" className="bg-black text-white">Eating & Food</option>
+                <option value="Transport" className="bg-black text-white">Transport & Fuel</option>
+                <option value="Study/Equipment" className="bg-black text-white">Study & Gear</option>
+                <option value="Entertainment" className="bg-black text-white">Entertainment & Leisure</option>
+                <option value="Others" className="bg-black text-white">Others & Miscellaneous</option>
               </select>
             </div>
 

@@ -76,11 +76,11 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 }
 
 export function isLocalModeEnabled(): boolean {
-  if (!db || !auth) return true;
+  if (!db || !auth) return false;
   const saved = localStorage.getItem('deep_focus_os_local_only');
   if (saved === 'true') return true;
   if (saved === 'false') return false;
-  return true;
+  return false; // Default Cloud Sync ENABLED so Web and Desktop App sync for same account
 }
 
 export function setLocalModeEnabled(enabled: boolean) {

@@ -28,7 +28,12 @@ import {
   Play,
   Pause,
   Repeat,
-  Clock
+  Clock,
+  BarChart3,
+  Zap,
+  Key,
+  Ban,
+  Target
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -510,11 +515,11 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
               onClick={() => setViewMode('review')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'review'
-                  ? 'bg-violet-500/30 text-violet-200 font-extrabold shadow-md'
+                  ? 'bg-white/20 text-white font-extrabold shadow-md'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>📊</span>
+              <BarChart3 className="w-3.5 h-3.5" />
               <span>WEEKLY & MONTHLY REVIEW</span>
             </button>
           </div>
@@ -759,8 +764,9 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
 
           {/* Bar Chart: Target Completion Velocity */}
           <div className="glass-card-true p-6 border border-white/10 rounded-2xl space-y-4">
-            <h3 className="text-xs font-mono font-bold text-violet-300 uppercase tracking-widest flex items-center gap-2">
-              <span>📊</span> Target Velocity Dashboard (Completion rate by Tier)
+            <h3 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-widest flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-zinc-300" />
+              <span>Target Velocity Dashboard (Completion rate by Tier)</span>
             </h3>
             <div className="h-64 relative">
               <Bar 
@@ -810,29 +816,34 @@ export default function TodoHub({ goals, onAddGoal, onToggleGoal, onDeleteGoal, 
 
           {/* Weekly Reflection Questions */}
           <div className="glass-card-true p-6 border border-white/10 rounded-2xl space-y-4">
-            <h3 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-widest flex items-center gap-2">
-              <span>⚡</span> Weekly & Monthly Review Reflections
+            <h3 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-widest flex items-center gap-2">
+              <Zap className="w-4 h-4 text-zinc-300" />
+              <span>Weekly & Monthly Review Reflections</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { emoji: '🔑', q: 'Highest Leverage Win', key: `df_weekly_review_q0_${new Date().getFullYear()}` },
-                { emoji: '🚫', q: 'Biggest Time Waster', key: `df_weekly_review_q1_${new Date().getFullYear()}` },
-                { emoji: '🎯', q: 'Next Focus Priority', key: `df_weekly_review_q2_${new Date().getFullYear()}` },
-              ].map((item) => (
-                <div key={item.key} className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                    <span>{item.emoji}</span> {item.q}
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Enter reflection note..."
-                    className="w-full glass-input-true p-3 text-xs text-white rounded-xl resize-none font-sans"
-                    onChange={(e) => localStorage.setItem(item.key, e.target.value)}
-                    defaultValue={localStorage.getItem(item.key) || ''}
-                  />
-                </div>
-              ))}
+                { icon: Key, q: 'Highest Leverage Win', key: `df_weekly_review_q0_${new Date().getFullYear()}` },
+                { icon: Ban, q: 'Biggest Time Waster', key: `df_weekly_review_q1_${new Date().getFullYear()}` },
+                { icon: Target, q: 'Next Focus Priority', key: `df_weekly_review_q2_${new Date().getFullYear()}` },
+              ].map((item) => {
+                const IconComp = item.icon;
+                return (
+                  <div key={item.key} className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                      <IconComp className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>{item.q}</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Enter reflection note..."
+                      className="w-full glass-input-true p-3 text-xs text-white rounded-xl resize-none font-sans"
+                      onChange={(e) => localStorage.setItem(item.key, e.target.value)}
+                      defaultValue={localStorage.getItem(item.key) || ''}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

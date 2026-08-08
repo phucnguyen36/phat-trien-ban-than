@@ -467,17 +467,11 @@ export default function App() {
     if (isAuthenticated) {
       loadData();
 
-      // D2 — Onboarding Wizard Check: show if first time user
-      const onboardKey = `df_onboarding_completed_${currentUser?.email}`;
-      if (!localStorage.getItem(onboardKey)) {
-        setTimeout(() => setShowOnboarding(true), 600);
-      } else {
-        // A4 — Morning Prompt: show once per calendar day if onboarding done
-        const todayKey = `df_morning_prompt_shown_${new Date().toISOString().split('T')[0]}_${currentUser?.email}`;
-        if (!sessionStorage.getItem(todayKey)) {
-          setTimeout(() => setShowMorningPrompt(true), 1200);
-          sessionStorage.setItem(todayKey, 'shown');
-        }
+      // A4 — Morning Prompt: show once per calendar day
+      const todayKey = `df_morning_prompt_shown_${new Date().toISOString().split('T')[0]}_${currentUser?.email}`;
+      if (!sessionStorage.getItem(todayKey)) {
+        setTimeout(() => setShowMorningPrompt(true), 1200);
+        sessionStorage.setItem(todayKey, 'shown');
       }
     }
   }, [isAuthenticated, currentUser, loadData]);
@@ -1655,13 +1649,10 @@ export default function App() {
 
       {/* A4 — MORNING PRIORITY PROMPT MODAL */}
       {showMorningPrompt && (
-        <div className="fixed inset-0 z-[9000] flex items-center justify-center bg-black/70 backdrop-blur-md">
-          <div className="relative w-full max-w-md mx-4 glass-card-true border border-amber-500/30 rounded-2xl p-7 shadow-2xl shadow-amber-900/20">
-            {/* Glow accent */}
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-6 rounded-full bg-amber-400/20 blur-2xl pointer-events-none" />
-
+        <div className="fixed inset-0 z-[9000] flex items-center justify-center bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-md mx-4 glass-card-true border border-white/15 rounded-2xl p-7 shadow-2xl">
             <div className="flex items-center gap-3 mb-1">
-              <span className="text-2xl">🌅</span>
+              <Sun className="w-6 h-6 text-zinc-200 shrink-0" />
               <div>
                 <h2 className="text-white font-semibold text-lg leading-tight">Good morning, {currentUser?.email?.split('@')[0] || 'Chief'}</h2>
                 <p className="text-zinc-400 text-xs mt-0.5">What are your 3 most important tasks today?</p>
@@ -1711,8 +1702,8 @@ export default function App() {
 
       {/* A2 — WEEKLY REVIEW FLOATING PANEL */}
       {isWeeklyReviewOpen && (
-        <div className="fixed inset-0 z-[8900] flex items-center justify-center bg-black/65 backdrop-blur-md">
-          <div className="relative w-full max-w-lg mx-4 glass-card-true border border-violet-500/30 rounded-2xl p-7 shadow-2xl shadow-violet-900/20 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[8900] flex items-center justify-center bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-lg mx-4 glass-card-true border border-white/15 rounded-2xl p-7 shadow-2xl max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsWeeklyReviewOpen(false)}
               className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200 transition-colors"
@@ -1721,7 +1712,7 @@ export default function App() {
             </button>
 
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl">📊</span>
+              <Clock className="w-6 h-6 text-zinc-200 shrink-0" />
               <div>
                 <h2 className="text-white font-semibold text-lg">Weekly Debrief</h2>
                 <p className="text-zinc-400 text-xs">Week of {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
@@ -1801,8 +1792,8 @@ export default function App() {
 
       {/* C4 — KEYBOARD SHORTCUTS MODAL (?) */}
       {isShortcutsModalOpen && (
-        <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/75 backdrop-blur-md">
-          <div className="relative w-full max-w-md mx-4 glass-card-true border border-cyan-500/30 rounded-2xl p-7 shadow-2xl">
+        <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-md mx-4 glass-card-true border border-white/15 rounded-2xl p-7 shadow-2xl">
             <button
               onClick={() => setIsShortcutsModalOpen(false)}
               className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200 transition-colors"
@@ -1811,7 +1802,7 @@ export default function App() {
             </button>
 
             <div className="flex items-center gap-3 mb-5">
-              <span className="text-2xl">⌨️</span>
+              <Compass className="w-6 h-6 text-zinc-200 shrink-0" />
               <div>
                 <h2 className="text-white font-semibold text-lg">Keyboard Shortcuts</h2>
                 <p className="text-zinc-400 text-xs">Navigate Deep Focus OS with speed</p>
@@ -1836,92 +1827,10 @@ export default function App() {
 
             <button
               onClick={() => setIsShortcutsModalOpen(false)}
-              className="mt-5 w-full py-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg text-xs font-mono uppercase font-bold"
+              className="mt-5 w-full py-2 glass-button-true text-zinc-200 hover:text-white rounded-lg text-xs font-mono uppercase font-bold"
             >
               Close Cheatsheet
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* D2 — ONBOARDING WIZARD MODAL */}
-      {showOnboarding && (
-        <div className="fixed inset-0 z-[9900] flex items-center justify-center bg-black/80 backdrop-blur-lg">
-          <div className="relative w-full max-w-lg mx-4 glass-card-true border border-pink-500/30 rounded-2xl p-8 shadow-2xl">
-            {/* Step indicator */}
-            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-pink-400" />
-                <h3 className="text-white font-bold text-base">Welcome to Deep Focus OS</h3>
-              </div>
-              <span className="text-xs font-mono text-pink-400 font-bold">Step {onboardingStep} of 3</span>
-            </div>
-
-            {onboardingStep === 1 && (
-              <div className="space-y-4">
-                <div className="text-center py-2">
-                  <span className="text-4xl">🚀</span>
-                  <h4 className="text-lg font-bold text-white mt-3">Welcome, {currentUser?.name || 'Architect'}!</h4>
-                  <p className="text-zinc-300 text-xs mt-1 leading-relaxed">
-                    Deep Focus OS is your high-leverage personal operating system designed for extreme discipline, focus, and financial clarity.
-                  </p>
-                </div>
-                <div className="p-4 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-2 text-xs text-zinc-300">
-                  <p>✨ <strong>Multi-Tier Roadmap:</strong> Organize objectives by Day, Week, Month & Year.</p>
-                  <p>📊 <strong>Habit Matrix:</strong> Build unshakeable daily consistency.</p>
-                  <p>🔋 <strong>Energy Journal:</strong> Track peak state and reflect daily.</p>
-                </div>
-                <button
-                  onClick={() => setOnboardingStep(2)}
-                  className="w-full py-2.5 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-all"
-                >
-                  Continue → Set Up First Habits
-                </button>
-              </div>
-            )}
-
-            {onboardingStep === 2 && (
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>⚡</span> Step 2: Core Daily Habits
-                </h4>
-                <p className="text-xs text-zinc-400">Your default habits are pre-loaded into your Habit Matrix:</p>
-                <div className="space-y-2">
-                  {['Morning Deep Focus Work Block (90m)', 'Hydration & Daily Physical Training', 'Evening Reflection & Energy Log'].map((h, i) => (
-                    <div key={i} className="flex items-center gap-2 p-2.5 bg-zinc-900/60 rounded-lg border border-zinc-800 text-xs text-zinc-200">
-                      <span className="text-emerald-400 font-bold">✓</span> {h}
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setOnboardingStep(3)}
-                  className="w-full py-2.5 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-all"
-                >
-                  Next → Final Step
-                </button>
-              </div>
-            )}
-
-            {onboardingStep === 3 && (
-              <div className="space-y-4">
-                <div className="text-center py-2">
-                  <span className="text-4xl">🎯</span>
-                  <h4 className="text-lg font-bold text-white mt-3">You're Ready to Execute!</h4>
-                  <p className="text-zinc-300 text-xs mt-1">
-                    Press <kbd className="px-1.5 py-0.5 bg-zinc-800 text-pink-300 font-mono rounded">Ctrl + K</kbd> anytime to search or navigate. Press <kbd className="px-1.5 py-0.5 bg-zinc-800 text-pink-300 font-mono rounded">?</kbd> for keyboard shortcuts.
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    localStorage.setItem(`df_onboarding_completed_${currentUser?.email}`, 'true');
-                    setShowOnboarding(false);
-                  }}
-                  className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-pink-900/40 transition-all"
-                >
-                  🚀 Launch Deep Focus OS
-                </button>
-              </div>
-            )}
           </div>
         </div>
       )}

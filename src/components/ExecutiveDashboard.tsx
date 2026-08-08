@@ -81,8 +81,8 @@ export default function ExecutiveDashboard({
       <div className="relative overflow-hidden glass-panel-true p-6 md:p-8 text-zinc-100">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 text-[11px] uppercase tracking-widest font-bold glass-pill-true text-pink-300">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse text-pink-400" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 text-[11px] uppercase tracking-widest font-bold glass-pill-true text-zinc-200">
+              <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
               EXECUTIVE COMMAND CENTER
             </div>
             <h1 className="text-xl md:text-3xl font-black tracking-tight text-white uppercase">
