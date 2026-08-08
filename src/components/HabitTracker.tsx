@@ -29,7 +29,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tool
 interface HabitTrackerProps {
   habits: HabitData[];
   goals?: GoalTodo[]; // A3 — Goal-Habit linking
-  onAddHabit: (habitName: string) => void;
+  onAddHabit: (habitName: string, monthYear?: string) => void;
   onToggleHabitDay: (habitId: string, day: number) => void;
   onDeleteHabit: (habitId: string) => void;
   isLightMode?: boolean;
@@ -90,14 +90,14 @@ export default function HabitTracker({
   const filteredHabits = useMemo(() => {
     return habits.filter(h => {
       if (h.monthYear) return h.monthYear === selectedMonthYear;
-      return selectedMonthYear === '2026-07';
+      return selectedMonthYear === defaultMonthStr;
     });
-  }, [habits, selectedMonthYear]);
+  }, [habits, selectedMonthYear, defaultMonthStr]);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
-    onAddHabit(newHabitName.trim());
+    onAddHabit(newHabitName.trim(), selectedMonthYear);
     setNewHabitName('');
   };
 

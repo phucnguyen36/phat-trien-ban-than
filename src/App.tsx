@@ -568,11 +568,14 @@ export default function App() {
   };
 
   // Handler: Habit operations
-  const handleAddHabit = async (habitName: string, monthYear: string = '2026-07') => {
+  const handleAddHabit = async (habitName: string, monthYear?: string) => {
+    const currentMonthYearStr = new Date().toISOString().slice(0, 7);
+    const activeMonthYear = monthYear || currentMonthYearStr;
+
     const id = 'h_' + Math.random().toString(36).substring(2, 9);
     const newHabit: HabitData = {
       id,
-      monthYear,
+      monthYear: activeMonthYear,
       habitName,
       completedDays: []
     };
