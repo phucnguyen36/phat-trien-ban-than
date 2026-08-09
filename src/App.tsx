@@ -930,110 +930,93 @@ export default function App() {
         <div className="glow-streak-bottom" />
       </div>
 
-      {/* 1. TOP STATUS BAR HEADER (True Glassmorphism Ultra-Sleek) */}
-      <header className="sticky top-0 z-40 bg-white/[0.06] backdrop-blur-2xl border-b border-white/15 px-4 md:px-8 py-3 flex flex-col md:flex-row justify-between items-center gap-3 shadow-2xl">
+      {/* 1. TOP STATUS BAR HEADER (Ultra-Clean Anti-AI Aesthetic) */}
+      <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-3 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
         
-        {/* Brand & Live System Clock */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5 glass-pill-true px-3.5 py-1 text-zinc-100">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-pulse inline-block" />
-            <h1 className="text-xs font-mono tracking-widest uppercase font-extrabold text-white">
-              DEEP FOCUS OS <span className="text-[9px] text-zinc-400 font-normal">v5.0</span>
-            </h1>
+        {/* Brand Logo & Clean Time Display */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveSection('overview')}>
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-white font-black text-xs shadow-md group-hover:scale-105 transition-transform">
+              DF
+            </div>
+            <span className="text-sm font-extrabold tracking-tight text-white uppercase font-sans">
+              DEEP FOCUS
+            </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-zinc-300 glass-pill-true px-3 py-1 uppercase tracking-wider font-semibold">
-            <Clock className="w-3.5 h-3.5 text-zinc-400" />
+          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
+            <span className="text-zinc-600">•</span>
+            <Clock className="w-3.5 h-3.5 text-zinc-500" />
             <span>{currentTime}</span>
           </div>
         </div>
 
-        {/* Cloud / Local Mode Selector Bar */}
-        <div className="flex items-center glass-pill-true p-1">
+        {/* Center Command Palette Search Trigger */}
+        <div className="flex items-center">
           <button
-            onClick={() => handleToggleLocalMode(false)}
-            className={`px-3 py-1 font-mono text-[9px] tracking-widest uppercase rounded-full transition-all flex items-center gap-1.5 focus:outline-none font-bold ${
-              !localOnlyMode 
-                ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 shadow-md' 
-                : 'text-zinc-400 hover:text-white'
-            }`}
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="px-3.5 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-zinc-300 hover:text-white transition-all rounded-lg flex items-center gap-3 text-xs font-medium"
+            title="Search or Jump to Section (Ctrl + K)"
           >
-            <RefreshCw className={`w-3 h-3 ${!localOnlyMode ? 'animate-spin' : ''}`} />
-            CLOUD SYNC
-          </button>
-          <button
-            onClick={() => handleToggleLocalMode(true)}
-            className={`px-3 py-1 font-mono text-[9px] tracking-widest uppercase rounded-full transition-all flex items-center gap-1.5 focus:outline-none font-bold ${
-              localOnlyMode 
-                ? 'bg-white/20 text-white shadow-md' 
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <CloudOff className="w-3 h-3" />
-            LOCAL ONLY
+            <Search className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="text-zinc-400">Search commands...</span>
+            <kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-white/10 text-zinc-300 rounded border border-white/10">⌘K</kbd>
           </button>
         </div>
 
-        {/* User Profile Card Triggers & Navigation Controls */}
-        <div className="flex items-center gap-2.5">
+        {/* Right Controls: Cloud Sync status, Sidebar Toggle, User & Settings */}
+        <div className="flex items-center gap-3">
           
-          {/* Quick Search Command Palette Trigger */}
+          {/* Cloud Sync Status Indicator */}
           <button
-            onClick={() => setIsCommandPaletteOpen(true)}
-            className="px-3 py-1.5 glass-button-true text-zinc-200 hover:text-white transition-all rounded-full flex items-center gap-2 text-xs font-semibold"
-            title="Search or Jump to Section (Ctrl + K)"
+            onClick={() => handleToggleLocalMode(!localOnlyMode)}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-zinc-400 hover:text-white transition-colors"
+            title={localOnlyMode ? "Offline Mode (Click to enable Cloud Sync)" : "Cloud Sync Active (Click to switch to Offline Mode)"}
           >
-            <Search className="w-3.5 h-3.5 text-cyan-300" />
-            <span className="hidden sm:inline">Search...</span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono glass-pill-true text-zinc-300">Ctrl K</kbd>
+            <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-zinc-600'}`} />
+            <span className="text-[10px] uppercase font-bold tracking-wider">{!localOnlyMode ? 'Cloud Sync' : 'Local Only'}</span>
           </button>
 
+          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
 
-
-          {/* Toggle Sidebar Panel (Desktop) */}
+          {/* Toggle Sidebar Navigation */}
           <button
             onClick={() => setIsSidebarOpen(prev => !prev)}
-            className={`px-3 py-1.5 glass-button-true text-zinc-200 hover:text-white transition-colors rounded-full hidden lg:flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest font-semibold`}
+            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors hidden lg:block"
             title={isSidebarOpen ? "Collapse Navigation Panel" : "Expand Navigation Panel"}
           >
-            {isSidebarOpen ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
-            <span>{isSidebarOpen ? "Hide Nav" : "Show Nav"}</span>
+            {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
           </button>
 
-          {/* User Profile Card */}
+          {/* User Avatar */}
           <button
             onClick={() => {
               setTempProfile({ ...profile });
               setIsProfileModalOpen(true);
             }}
-            className="flex items-center gap-2.5 glass-card-true px-3 py-1 rounded-full group text-left focus:outline-none"
+            className="flex items-center gap-2 px-2 py-1 hover:bg-white/[0.06] rounded-xl transition-colors text-left"
             title="Edit Profile Settings"
           >
             <img 
               src={profile.avatarUrl} 
               alt={profile.name} 
-              className="w-7 h-7 rounded-full border border-white/20 group-hover:border-white/50 transition-colors"
+              className="w-7 h-7 rounded-lg border border-white/15 object-cover"
             />
-            <div className="hidden sm:flex flex-col">
-              <span className="text-xs font-semibold text-white group-hover:text-cyan-200 transition-colors">
-                {currentUser ? currentUser.name : profile.name}
-              </span>
-              <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest font-bold">
-                {currentUser?.role === 'admin' ? 'Master Admin' : profile.role}
-              </span>
-            </div>
+            <span className="hidden sm:inline text-xs font-semibold text-zinc-200">
+              {currentUser ? currentUser.name : profile.name}
+            </span>
           </button>
 
-          {/* Settings Control Panel button */}
+          {/* Settings icon */}
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2 glass-button-true text-zinc-300 hover:text-white transition-colors rounded-full"
+            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
             title="OS Configuration & Theme Settings"
           >
-            <Settings className="w-3.5 h-3.5" />
+            <Settings className="w-4 h-4" />
           </button>
 
-          {/* Sign Out / Lock Screen button */}
+          {/* Logout icon */}
           <button
             onClick={() => {
               sessionStorage.removeItem('df_os_active_user');
@@ -1041,11 +1024,12 @@ export default function App() {
               setIsAuthenticated(false);
               setCurrentUser(null);
             }}
-            className="p-2 glass-button-true text-zinc-400 hover:text-red-400 transition-colors rounded-full"
-            title="Sign Out / Lock Screen"
+            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            title="Sign Out"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
           </button>
+
         </div>
 
       </header>
