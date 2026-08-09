@@ -546,6 +546,11 @@ export default function App() {
     await saveGoal(updatedGoal);
   };
 
+  const handleUpdateGoal = async (updatedGoal: GoalTodo) => {
+    setGoals(prev => prev.map(g => g.id === updatedGoal.id ? updatedGoal : g));
+    await saveGoal(updatedGoal);
+  };
+
   // A4 — Morning Prompt: submit 3 priorities as daily tasks
   const handleMorningPromptSubmit = async () => {
     const filled = morningPriorities.filter(p => p.trim());
@@ -1226,6 +1231,7 @@ export default function App() {
                       onToggleGoal={handleToggleGoal}
                       onDeleteGoal={handleDeleteGoal}
                       onEditGoal={handleEditGoal}
+                      onUpdateGoal={handleUpdateGoal}
                       isLightMode={isLightMode}
                     />
                   </section>

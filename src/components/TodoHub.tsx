@@ -37,7 +37,17 @@ import {
   AlertCircle,
   RefreshCw,
   X,
-  Pencil
+  Pencil,
+  Table,
+  PanelRightOpen,
+  FileText,
+  ListChecks,
+  Tag,
+  Flag,
+  Calendar,
+  Maximize2,
+  CheckCircle2,
+  ChevronRight
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -48,6 +58,7 @@ interface TodoHubProps {
   onToggleGoal: (id: string, completed: boolean) => void;
   onDeleteGoal: (id: string) => void;
   onEditGoal?: (id: string, newText: string) => void;
+  onUpdateGoal?: (updatedGoal: GoalTodo) => void;
   isLightMode?: boolean;
 }
 
@@ -57,10 +68,55 @@ export default function TodoHub({
   onToggleGoal,
   onDeleteGoal,
   onEditGoal,
+  onUpdateGoal,
   isLightMode
 }: TodoHubProps) {
-  // View mode toggle: Multi-column view vs Calendar Grid view vs Weekly/Monthly Review Dashboard
-  const [viewMode, setViewMode] = useState<'columns' | 'calendar' | 'review'>('columns');
+  // View mode toggle: Multi-column view vs Notion Table View vs Calendar Grid view vs Weekly/Monthly Review Dashboard
+  const [viewMode, setViewMode] = useState<'columns' | 'table' | 'calendar' | 'review'>('columns');
+
+  // Notion Side Panel State
+  const [activePanelGoalId, setActivePanelGoalId] = useState<string | null>(null);
+  const activePanelGoal = useMemo(() => goals.find(g => g.id === activePanelGoalId) || null, [goals, activePanelGoalId]);
+  const [newSubTaskTitle, setNewSubTaskTitle] = useState('');
+
+  // Sub-task handlers
+  const handleAddSubTask = (goal: GoalTodo, title: string) => {
+    if (!title.trim() || !onUpdateGoal) return;
+    const newSub = {
+      id: 'sub_' + Math.random().toString(36).substring(2, 9),
+      title: title.trim(),
+      completed: false
+    };
+    const updatedSubTasks = [...(goal.subTasks || []), newSub];
+    onUpdateGoal({ ...goal, subTasks: updatedSubTasks });
+    setNewSubTaskTitle('');
+  };
+
+  const handleToggleSubTask = (goal: GoalTodo, subTaskId: string) => {
+    if (!onUpdateGoal) return;
+    const updatedSubTasks = (goal.subTasks || []).map(s => 
+      s.id === subTaskId ? { ...s, completed: !s.completed } : s
+    );
+    onUpdateGoal({ ...goal, subTasks: updatedSubTasks });
+  };
+
+  const handleDeleteSubTask = (goal: GoalTodo, subTaskId: string) => {
+    if (!onUpdateGoal) return;
+    const updatedSubTasks = (goal.subTasks || []).filter(s => s.id !== subTaskId);
+    onUpdateGoal({ ...goal, subTasks: updatedSubTasks });
+  };
+
+  const handleUpdateNotes = (goal: GoalTodo, notes: string) => {
+    if (onUpdateGoal) {
+      onUpdateGoal({ ...goal, notes });
+    }
+  };
+
+  const handleUpdateProperty = (goal: GoalTodo, key: keyof GoalTodo, value: any) => {
+    if (onUpdateGoal) {
+      onUpdateGoal({ ...goal, [key]: value });
+    }
+  };
 
   // Calculate current actual date for Today highlight and default selection
   const today = useMemo(() => new Date(), []);
@@ -518,11 +574,32 @@ export default function TodoHub({
                             🔁 Auto-Reset
                           </span>
                         )}
+                        {/* Sub-tasks Badge */}
+                        {g.subTasks && g.subTasks.length > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                            <ListChecks className="w-3 h-3" /> {g.subTasks.filter(s => s.completed).length}/{g.subTasks.length}
+                          </span>
+                        )}
+                        {/* Notes Indicator Badge */}
+                        {g.notes && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                            <FileText className="w-3 h-3" /> Notes
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Action buttons: B2 Timer, C2 Repeat, Edit, Delete */}
+                    {/* Action buttons: Notion Panel, B2 Timer, C2 Repeat, Edit, Delete */}
                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      {/* Notion Side Panel Open Button */}
+                      <button
+                        type="button"
+                        onClick={() => setActivePanelGoalId(g.id)}
+                        className="p-1 rounded text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
+                        title="Open Notion Side Panel & Sub-tasks"
+                      >
+                        <PanelRightOpen className="w-3.5 h-3.5" />
+                      </button>
                       {/* Edit Button */}
                       <button
                         type="button"
@@ -642,6 +719,17 @@ export default function TodoHub({
             >
               <LayoutGrid className="w-3.5 h-3.5" />
               <span>COLUMNS</span>
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
+                viewMode === 'table'
+                  ? 'bg-amber-500/30 text-amber-200 font-extrabold shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <Table className="w-3.5 h-3.5 text-amber-400" />
+              <span>NOTION DATABASE</span>
             </button>
             <button
               onClick={() => setViewMode('calendar')}
@@ -786,6 +874,142 @@ export default function TodoHub({
             {visibleColumns.yearly && renderColumn('yearly', 'Year', 'text-emerald-300', 'glow-emerald', 'bg-emerald-400', `${selectedYear}`)}
           </div>
         </>
+      ) : viewMode === 'table' ? (
+        /* Notion Database Table View Mode */
+        <div className="glass-panel-true border border-white/15 overflow-x-auto p-4 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <Table className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                NOTION DATABASE MATRIX • {filteredGoals.length} OBJECTIVES
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
+              <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white font-bold">FULL DATABASE VIEW</span>
+              <span>Click any row to open Notion Side Panel & Sub-tasks</span>
+            </div>
+          </div>
+
+          <table className="w-full text-left border-collapse min-w-[900px]">
+            <thead>
+              <tr className="border-b border-white/10 text-[10px] font-mono text-zinc-400 uppercase tracking-widest bg-white/[0.03]">
+                <th className="py-2.5 px-3 w-16 text-center">Done?</th>
+                <th className="py-2.5 px-3">Task Name</th>
+                <th className="py-2.5 px-3 w-28">Timeframe</th>
+                <th className="py-2.5 px-3 w-28">Sub-tasks</th>
+                <th className="py-2.5 px-3 w-24">Time Est</th>
+                <th className="py-2.5 px-3 w-32">Priority</th>
+                <th className="py-2.5 px-3 w-32">Context Tag</th>
+                <th className="py-2.5 px-3 w-32">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-xs font-sans">
+              {filteredGoals.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-10 text-zinc-500 font-mono text-xs uppercase tracking-widest">
+                    No objectives in active filter view. Add a new objective above or switch context.
+                  </td>
+                </tr>
+              ) : (
+                filteredGoals.map(g => {
+                  const subCount = g.subTasks ? g.subTasks.length : 0;
+                  const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
+                  const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
+                  const prio = g.priority || 'Medium';
+                  
+                  const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : prio === 'High' ? 'bg-red-500/20 text-red-300 border-red-500/40'
+                    : prio === 'Low' ? 'bg-zinc-500/20 text-zinc-400 border-zinc-500/40'
+                    : 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+
+                  return (
+                    <tr 
+                      key={g.id} 
+                      className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                      onClick={() => setActivePanelGoalId(g.id)}
+                    >
+                      <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => onToggleGoal(g.id, !g.completed)}
+                          className="text-zinc-400 hover:text-white transition-colors"
+                        >
+                          {g.completed ? (
+                            <CheckSquare className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Square className="w-4 h-4 text-zinc-500" />
+                          )}
+                        </button>
+                      </td>
+
+                      <td className="py-3 px-3 font-medium text-white">
+                        <div className="flex items-center gap-2">
+                          <span className={g.completed ? 'line-through text-zinc-500' : 'text-zinc-100'}>
+                            {getDisplayGoalText(g.text)}
+                          </span>
+                          {g.notes && (
+                            <FileText className="w-3 h-3 text-amber-400/80 inline shrink-0" title="Has Notes" />
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-3 font-mono text-[10px] uppercase font-bold text-zinc-300">
+                        <span className="bg-white/10 px-2 py-0.5 rounded border border-white/10">
+                          {g.timeframe}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 font-mono text-[10px]">
+                        {subCount > 0 ? (
+                          <span className="text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                            {subDone}/{subCount} Done ({Math.round((subDone/subCount)*100)}%)
+                          </span>
+                        ) : (
+                          <span className="text-zinc-600 font-mono">-</span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3 font-mono text-[10px]">
+                        {estMeta ? (
+                          <span className={`${estMeta.color} font-bold`}>⏱ {estMeta.label}</span>
+                        ) : (
+                          <span className="text-zinc-600">-</span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3 font-mono text-[10px]">
+                        <span className={`px-2 py-0.5 rounded border font-bold uppercase ${prioColor}`}>
+                          {prio}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 font-mono text-[10px] text-zinc-300">
+                        {g.contextTag ? (
+                          <span className="bg-sky-500/10 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded font-bold">
+                            {g.contextTag}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-600">-</span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => setActivePanelGoalId(g.id)}
+                          className="px-2.5 py-1 glass-button-true text-zinc-300 hover:text-white text-[10px] font-mono font-bold flex items-center gap-1.5 rounded-lg"
+                        >
+                          <PanelRightOpen className="w-3.5 h-3.5 text-amber-400" />
+                          <span>OPEN PANEL</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       ) : (
         /* Calendar View Mode */
         <div className="space-y-6">
@@ -987,6 +1211,258 @@ export default function TodoHub({
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notion Task Detail Side Panel Drawer Overlay */}
+      {activePanelGoal && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm transition-opacity">
+          <div className="flex-1" onClick={() => setActivePanelGoalId(null)} />
+
+          <div className="w-full max-w-xl bg-[#09090b] border-l border-white/15 h-full overflow-y-auto p-6 md:p-8 flex flex-col justify-between shadow-2xl relative">
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-amber-400" />
+                  <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                    NOTION TASK SPECIFICATION & SUB-TASKS
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActivePanelGoalId(null)}
+                  className="p-1.5 rounded-lg glass-button-true text-zinc-400 hover:text-white transition-colors"
+                  title="Close Side Panel"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Task Title Input */}
+              <div className="mb-6">
+                <label className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest font-bold block mb-1">
+                  TASK OBJECTIVE TITLE
+                </label>
+                <input
+                  type="text"
+                  value={getDisplayGoalText(activePanelGoal.text)}
+                  onChange={(e) => {
+                    const match = activePanelGoal.text.match(/^(\[[DWMY]:[^\]]+\]\s*)/);
+                    const prefix = match ? match[1] : '';
+                    handleUpdateProperty(activePanelGoal, 'text', prefix + e.target.value);
+                  }}
+                  className="w-full bg-white/[0.04] border border-white/15 focus:border-amber-400/80 px-3.5 py-2.5 text-base md:text-lg font-bold text-white focus:outline-none rounded-xl transition-colors"
+                  placeholder="Enter task title..."
+                />
+              </div>
+
+              {/* Properties Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-8 p-4 glass-card-true border border-white/10 rounded-xl">
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">STATUS</span>
+                  <button
+                    type="button"
+                    onClick={() => onToggleGoal(activePanelGoal.id, !activePanelGoal.completed)}
+                    className={`w-full py-1.5 px-3 rounded-lg text-xs font-mono font-bold flex items-center justify-center gap-2 border transition-all ${
+                      activePanelGoal.completed
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                        : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500'
+                    }`}
+                  >
+                    {activePanelGoal.completed ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-zinc-400" />}
+                    <span>{activePanelGoal.completed ? 'COMPLETED' : 'IN PROGRESS'}</span>
+                  </button>
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">TIMEFRAME</span>
+                  <select
+                    value={activePanelGoal.timeframe}
+                    onChange={(e) => handleUpdateProperty(activePanelGoal, 'timeframe', e.target.value as TimeframeType)}
+                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer uppercase font-bold"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">PRIORITY</span>
+                  <select
+                    value={activePanelGoal.priority || 'Medium'}
+                    onChange={(e) => handleUpdateProperty(activePanelGoal, 'priority', e.target.value)}
+                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer font-bold"
+                  >
+                    <option value="The One Thing">🔥 The One Thing</option>
+                    <option value="High">🔴 High Priority</option>
+                    <option value="Medium">🔵 Medium Priority</option>
+                    <option value="Low">⚪ Low Priority</option>
+                    <option value="As and When">⏳ As and When</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">ESTIMATED TIME</span>
+                  <select
+                    value={activePanelGoal.timeEstimate || ''}
+                    onChange={(e) => handleUpdateProperty(activePanelGoal, 'timeEstimate', e.target.value || undefined)}
+                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer font-bold"
+                  >
+                    <option value="">No estimate</option>
+                    <option value="15m">⏱ 15 Minutes</option>
+                    <option value="30m">⏱ 30 Minutes</option>
+                    <option value="1h">⏱ 1 Hour</option>
+                    <option value="2h">⏱ 2 Hours</option>
+                    <option value="half-day">⏱ Half Day</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">CONTEXT TAG</span>
+                  <input
+                    type="text"
+                    value={activePanelGoal.contextTag || ''}
+                    onChange={(e) => handleUpdateProperty(activePanelGoal, 'contextTag', e.target.value)}
+                    placeholder="e.g. Productivity, Editing..."
+                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">DEADLINE</span>
+                  <input
+                    type="date"
+                    value={activePanelGoal.deadline || ''}
+                    onChange={(e) => handleUpdateProperty(activePanelGoal, 'deadline', e.target.value)}
+                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Sub-tasks Module */}
+              <div className="mb-8 p-5 glass-panel-true border border-white/15 rounded-2xl">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center gap-2">
+                    <ListChecks className="w-4 h-4 text-emerald-400" />
+                    <h4 className="text-xs font-mono font-extrabold text-white uppercase tracking-wider">
+                      SUB-TASKS & CHECKLIST ({(activePanelGoal.subTasks || []).filter(s => s.completed).length}/{(activePanelGoal.subTasks || []).length})
+                    </h4>
+                  </div>
+                  {(activePanelGoal.subTasks || []).length > 0 && (
+                    <span className="text-[10px] font-mono font-bold text-emerald-400">
+                      {Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}% Done
+                    </span>
+                  )}
+                </div>
+
+                {(activePanelGoal.subTasks || []).length > 0 && (
+                  <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mb-4">
+                    <div 
+                      className="h-full bg-emerald-400 transition-all duration-500" 
+                      style={{ width: `${Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}%` }} 
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
+                  {(activePanelGoal.subTasks || []).length === 0 ? (
+                    <p className="text-[11px] font-mono text-zinc-500 py-2 text-center">
+                      No sub-tasks assigned yet. Add actionable steps below.
+                    </p>
+                  ) : (
+                    (activePanelGoal.subTasks || []).map(sub => (
+                      <div 
+                        key={sub.id} 
+                        className="flex items-center justify-between gap-3 p-2.5 bg-white/[0.03] border border-white/5 rounded-xl hover:border-white/15 transition-colors"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSubTask(activePanelGoal, sub.id)}
+                          className="flex items-center gap-2.5 text-xs text-left min-w-0 flex-1 focus:outline-none"
+                        >
+                          {sub.completed ? (
+                            <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                          ) : (
+                            <Square className="w-4 h-4 text-zinc-500 shrink-0" />
+                          )}
+                          <span className={sub.completed ? 'line-through text-zinc-500' : 'text-zinc-200 font-medium'}>
+                            {sub.title}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSubTask(activePanelGoal, sub.id)}
+                          className="text-zinc-500 hover:text-red-400 p-1 transition-colors"
+                          title="Delete sub-task"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAddSubTask(activePanelGoal, newSubTaskTitle);
+                  }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={newSubTaskTitle}
+                    onChange={(e) => setNewSubTaskTitle(e.target.value)}
+                    placeholder="Add actionable sub-task..."
+                    className="w-full glass-input-true px-3 py-1.5 text-xs text-white placeholder-zinc-500 font-sans"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 glass-button-true text-white text-xs font-mono font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 rounded-xl"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>ADD</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Notion Notes */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>📝 TASK SPECIFICATIONS & BRAINDUMP NOTES</span>
+                  </span>
+                  <span className="text-[9px] font-mono text-zinc-400">AUTO-SAVED TO CLOUD</span>
+                </div>
+                <textarea
+                  value={activePanelGoal.notes || ''}
+                  onChange={(e) => handleUpdateNotes(activePanelGoal, e.target.value)}
+                  placeholder="Write detailed notes, meeting summaries, specifications, or links for this task..."
+                  rows={7}
+                  className="w-full bg-white/[0.03] border border-white/15 focus:border-amber-400/80 p-4 text-xs font-sans leading-relaxed text-zinc-100 placeholder-zinc-600 focus:outline-none rounded-xl transition-colors resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-white/10 flex justify-between items-center">
+              <span className="text-[9px] font-mono text-zinc-400 uppercase">CREATED: {new Date(activePanelGoal.createdAt).toLocaleDateString()}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteGoal(activePanelGoal.id);
+                  setActivePanelGoalId(null);
+                }}
+                className="px-3 py-1.5 text-xs font-mono font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>DELETE TASK</span>
+              </button>
             </div>
           </div>
         </div>

@@ -7,6 +7,12 @@ export type TimeframeType = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 export type TimeEstimate = '15m' | '30m' | '1h' | '2h' | 'half-day';
 
+export interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 export interface GoalTodo {
   id: string;
   text: string;
@@ -18,6 +24,11 @@ export interface GoalTodo {
   isTop3?: boolean;             // A4 — Morning 3-Priority capture
   isRecurring?: boolean;        // C2 — Recurring task flag
   elapsedSeconds?: number;      // B2 — Time tracker spent seconds
+  notes?: string;               // Notion-style rich task notes
+  subTasks?: SubTask[];         // Sub-tasks checklist
+  priority?: 'The One Thing' | 'High' | 'Medium' | 'Low' | 'As and When';
+  contextTag?: string;          // Context tags e.g. "Productivity", "Editing"
+  deadline?: string;            // Target deadline YYYY-MM-DD
 }
 
 export interface HabitData {
