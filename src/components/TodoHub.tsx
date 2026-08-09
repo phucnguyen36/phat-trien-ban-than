@@ -596,7 +596,7 @@ export default function TodoHub({
                         type="button"
                         onClick={() => setActivePanelGoalId(g.id)}
                         className="p-1 rounded text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
-                        title="Open Notion Side Panel & Sub-tasks"
+                        title="Open Task Side Panel & Sub-tasks"
                       >
                         <PanelRightOpen className="w-3.5 h-3.5" />
                       </button>
@@ -729,7 +729,7 @@ export default function TodoHub({
               }`}
             >
               <Table className="w-3.5 h-3.5 text-amber-400" />
-              <span>NOTION DATABASE</span>
+              <span>DATABASE</span>
             </button>
             <button
               onClick={() => setViewMode('calendar')}
@@ -881,12 +881,12 @@ export default function TodoHub({
             <div className="flex items-center gap-2">
               <Table className="w-4 h-4 text-amber-400" />
               <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                NOTION DATABASE MATRIX • {filteredGoals.length} OBJECTIVES
+                DATABASE MATRIX • {filteredGoals.length} OBJECTIVES
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
               <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white font-bold">FULL DATABASE VIEW</span>
-              <span>Click any row to open Notion Side Panel & Sub-tasks</span>
+              <span>Click any row to open Task Side Panel & Sub-tasks</span>
             </div>
           </div>
 
@@ -1228,7 +1228,7 @@ export default function TodoHub({
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-amber-400" />
                   <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
-                    NOTION TASK SPECIFICATION & SUB-TASKS
+                    TASK SPECIFICATION & SUB-TASKS
                   </span>
                 </div>
                 <button

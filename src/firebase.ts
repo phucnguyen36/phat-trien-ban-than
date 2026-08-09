@@ -41,7 +41,8 @@ let auth: any = null;
 
 try {
   app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  const databaseId = (firebaseConfigJson as any)?.firestoreDatabaseId;
+  db = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
   auth = getAuth(app);
 } catch (e) {
   console.warn("Firebase initialization failed. Operating in Pure Local Mode.", e);
