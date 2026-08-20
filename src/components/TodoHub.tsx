@@ -724,18 +724,18 @@ export default function TodoHub({
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'table'
-                  ? 'bg-amber-500/30 text-amber-200 font-extrabold shadow-md'
+                  ? 'bg-white/20 text-white font-extrabold shadow-md'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <Table className="w-3.5 h-3.5 text-amber-400" />
+              <Table className="w-3.5 h-3.5" />
               <span>DATABASE</span>
             </button>
             <button
               onClick={() => setViewMode('calendar')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'calendar'
-                  ? 'bg-sky-500/30 text-sky-200 font-extrabold shadow-md'
+                  ? 'bg-white/20 text-white font-extrabold shadow-md'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -879,7 +879,7 @@ export default function TodoHub({
         <div className="glass-panel-true border border-white/15 overflow-x-auto p-4 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
-              <Table className="w-4 h-4 text-amber-400" />
+              <Table className="w-4 h-4 text-zinc-300" />
               <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
                 DATABASE MATRIX • {filteredGoals.length} OBJECTIVES
               </span>
@@ -999,7 +999,7 @@ export default function TodoHub({
                           onClick={() => setActivePanelGoalId(g.id)}
                           className="px-2.5 py-1 glass-button-true text-zinc-300 hover:text-white text-[10px] font-mono font-bold flex items-center gap-1.5 rounded-lg"
                         >
-                          <PanelRightOpen className="w-3.5 h-3.5 text-amber-400" />
+                          <PanelRightOpen className="w-3.5 h-3.5 text-zinc-400" />
                           <span>OPEN PANEL</span>
                         </button>
                       </td>
