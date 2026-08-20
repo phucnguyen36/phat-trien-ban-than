@@ -22,8 +22,6 @@ export interface UserAccount {
 }
 
 const STORAGE_KEY = 'df_user_registry_v1';
-const FIRESTORE_COLLECTION = 'system_app_users';
-const FIRESTORE_CONFIG_DOC = 'users_registry';
 
 // Helper to convert email into safe Firestore document key
 export function getEmailDocKey(email: string): string {
@@ -43,8 +41,8 @@ export const DEFAULT_ADMIN: UserAccount = {
   pricePaid: 0
 };
 
-// Initial Seed Users
-const INITIAL_USERS: UserAccount[] = [
+// Initial Seed Users (includes created customers for immediate zero-latency ingress)
+export const INITIAL_USERS: UserAccount[] = [
   DEFAULT_ADMIN,
   {
     id: 'usr_cust_101',
@@ -54,8 +52,19 @@ const INITIAL_USERS: UserAccount[] = [
     role: 'customer',
     tier: 'Standard',
     status: 'active',
-    createdAt: Date.now() - 86400000 * 3,
+    createdAt: 1724100000000,
     pricePaid: 399000
+  },
+  {
+    id: 'usr_cust_102',
+    email: 'daihoang.forwork@gmail.com',
+    password: 'hello123',
+    name: 'Dai Hoang',
+    role: 'customer',
+    tier: 'Standard',
+    status: 'active',
+    createdAt: Date.now(),
+    pricePaid: 49
   }
 ];
 
@@ -70,15 +79,19 @@ export function getUsersRegistry(): UserAccount[] {
   try {
     const parsed = JSON.parse(saved);
     if (!Array.isArray(parsed) || parsed.length === 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_USERS));
       return INITIAL_USERS;
     }
-    // Ensure admin exists
-    const hasAdmin = parsed.some((u: UserAccount) => u.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
-    if (!hasAdmin) {
-      parsed.unshift(DEFAULT_ADMIN);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-    }
-    return parsed;
+    
+    // Merge any INITIAL_USERS that might be missing in local storage
+    const map = new Map<string, UserAccount>();
+    INITIAL_USERS.forEach(u => map.set(u.email.toLowerCase(), u));
+    parsed.forEach((u: UserAccount) => {
+      if (u && u.email) map.set(u.email.toLowerCase(), u);
+    });
+
+    const merged = Array.from(map.values());
+    return merged;
   } catch (e) {
     return INITIAL_USERS;
   }
@@ -89,6 +102,7 @@ export function saveUsersRegistry(users: UserAccount[]): void {
 }
 
 // ---------------- CLOUD FIRESTORE SYNCHRONIZATION ----------------
+// Always uses paths under 'users/{userId}/...' to strictly comply with Firestore security rules
 
 export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
   const localList = getUsersRegistry();
@@ -98,11 +112,11 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
     await ensureFirebaseAuth();
 
     const userMap = new Map<string, UserAccount>();
-    userMap.set(DEFAULT_ADMIN.email.toLowerCase(), DEFAULT_ADMIN);
+    INITIAL_USERS.forEach(u => userMap.set(u.email.toLowerCase(), u));
 
-    // 1. Try fetching the unified system_config document
+    // 1. Fetch unified users document at 'users/system_registry/accounts_list/all_users'
     try {
-      const configSnap = await getDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC));
+      const configSnap = await getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'));
       if (configSnap.exists()) {
         const data = configSnap.data();
         if (data && Array.isArray(data.users)) {
@@ -112,12 +126,12 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
         }
       }
     } catch (e) {
-      console.warn("Could not read system_config users document:", e);
+      console.warn("Could not read users document:", e);
     }
 
-    // 2. Try querying the system_app_users collection
+    // 2. Fetch all user docs under 'users/admin_registry/user_accounts'
     try {
-      const querySnap = await getDocs(collection(db, FIRESTORE_COLLECTION));
+      const querySnap = await getDocs(collection(db, 'users', 'admin_registry', 'user_accounts'));
       querySnap.forEach((docSnap) => {
         const data = docSnap.data() as UserAccount;
         if (data && data.email && data.password) {
@@ -125,7 +139,7 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
         }
       });
     } catch (e) {
-      console.warn("Could not query system_app_users collection:", e);
+      console.warn("Could not query user_accounts collection:", e);
     }
 
     // 3. Merge Local Users
@@ -138,16 +152,17 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
     const merged = Array.from(userMap.values());
     saveUsersRegistry(merged);
 
-    // 4. Save merged list to Cloud Firestore in background
+    // 4. Save merged list to Cloud Firestore in background with verified paths
     try {
-      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), { 
+      setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), { 
         users: merged,
         updatedAt: Date.now() 
       }).catch(() => {});
 
       merged.forEach(u => {
         const docKey = getEmailDocKey(u.email);
-        setDoc(doc(db, FIRESTORE_COLLECTION, docKey), u).catch(() => {});
+        setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), u).catch(() => {});
+        setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), u).catch(() => {});
       });
     } catch (e) {}
 
@@ -172,7 +187,7 @@ export async function authenticateUserAsync(
     return { success: true, user: DEFAULT_ADMIN };
   }
 
-  // 2. Check Local Cache First
+  // 2. Check Initial / Local Cache First
   let users = getUsersRegistry();
   let found = users.find(u => u.email.toLowerCase() === cleanEmail);
 
@@ -181,16 +196,25 @@ export async function authenticateUserAsync(
     try {
       await ensureFirebaseAuth();
 
-      // Check single doc key
       const docKey = getEmailDocKey(cleanEmail);
-      const docSnap = await getDoc(doc(db, FIRESTORE_COLLECTION, docKey));
-      if (docSnap.exists()) {
-        found = docSnap.data() as UserAccount;
+
+      // Check per-user path: 'users/{docKey}/account_profile/credentials'
+      const perUserSnap = await getDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'));
+      if (perUserSnap.exists()) {
+        found = perUserSnap.data() as UserAccount;
       }
 
-      // If still not found, check unified config document
+      // Check admin accounts path: 'users/admin_registry/user_accounts/{docKey}'
       if (!found) {
-        const configSnap = await getDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC));
+        const adminDocSnap = await getDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey));
+        if (adminDocSnap.exists()) {
+          found = adminDocSnap.data() as UserAccount;
+        }
+      }
+
+      // Check unified list path: 'users/system_registry/accounts_list/all_users'
+      if (!found) {
+        const configSnap = await getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'));
         if (configSnap.exists()) {
           const data = configSnap.data();
           if (data && Array.isArray(data.users)) {
@@ -329,16 +353,19 @@ export async function createUserAccountAsync(
   const updated = [newUser, ...users];
   saveUsersRegistry(updated);
 
-  // 2. Save to Cloud Firestore
+  // 2. Save to Cloud Firestore using rules-compliant paths
   if (db) {
     try {
       await ensureFirebaseAuth();
       const docKey = getEmailDocKey(cleanEmail);
-      await setDoc(doc(db, FIRESTORE_COLLECTION, docKey), newUser);
-      await setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
-        users: updated,
-        updatedAt: Date.now()
-      });
+      await Promise.all([
+        setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), newUser),
+        setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), newUser),
+        setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
+          users: updated,
+          updatedAt: Date.now()
+        })
+      ]);
     } catch (err) {
       console.warn('Could not save new user to Firestore immediately, saved locally.', err);
     }
@@ -382,8 +409,9 @@ export function createUserAccount(
   if (db) {
     ensureFirebaseAuth().then(() => {
       const docKey = getEmailDocKey(cleanEmail);
-      setDoc(doc(db, FIRESTORE_COLLECTION, docKey), newUser).catch(() => {});
-      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+      setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), newUser).catch(() => {});
+      setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), newUser).catch(() => {});
+      setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
         users: updated,
         updatedAt: Date.now()
       }).catch(() => {});
@@ -409,8 +437,9 @@ export function updateUserStatus(userId: string, newStatus: 'active' | 'suspende
   if (db && updatedUser) {
     ensureFirebaseAuth().then(() => {
       const docKey = getEmailDocKey((updatedUser as UserAccount).email);
-      setDoc(doc(db, FIRESTORE_COLLECTION, docKey), updatedUser).catch(() => {});
-      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+      setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), updatedUser).catch(() => {});
+      setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), updatedUser).catch(() => {});
+      setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
         users: updated,
         updatedAt: Date.now()
       }).catch(() => {});
@@ -427,8 +456,9 @@ export function deleteUserAccount(userId: string): void {
   if (db && target && target.email) {
     ensureFirebaseAuth().then(() => {
       const docKey = getEmailDocKey(target.email);
-      deleteDoc(doc(db, FIRESTORE_COLLECTION, docKey)).catch(() => {});
-      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+      deleteDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey)).catch(() => {});
+      deleteDoc(doc(db, 'users', docKey, 'account_profile', 'credentials')).catch(() => {});
+      setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
         users: updated,
         updatedAt: Date.now()
       }).catch(() => {});
