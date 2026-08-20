@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   UserAccount, 
   getUsersRegistry, 
-  createUserAccount, 
+  createUserAccountAsync,
+  syncUsersRegistryFromCloud,
   updateUserStatus, 
   deleteUserAccount,
   DEFAULT_ADMIN 
@@ -20,7 +21,8 @@ import {
   Download, 
   Search, 
   Key,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -31,6 +33,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // New Account Form State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -41,10 +44,17 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
   const [newPrice, setNewPrice] = useState<number>(49);
   const [formError, setFormError] = useState('');
 
-  // Load registry
-  const refreshUsers = () => {
-    const list = getUsersRegistry();
-    setUsers(list);
+  // Load registry & sync with Cloud
+  const refreshUsers = async () => {
+    setUsers(getUsersRegistry());
+    setIsSyncing(true);
+    try {
+      const synced = await syncUsersRegistryFromCloud();
+      setUsers(synced);
+    } catch (e) {
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -73,7 +83,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
   };
 
   // Handle Create Account
-  const handleCreateAccount = (e: React.FormEvent) => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -82,17 +92,17 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
       return;
     }
 
-    const res = createUserAccount(newEmail, newPassword, newName, newTier, newPrice);
+    const res = await createUserAccountAsync(newEmail, newPassword, newName, newTier, newPrice);
     if (!res.success) {
       setFormError(res.message || 'Error creating account!');
       return;
     }
 
-    refreshUsers();
+    await refreshUsers();
     setIsAddModalOpen(false);
     onNotice(
       "CUSTOMER ACCOUNT ISSUED",
-      `Successfully generated credentials for ${newName} (${newEmail}). You can copy the delivery message below!`
+      `Successfully generated credentials for ${newName} (${newEmail}). Saved to Cloud Firestore globally!`
     );
 
     // Reset Form

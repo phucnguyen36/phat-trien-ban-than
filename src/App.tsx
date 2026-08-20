@@ -50,7 +50,7 @@ import AEPicker from './components/AEPicker';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CommandPalette from './components/CommandPalette';
 import AdminDashboard from './components/AdminDashboard';
-import { UserAccount } from './userRegistry';
+import { UserAccount, logoutUserSession } from './userRegistry';
 
 import { 
   Database, 
@@ -908,6 +908,12 @@ export default function App() {
     );
   };
 
+  const handleLogout = () => {
+    logoutUserSession();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+  };
+
   // Auth Gate screen before unlock
   if (!isAuthenticated) {
     return (
@@ -1018,13 +1024,8 @@ export default function App() {
 
           {/* Logout icon */}
           <button
-            onClick={() => {
-              sessionStorage.removeItem('df_os_active_user');
-              sessionStorage.removeItem('df_os_unlocked');
-              setIsAuthenticated(false);
-              setCurrentUser(null);
-            }}
-            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            onClick={handleLogout}
+            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
