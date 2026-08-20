@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, ensureFirebaseAuth } from './firebase';
 import { 
   collection, 
   doc, 
@@ -23,6 +23,7 @@ export interface UserAccount {
 
 const STORAGE_KEY = 'df_user_registry_v1';
 const FIRESTORE_COLLECTION = 'system_app_users';
+const FIRESTORE_CONFIG_DOC = 'users_registry';
 
 // Helper to convert email into safe Firestore document key
 export function getEmailDocKey(email: string): string {
@@ -94,35 +95,62 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
   if (!db) return localList;
 
   try {
-    const querySnap = await getDocs(collection(db, FIRESTORE_COLLECTION));
-    const cloudUsers: UserAccount[] = [];
-    
-    querySnap.forEach((docSnap) => {
-      const data = docSnap.data() as UserAccount;
-      if (data && data.email && data.password) {
-        cloudUsers.push(data);
-      }
-    });
+    await ensureFirebaseAuth();
 
-    // Ensure Admin is always included
     const userMap = new Map<string, UserAccount>();
     userMap.set(DEFAULT_ADMIN.email.toLowerCase(), DEFAULT_ADMIN);
 
-    // Merge Cloud Users
-    cloudUsers.forEach(u => userMap.set(u.email.toLowerCase(), u));
+    // 1. Try fetching the unified system_config document
+    try {
+      const configSnap = await getDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC));
+      if (configSnap.exists()) {
+        const data = configSnap.data();
+        if (data && Array.isArray(data.users)) {
+          data.users.forEach((u: UserAccount) => {
+            if (u && u.email) userMap.set(u.email.toLowerCase(), u);
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read system_config users document:", e);
+    }
 
-    // Merge Local Users
+    // 2. Try querying the system_app_users collection
+    try {
+      const querySnap = await getDocs(collection(db, FIRESTORE_COLLECTION));
+      querySnap.forEach((docSnap) => {
+        const data = docSnap.data() as UserAccount;
+        if (data && data.email && data.password) {
+          userMap.set(data.email.toLowerCase(), data);
+        }
+      });
+    } catch (e) {
+      console.warn("Could not query system_app_users collection:", e);
+    }
+
+    // 3. Merge Local Users
     localList.forEach(u => {
       if (!userMap.has(u.email.toLowerCase())) {
         userMap.set(u.email.toLowerCase(), u);
-        // Upload local user to cloud
-        const docKey = getEmailDocKey(u.email);
-        setDoc(doc(db, FIRESTORE_COLLECTION, docKey), u).catch(() => {});
       }
     });
 
     const merged = Array.from(userMap.values());
     saveUsersRegistry(merged);
+
+    // 4. Save merged list to Cloud Firestore in background
+    try {
+      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), { 
+        users: merged,
+        updatedAt: Date.now() 
+      }).catch(() => {});
+
+      merged.forEach(u => {
+        const docKey = getEmailDocKey(u.email);
+        setDoc(doc(db, FIRESTORE_COLLECTION, docKey), u).catch(() => {});
+      });
+    } catch (e) {}
+
     return merged;
   } catch (err) {
     console.warn('Could not sync user registry from Cloud Firestore, using local cache.', err);
@@ -148,25 +176,39 @@ export async function authenticateUserAsync(
   let users = getUsersRegistry();
   let found = users.find(u => u.email.toLowerCase() === cleanEmail);
 
-  // 3. If not found locally, query Cloud Firestore directly
+  // 3. If not found in local cache, ensure Firebase Auth and fetch from Cloud
   if (!found && db) {
     try {
+      await ensureFirebaseAuth();
+
+      // Check single doc key
       const docKey = getEmailDocKey(cleanEmail);
       const docSnap = await getDoc(doc(db, FIRESTORE_COLLECTION, docKey));
       if (docSnap.exists()) {
         found = docSnap.data() as UserAccount;
-        if (found) {
-          // Save to local cache
-          users = [found, ...users.filter(u => u.email.toLowerCase() !== cleanEmail)];
-          saveUsersRegistry(users);
+      }
+
+      // If still not found, check unified config document
+      if (!found) {
+        const configSnap = await getDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC));
+        if (configSnap.exists()) {
+          const data = configSnap.data();
+          if (data && Array.isArray(data.users)) {
+            found = data.users.find((u: UserAccount) => u.email.toLowerCase() === cleanEmail);
+          }
         }
       }
+
+      if (found) {
+        users = [found, ...users.filter(u => u.email.toLowerCase() !== cleanEmail)];
+        saveUsersRegistry(users);
+      }
     } catch (e) {
-      console.warn('Error fetching user from Firestore:', e);
+      console.warn('Error querying Firestore for user:', e);
     }
   }
 
-  // 4. Also try full cloud sync if still not found
+  // 4. If still not found, run full cloud sync
   if (!found && db) {
     try {
       const synced = await syncUsersRegistryFromCloud();
@@ -177,7 +219,7 @@ export async function authenticateUserAsync(
   if (!found) {
     return { 
       success: false, 
-      message: 'Account does not exist! Please check your email or create a new account.' 
+      message: 'Account does not exist! Please check your email or contact Admin.' 
     };
   }
 
@@ -186,7 +228,7 @@ export async function authenticateUserAsync(
   }
 
   if (found.status === 'suspended') {
-    return { success: false, message: 'Your account is suspended. Please contact the administrator!' };
+    return { success: false, message: 'Your account is suspended. Please contact Admin!' };
   }
 
   // License Expiry Check
@@ -265,21 +307,9 @@ export async function createUserAccountAsync(
     return { success: false, message: 'Please fill in all required fields!' };
   }
 
-  // Check in local cache
   const users = getUsersRegistry();
   if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
-    return { success: false, message: 'This email is already registered! Please log in.' };
-  }
-
-  // Check in Firestore
-  if (db) {
-    try {
-      const docKey = getEmailDocKey(cleanEmail);
-      const docSnap = await getDoc(doc(db, FIRESTORE_COLLECTION, docKey));
-      if (docSnap.exists()) {
-        return { success: false, message: 'This email already exists in Cloud database! Please log in.' };
-      }
-    } catch (e) {}
+    return { success: false, message: 'This email is already registered!' };
   }
 
   const newUser: UserAccount = {
@@ -302,8 +332,13 @@ export async function createUserAccountAsync(
   // 2. Save to Cloud Firestore
   if (db) {
     try {
+      await ensureFirebaseAuth();
       const docKey = getEmailDocKey(cleanEmail);
       await setDoc(doc(db, FIRESTORE_COLLECTION, docKey), newUser);
+      await setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+        users: updated,
+        updatedAt: Date.now()
+      });
     } catch (err) {
       console.warn('Could not save new user to Firestore immediately, saved locally.', err);
     }
@@ -345,8 +380,14 @@ export function createUserAccount(
 
   // Background Cloud Sync
   if (db) {
-    const docKey = getEmailDocKey(cleanEmail);
-    setDoc(doc(db, FIRESTORE_COLLECTION, docKey), newUser).catch(() => {});
+    ensureFirebaseAuth().then(() => {
+      const docKey = getEmailDocKey(cleanEmail);
+      setDoc(doc(db, FIRESTORE_COLLECTION, docKey), newUser).catch(() => {});
+      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+        users: updated,
+        updatedAt: Date.now()
+      }).catch(() => {});
+    });
   }
 
   return { success: true, user: newUser };
@@ -366,8 +407,14 @@ export function updateUserStatus(userId: string, newStatus: 'active' | 'suspende
   saveUsersRegistry(updated);
 
   if (db && updatedUser) {
-    const docKey = getEmailDocKey((updatedUser as UserAccount).email);
-    setDoc(doc(db, FIRESTORE_COLLECTION, docKey), updatedUser).catch(() => {});
+    ensureFirebaseAuth().then(() => {
+      const docKey = getEmailDocKey((updatedUser as UserAccount).email);
+      setDoc(doc(db, FIRESTORE_COLLECTION, docKey), updatedUser).catch(() => {});
+      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+        users: updated,
+        updatedAt: Date.now()
+      }).catch(() => {});
+    });
   }
 }
 
@@ -378,8 +425,14 @@ export function deleteUserAccount(userId: string): void {
   saveUsersRegistry(updated);
 
   if (db && target && target.email) {
-    const docKey = getEmailDocKey(target.email);
-    deleteDoc(doc(db, FIRESTORE_COLLECTION, docKey)).catch(() => {});
+    ensureFirebaseAuth().then(() => {
+      const docKey = getEmailDocKey(target.email);
+      deleteDoc(doc(db, FIRESTORE_COLLECTION, docKey)).catch(() => {});
+      setDoc(doc(db, 'system_config', FIRESTORE_CONFIG_DOC), {
+        users: updated,
+        updatedAt: Date.now()
+      }).catch(() => {});
+    });
   }
 }
 

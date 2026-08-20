@@ -15,7 +15,7 @@ import {
   writeBatch,
   onSnapshot
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 import firebaseConfigJson from '../firebase-applet-config.json';
 import { 
   GoalTodo, 
@@ -44,8 +44,26 @@ try {
   const databaseId = (firebaseConfigJson as any)?.firestoreDatabaseId;
   db = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
   auth = getAuth(app);
+  // Pre-authenticate anonymously to pass Firestore security rules
+  if (auth) {
+    signInAnonymously(auth).catch((err) => {
+      console.warn("Initial anonymous authentication notice:", err);
+    });
+  }
 } catch (e) {
   console.warn("Firebase initialization failed. Operating in Pure Local Mode.", e);
+}
+
+export async function ensureFirebaseAuth(): Promise<boolean> {
+  if (!auth) return false;
+  if (auth.currentUser) return true;
+  try {
+    await signInAnonymously(auth);
+    return true;
+  } catch (e) {
+    console.warn("ensureFirebaseAuth error:", e);
+    return false;
+  }
 }
 
 export { db, auth };
