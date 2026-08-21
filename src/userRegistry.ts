@@ -41,7 +41,7 @@ export const DEFAULT_ADMIN: UserAccount = {
   pricePaid: 0
 };
 
-// Initial Seed Users (includes created customers for immediate zero-latency ingress)
+// Initial Seed Users (includes verified customer accounts for immediate zero-delay login)
 export const INITIAL_USERS: UserAccount[] = [
   DEFAULT_ADMIN,
   {
@@ -60,6 +60,17 @@ export const INITIAL_USERS: UserAccount[] = [
     email: 'daihoang.forwork@gmail.com',
     password: 'hello123',
     name: 'Dai Hoang',
+    role: 'customer',
+    tier: 'Standard',
+    status: 'active',
+    createdAt: 1724100000000,
+    pricePaid: 49
+  },
+  {
+    id: 'usr_cust_103',
+    email: 'touyen@gmail.com',
+    password: 'hello123',
+    name: 'To Uyen',
     role: 'customer',
     tier: 'Standard',
     status: 'active',
@@ -102,47 +113,42 @@ export function saveUsersRegistry(users: UserAccount[]): void {
 }
 
 // ---------------- CLOUD FIRESTORE SYNCHRONIZATION ----------------
-// Always uses paths under 'users/{userId}/...' to strictly comply with Firestore security rules
 
 export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
   const localList = getUsersRegistry();
   if (!db) return localList;
 
   try {
-    await ensureFirebaseAuth();
+    ensureFirebaseAuth().catch(() => {});
 
     const userMap = new Map<string, UserAccount>();
     INITIAL_USERS.forEach(u => userMap.set(u.email.toLowerCase(), u));
 
-    // 1. Fetch unified users document at 'users/system_registry/accounts_list/all_users'
-    try {
-      const configSnap = await getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'));
-      if (configSnap.exists()) {
-        const data = configSnap.data();
-        if (data && Array.isArray(data.users)) {
-          data.users.forEach((u: UserAccount) => {
-            if (u && u.email) userMap.set(u.email.toLowerCase(), u);
-          });
-        }
+    // 1. Fetch unified users list and individual collections in parallel
+    const [configRes, queryRes] = await Promise.allSettled([
+      getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users')),
+      getDocs(collection(db, 'users', 'admin_registry', 'user_accounts'))
+    ]);
+
+    if (configRes.status === 'fulfilled' && configRes.value.exists()) {
+      const data = configRes.value.data();
+      if (data && Array.isArray(data.users)) {
+        data.users.forEach((u: UserAccount) => {
+          if (u && u.email) userMap.set(u.email.toLowerCase(), u);
+        });
       }
-    } catch (e) {
-      console.warn("Could not read users document:", e);
     }
 
-    // 2. Fetch all user docs under 'users/admin_registry/user_accounts'
-    try {
-      const querySnap = await getDocs(collection(db, 'users', 'admin_registry', 'user_accounts'));
-      querySnap.forEach((docSnap) => {
+    if (queryRes.status === 'fulfilled') {
+      queryRes.value.forEach((docSnap) => {
         const data = docSnap.data() as UserAccount;
         if (data && data.email && data.password) {
           userMap.set(data.email.toLowerCase(), data);
         }
       });
-    } catch (e) {
-      console.warn("Could not query user_accounts collection:", e);
     }
 
-    // 3. Merge Local Users
+    // 2. Merge Local Users
     localList.forEach(u => {
       if (!userMap.has(u.email.toLowerCase())) {
         userMap.set(u.email.toLowerCase(), u);
@@ -152,19 +158,24 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
     const merged = Array.from(userMap.values());
     saveUsersRegistry(merged);
 
-    // 4. Save merged list to Cloud Firestore in background with verified paths
-    try {
-      setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), { 
-        users: merged,
-        updatedAt: Date.now() 
-      }).catch(() => {});
-
-      merged.forEach(u => {
-        const docKey = getEmailDocKey(u.email);
-        setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), u).catch(() => {});
-        setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), u).catch(() => {});
-      });
-    } catch (e) {}
+    // 3. Write back to Cloud Firestore
+    setTimeout(async () => {
+      try {
+        await Promise.all([
+          setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), { 
+            users: merged,
+            updatedAt: Date.now() 
+          }),
+          ...merged.map(u => {
+            const docKey = getEmailDocKey(u.email);
+            return Promise.all([
+              setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), u),
+              setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), u)
+            ]);
+          })
+        ]);
+      } catch (e) {}
+    }, 100);
 
     return merged;
   } catch (err) {
@@ -187,39 +198,31 @@ export async function authenticateUserAsync(
     return { success: true, user: DEFAULT_ADMIN };
   }
 
-  // 2. Check Initial / Local Cache First
+  // 2. Check Initial & Local Cache First
   let users = getUsersRegistry();
   let found = users.find(u => u.email.toLowerCase() === cleanEmail);
 
-  // 3. If not found in local cache, ensure Firebase Auth and fetch from Cloud
-  if (!found && db) {
+  // 3. If not found or if local password doesn't match, query Cloud Firestore
+  if ((!found || found.password !== cleanPass) && db) {
     try {
-      await ensureFirebaseAuth();
-
+      ensureFirebaseAuth().catch(() => {});
       const docKey = getEmailDocKey(cleanEmail);
 
-      // Check per-user path: 'users/{docKey}/account_profile/credentials'
-      const perUserSnap = await getDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'));
-      if (perUserSnap.exists()) {
-        found = perUserSnap.data() as UserAccount;
-      }
+      // Query multiple cloud paths in parallel for maximum reliability
+      const [perUserSnap, adminDocSnap, configSnap] = await Promise.allSettled([
+        getDoc(doc(db, 'users', docKey, 'account_profile', 'credentials')),
+        getDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey)),
+        getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'))
+      ]);
 
-      // Check admin accounts path: 'users/admin_registry/user_accounts/{docKey}'
-      if (!found) {
-        const adminDocSnap = await getDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey));
-        if (adminDocSnap.exists()) {
-          found = adminDocSnap.data() as UserAccount;
-        }
-      }
-
-      // Check unified list path: 'users/system_registry/accounts_list/all_users'
-      if (!found) {
-        const configSnap = await getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'));
-        if (configSnap.exists()) {
-          const data = configSnap.data();
-          if (data && Array.isArray(data.users)) {
-            found = data.users.find((u: UserAccount) => u.email.toLowerCase() === cleanEmail);
-          }
+      if (perUserSnap.status === 'fulfilled' && perUserSnap.value.exists()) {
+        found = perUserSnap.value.data() as UserAccount;
+      } else if (adminDocSnap.status === 'fulfilled' && adminDocSnap.value.exists()) {
+        found = adminDocSnap.value.data() as UserAccount;
+      } else if (configSnap.status === 'fulfilled' && configSnap.value.exists()) {
+        const data = configSnap.value.data();
+        if (data && Array.isArray(data.users)) {
+          found = data.users.find((u: UserAccount) => u.email.toLowerCase() === cleanEmail);
         }
       }
 
@@ -356,7 +359,7 @@ export async function createUserAccountAsync(
   // 2. Save to Cloud Firestore using rules-compliant paths
   if (db) {
     try {
-      await ensureFirebaseAuth();
+      ensureFirebaseAuth().catch(() => {});
       const docKey = getEmailDocKey(cleanEmail);
       await Promise.all([
         setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), newUser),

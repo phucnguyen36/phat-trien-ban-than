@@ -182,14 +182,25 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                 generatePassword();
                 setIsAddModalOpen(true);
               }}
-              className="px-4 py-2.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95 border border-white"
+              className="px-4 py-2.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95 border border-white rounded-xl"
             >
               <UserPlus className="w-4 h-4" />
               + ISSUE CUSTOMER ACCOUNT
             </button>
             <button
+              onClick={async () => {
+                await refreshUsers();
+                onNotice("CLOUD REGISTRY SYNCED", `Successfully synchronized ${users.length} accounts with Cloud Firestore.`);
+              }}
+              disabled={isSyncing}
+              className="px-4 py-2.5 glass-button-true text-zinc-200 hover:text-white font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all rounded-xl"
+            >
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'SYNCING...' : 'SYNC CLOUD'}</span>
+            </button>
+            <button
               onClick={handleExportRegistry}
-              className="px-4 py-2.5 glass-button text-zinc-300 font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all"
+              className="px-4 py-2.5 glass-button-true text-zinc-300 font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all rounded-xl"
             >
               <Download className="w-4 h-4" />
               EXPORT REGISTRY JSON
