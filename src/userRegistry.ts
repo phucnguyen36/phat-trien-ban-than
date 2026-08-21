@@ -41,7 +41,7 @@ export const DEFAULT_ADMIN: UserAccount = {
   pricePaid: 0
 };
 
-// Initial Seed Users (includes verified customer accounts for immediate zero-delay login)
+// Initial Seed Users
 export const INITIAL_USERS: UserAccount[] = [
   DEFAULT_ADMIN,
   {
@@ -54,30 +54,58 @@ export const INITIAL_USERS: UserAccount[] = [
     status: 'active',
     createdAt: 1724100000000,
     pricePaid: 399000
-  },
-  {
-    id: 'usr_cust_102',
-    email: 'daihoang.forwork@gmail.com',
-    password: 'hello123',
-    name: 'Dai Hoang',
-    role: 'customer',
-    tier: 'Standard',
-    status: 'active',
-    createdAt: 1724100000000,
-    pricePaid: 49
-  },
-  {
-    id: 'usr_cust_103',
-    email: 'touyen@gmail.com',
-    password: 'hello123',
-    name: 'To Uyen',
-    role: 'customer',
-    tier: 'Standard',
-    status: 'active',
-    createdAt: Date.now(),
-    pricePaid: 49
   }
 ];
+
+// ---------------- TOKEN & ACCESS LINK ENCODER / DECODER ----------------
+
+export function generateUserAccessToken(user: UserAccount): string {
+  try {
+    const payload = {
+      id: user.id,
+      email: user.email.toLowerCase(),
+      password: user.password,
+      name: user.name,
+      tier: user.tier,
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt,
+      pricePaid: user.pricePaid,
+      expiresAt: user.expiresAt
+    };
+    return btoa(encodeURIComponent(JSON.stringify(payload)));
+  } catch (e) {
+    return '';
+  }
+}
+
+export function parseUserAccessToken(token: string): UserAccount | null {
+  try {
+    const jsonStr = decodeURIComponent(atob(token));
+    const obj = JSON.parse(jsonStr);
+    if (obj && obj.email && obj.password) {
+      return {
+        id: obj.id || ('usr_' + Math.random().toString(36).substring(2, 9)),
+        email: String(obj.email).trim().toLowerCase(),
+        password: String(obj.password),
+        name: obj.name || 'Deep Focus User',
+        role: obj.role || 'customer',
+        tier: obj.tier || 'Standard',
+        status: obj.status || 'active',
+        createdAt: obj.createdAt || Date.now(),
+        pricePaid: obj.pricePaid || 0,
+        expiresAt: obj.expiresAt
+      };
+    }
+  } catch (e) {}
+  return null;
+}
+
+export function generateAccessLink(user: UserAccount, baseUrl?: string): string {
+  const token = generateUserAccessToken(user);
+  const origin = baseUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://phat-trien-ban-than.vercel.app');
+  return `${origin}/?access=${token}`;
+}
 
 // ---------------- LOCAL STORAGE HELPERS ----------------
 
@@ -94,15 +122,13 @@ export function getUsersRegistry(): UserAccount[] {
       return INITIAL_USERS;
     }
     
-    // Merge any INITIAL_USERS that might be missing in local storage
-    const map = new Map<string, UserAccount>();
-    INITIAL_USERS.forEach(u => map.set(u.email.toLowerCase(), u));
-    parsed.forEach((u: UserAccount) => {
-      if (u && u.email) map.set(u.email.toLowerCase(), u);
-    });
-
-    const merged = Array.from(map.values());
-    return merged;
+    // Ensure admin exists
+    const hasAdmin = parsed.some((u: UserAccount) => u.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
+    if (!hasAdmin) {
+      parsed.unshift(DEFAULT_ADMIN);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+    }
+    return parsed;
   } catch (e) {
     return INITIAL_USERS;
   }
@@ -124,7 +150,7 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
     const userMap = new Map<string, UserAccount>();
     INITIAL_USERS.forEach(u => userMap.set(u.email.toLowerCase(), u));
 
-    // 1. Fetch unified users list and individual collections in parallel
+    // Fetch unified users list and individual collections in parallel
     const [configRes, queryRes] = await Promise.allSettled([
       getDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users')),
       getDocs(collection(db, 'users', 'admin_registry', 'user_accounts'))
@@ -148,7 +174,7 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
       });
     }
 
-    // 2. Merge Local Users
+    // Merge Local Users
     localList.forEach(u => {
       if (!userMap.has(u.email.toLowerCase())) {
         userMap.set(u.email.toLowerCase(), u);
@@ -158,7 +184,7 @@ export async function syncUsersRegistryFromCloud(): Promise<UserAccount[]> {
     const merged = Array.from(userMap.values());
     saveUsersRegistry(merged);
 
-    // 3. Write back to Cloud Firestore
+    // Save back to Cloud Firestore
     setTimeout(async () => {
       try {
         await Promise.all([
@@ -208,7 +234,6 @@ export async function authenticateUserAsync(
       ensureFirebaseAuth().catch(() => {});
       const docKey = getEmailDocKey(cleanEmail);
 
-      // Query multiple cloud paths in parallel for maximum reliability
       const [perUserSnap, adminDocSnap, configSnap] = await Promise.allSettled([
         getDoc(doc(db, 'users', docKey, 'account_profile', 'credentials')),
         getDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey)),
@@ -251,7 +276,7 @@ export async function authenticateUserAsync(
   }
 
   if (found.password !== cleanPass) {
-    return { success: false, message: 'Incorrect password! Please try again.' };
+    return { success: false, message: 'Incorrect password! Please check credentials or use direct Access Link.' };
   }
 
   if (found.status === 'suspended') {
@@ -335,46 +360,62 @@ export async function createUserAccountAsync(
   }
 
   const users = getUsersRegistry();
-  if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
-    return { success: false, message: 'This email is already registered!' };
+  const existingIndex = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+
+  let targetUser: UserAccount;
+  let updated: UserAccount[];
+
+  if (existingIndex >= 0) {
+    // Update existing user credentials & status
+    targetUser = {
+      ...users[existingIndex],
+      password: cleanPass,
+      name: cleanName,
+      tier,
+      pricePaid,
+      status: 'active',
+      ...(expiresAt ? { expiresAt } : {})
+    };
+    updated = users.map((u, idx) => idx === existingIndex ? targetUser : u);
+  } else {
+    // Create new user
+    targetUser = {
+      id: 'usr_' + Math.random().toString(36).substring(2, 9),
+      email: cleanEmail,
+      password: cleanPass,
+      name: cleanName,
+      role: 'customer',
+      tier,
+      status: 'active',
+      createdAt: Date.now(),
+      pricePaid,
+      ...(expiresAt ? { expiresAt } : {})
+    };
+    updated = [targetUser, ...users];
   }
 
-  const newUser: UserAccount = {
-    id: 'usr_' + Math.random().toString(36).substring(2, 9),
-    email: cleanEmail,
-    password: cleanPass,
-    name: cleanName,
-    role: 'customer',
-    tier,
-    status: 'active',
-    createdAt: Date.now(),
-    pricePaid,
-    ...(expiresAt ? { expiresAt } : {})
-  };
-
   // 1. Save to Local Storage
-  const updated = [newUser, ...users];
   saveUsersRegistry(updated);
 
-  // 2. Save to Cloud Firestore using rules-compliant paths
+  // 2. Save to Cloud Firestore
   if (db) {
     try {
       ensureFirebaseAuth().catch(() => {});
       const docKey = getEmailDocKey(cleanEmail);
       await Promise.all([
-        setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), newUser),
-        setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), newUser),
+        setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), targetUser),
+        setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), targetUser),
         setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
           users: updated,
           updatedAt: Date.now()
         })
       ]);
     } catch (err) {
-      console.warn('Could not save new user to Firestore immediately, saved locally.', err);
+      console.warn('Could not save user to Firestore immediately, saved locally.', err);
     }
   }
 
-  return { success: true, user: newUser };
+  return { success: true, user: targetUser };
 }
 
 export function createUserAccount(
@@ -386,34 +427,49 @@ export function createUserAccount(
   expiresAt?: string
 ): { success: boolean; user?: UserAccount; message?: string } {
   const cleanEmail = email.trim().toLowerCase();
+  const cleanPass = password.trim();
+  const cleanName = name.trim();
   const users = getUsersRegistry();
 
-  if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
-    return { success: false, message: 'This email already exists in the client database!' };
+  const existingIndex = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+  let targetUser: UserAccount;
+  let updated: UserAccount[];
+
+  if (existingIndex >= 0) {
+    targetUser = {
+      ...users[existingIndex],
+      password: cleanPass,
+      name: cleanName,
+      tier,
+      pricePaid,
+      status: 'active',
+      ...(expiresAt ? { expiresAt } : {})
+    };
+    updated = users.map((u, idx) => idx === existingIndex ? targetUser : u);
+  } else {
+    targetUser = {
+      id: 'usr_' + Math.random().toString(36).substring(2, 9),
+      email: cleanEmail,
+      password: cleanPass,
+      name: cleanName,
+      role: 'customer',
+      tier,
+      status: 'active',
+      createdAt: Date.now(),
+      pricePaid,
+      ...(expiresAt ? { expiresAt } : {})
+    };
+    updated = [targetUser, ...users];
   }
 
-  const newUser: UserAccount = {
-    id: 'usr_' + Math.random().toString(36).substring(2, 9),
-    email: cleanEmail,
-    password: password.trim(),
-    name: name.trim(),
-    role: 'customer',
-    tier,
-    status: 'active',
-    createdAt: Date.now(),
-    pricePaid,
-    ...(expiresAt ? { expiresAt } : {})
-  };
-
-  const updated = [newUser, ...users];
   saveUsersRegistry(updated);
 
   // Background Cloud Sync
   if (db) {
     ensureFirebaseAuth().then(() => {
       const docKey = getEmailDocKey(cleanEmail);
-      setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), newUser).catch(() => {});
-      setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), newUser).catch(() => {});
+      setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), targetUser).catch(() => {});
+      setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), targetUser).catch(() => {});
       setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
         users: updated,
         updatedAt: Date.now()
@@ -421,7 +477,33 @@ export function createUserAccount(
     });
   }
 
-  return { success: true, user: newUser };
+  return { success: true, user: targetUser };
+}
+
+export function updateUserPassword(userId: string, newPass: string): void {
+  const users = getUsersRegistry();
+  let updatedUser: UserAccount | null = null;
+
+  const updated = users.map(u => {
+    if (u.id === userId) {
+      updatedUser = { ...u, password: newPass.trim() };
+      return updatedUser;
+    }
+    return u;
+  });
+  saveUsersRegistry(updated);
+
+  if (db && updatedUser) {
+    ensureFirebaseAuth().then(() => {
+      const docKey = getEmailDocKey((updatedUser as UserAccount).email);
+      setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', docKey), updatedUser).catch(() => {});
+      setDoc(doc(db, 'users', docKey, 'account_profile', 'credentials'), updatedUser).catch(() => {});
+      setDoc(doc(db, 'users', 'system_registry', 'accounts_list', 'all_users'), {
+        users: updated,
+        updatedAt: Date.now()
+      }).catch(() => {});
+    });
+  }
 }
 
 export function updateUserStatus(userId: string, newStatus: 'active' | 'suspended' | 'expired'): void {

@@ -1,22 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Mail, Key, AlertCircle, RefreshCw } from 'lucide-react';
-import { authenticateUserAsync, syncUsersRegistryFromCloud, UserAccount } from '../userRegistry';
+import { ArrowRight, Mail, Key, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { 
+  authenticateUserAsync, 
+  syncUsersRegistryFromCloud, 
+  parseUserAccessToken,
+  getUsersRegistry,
+  saveUsersRegistry,
+  UserAccount 
+} from '../userRegistry';
 
 interface AuthGateProps {
   onAuthenticated: (user: UserAccount) => void;
 }
 
 export default function AuthGate({ onAuthenticated }: AuthGateProps) {
-  // Blank inputs for production client delivery
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [successNotice, setSuccessNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
-    // 1. If user just clicked "Logout", do not auto-login
+    // 1. Check for One-Click Access Token in URL (e.g. ?access=... or #access=...)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      let accessToken = urlParams.get('access') || urlParams.get('token');
+      
+      if (!accessToken && window.location.hash.includes('access=')) {
+        const match = window.location.hash.match(/access=([^&]+)/);
+        if (match) accessToken = match[1];
+      }
+
+      if (accessToken) {
+        const tokenUser = parseUserAccessToken(accessToken);
+        if (tokenUser && tokenUser.email) {
+          // Register / update user in local registry
+          const list = getUsersRegistry();
+          const existingIdx = list.findIndex(u => u.email.toLowerCase() === tokenUser.email.toLowerCase());
+          let updatedList: UserAccount[];
+          if (existingIdx >= 0) {
+            updatedList = list.map((u, i) => i === existingIdx ? { ...u, ...tokenUser } : u);
+          } else {
+            updatedList = [tokenUser, ...list];
+          }
+          saveUsersRegistry(updatedList);
+
+          // Save session
+          localStorage.setItem('df_os_active_user', JSON.stringify(tokenUser));
+          sessionStorage.setItem('df_os_active_user', JSON.stringify(tokenUser));
+
+          // Clean URL without reloading
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          setSuccessNotice(`Welcome ${tokenUser.name}! Access Verified.`);
+          setIsUnlocked(true);
+          setTimeout(() => {
+            onAuthenticated(tokenUser);
+          }, 800);
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // 2. If user just clicked "Logout", do not auto-login
     const justLoggedOut = sessionStorage.getItem('df_just_logged_out');
     if (justLoggedOut === 'true') {
       sessionStorage.removeItem('df_just_logged_out');
@@ -24,7 +72,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
       return;
     }
 
-    // 2. Check if user session stored in localStorage or sessionStorage
+    // 3. Check if user session stored in localStorage or sessionStorage
     const savedUser = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
     if (savedUser) {
       try {
@@ -39,13 +87,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
       }
     }
 
-    // 3. Pre-fetch cloud users in background
+    // 4. Pre-fetch cloud users in background
     syncUsersRegistryFromCloud().catch(() => {});
   }, [onAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setSuccessNotice('');
 
     if (!email.trim() || !password.trim()) {
       setErrorMessage('Please enter both Email and Access Password!');
@@ -61,12 +110,12 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
         sessionStorage.setItem('df_os_active_user', JSON.stringify(res.user));
         setTimeout(() => {
           onAuthenticated(res.user!);
-        }, 600);
+        }, 500);
       } else {
         setErrorMessage(res.message || 'Authentication failed. Please verify credentials.');
       }
     } catch (err) {
-      setErrorMessage('Network error during authentication. Please try again.');
+      setErrorMessage('Authentication error. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -102,6 +151,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
                 Executive Personal Growth & Performance System
               </p>
             </div>
+
+            {/* Success Notice */}
+            {successNotice && (
+              <div className="p-3 bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-mono flex items-center gap-2 animate-fadeIn rounded-xl">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                <span>{successNotice}</span>
+              </div>
+            )}
 
             {/* Error Message */}
             {errorMessage && (

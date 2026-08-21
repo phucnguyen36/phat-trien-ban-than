@@ -5,7 +5,9 @@ import {
   createUserAccountAsync,
   syncUsersRegistryFromCloud,
   updateUserStatus, 
+  updateUserPassword,
   deleteUserAccount,
+  generateAccessLink,
   DEFAULT_ADMIN 
 } from '../userRegistry';
 import { 
@@ -22,7 +24,9 @@ import {
   Search, 
   Key,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Link as LinkIcon,
+  Pencil
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -102,7 +106,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
     setIsAddModalOpen(false);
     onNotice(
       "CUSTOMER ACCOUNT ISSUED",
-      `Successfully generated credentials for ${newName} (${newEmail}). Saved to Cloud Firestore globally!`
+      `Successfully generated credentials for ${newName} (${newEmail}). You can now copy access link or login details below!`
     );
 
     // Reset Form
@@ -113,16 +117,20 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
     setNewPrice(49);
   };
 
-  // Copy Delivery Info
+  // Copy Delivery Info with 1-Click Access Link
   const handleCopyDeliveryInfo = (user: UserAccount) => {
-    const deliveryMsg = `[DEEP FOCUS OS ACCESS CREDENTIALS]\n` +
+    const accessLink = generateAccessLink(user);
+    const deliveryMsg = `[DEEP FOCUS OS COMMERCIAL ACCESS]\n` +
       `Hello ${user.name},\n` +
-      `Your commercial license for Deep Focus OS is now active!\n` +
+      `Your executive license for Deep Focus OS is active!\n\n` +
+      `👉 1-CLICK INSTANT ACCESS LINK:\n` +
+      `${accessLink}\n\n` +
+      `Or login manually:\n` +
       `- Ingress URL: ${window.location.origin}\n` +
       `- Email: ${user.email}\n` +
       `- Password: ${user.password}\n` +
-      `- License Tier: ${user.tier}\n` +
-      `Welcome aboard! Elevate your personal growth performance.`;
+      `- Tier: ${user.tier}\n\n` +
+      `Elevate your personal growth & peak performance!`;
 
     navigator.clipboard.writeText(deliveryMsg);
     setCopiedId(user.id);
@@ -300,9 +308,26 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                       <div className="text-[10px] text-zinc-400">{cust.email}</div>
                     </td>
                     <td className="p-3">
-                      <span className="glass-pill px-2 py-0.5 text-[11px] text-zinc-200">
-                        {cust.password}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="glass-pill px-2 py-0.5 text-[11px] text-zinc-200 font-mono">
+                          {cust.password}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newPass = prompt(`Enter new password for ${cust.name} (${cust.email}):`, cust.password);
+                            if (newPass && newPass.trim() && newPass.trim() !== cust.password) {
+                              updateUserPassword(cust.id, newPass.trim());
+                              refreshUsers();
+                              onNotice("PASSWORD UPDATED", `Password for ${cust.email} changed to: ${newPass.trim()}`);
+                            }
+                          }}
+                          className="p-1 text-zinc-400 hover:text-white glass-button rounded transition-colors"
+                          title="Change password"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </div>
                     </td>
                     <td className="p-3">
                       <span className="px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold glass-pill text-zinc-300">
@@ -324,11 +349,31 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* Copy 1-Click Link */}
+                        <button
+                          onClick={() => {
+                            const link = generateAccessLink(cust);
+                            navigator.clipboard.writeText(link);
+                            setCopiedId('link_' + cust.id);
+                            setTimeout(() => setCopiedId(null), 2500);
+                            onNotice("1-CLICK LINK COPIED", `Instant access link for ${cust.name} copied to clipboard!`);
+                          }}
+                          className="px-2 py-1 glass-button-true text-sky-300 hover:text-white text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all rounded-lg"
+                          title="Copy 1-Click Instant Login Link"
+                        >
+                          {copiedId === ('link_' + cust.id) ? (
+                            <Check className="w-3 h-3 text-emerald-400" />
+                          ) : (
+                            <LinkIcon className="w-3 h-3 text-sky-400" />
+                          )}
+                          <span>{copiedId === ('link_' + cust.id) ? 'LINK COPIED' : '1-CLICK LINK'}</span>
+                        </button>
+
                         {/* Copy Delivery Info */}
                         <button
                           onClick={() => handleCopyDeliveryInfo(cust)}
-                          className="px-2 py-1 glass-button text-zinc-200 text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all"
-                          title="Copy delivery message to customer"
+                          className="px-2 py-1 glass-button text-zinc-200 text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all rounded-lg"
+                          title="Copy full delivery message to customer"
                         >
                           {copiedId === cust.id ? (
                             <Check className="w-3 h-3 text-emerald-400" />
@@ -341,7 +386,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         {/* Toggle Suspend/Active */}
                         <button
                           onClick={() => handleToggleStatus(cust)}
-                          className="p-1.5 glass-button text-zinc-400 hover:text-white transition-all"
+                          className="p-1.5 glass-button text-zinc-400 hover:text-white transition-all rounded-lg"
                           title={cust.status === 'active' ? 'Suspend Account' : 'Reactivate Account'}
                         >
                           {cust.status === 'active' ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -350,7 +395,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         {/* Delete User */}
                         <button
                           onClick={() => handleDeleteUser(cust)}
-                          className="p-1.5 glass-button text-zinc-500 hover:text-red-400 transition-all"
+                          className="p-1.5 glass-button text-zinc-500 hover:text-red-400 transition-all rounded-lg"
                           title="Delete Customer Account"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
