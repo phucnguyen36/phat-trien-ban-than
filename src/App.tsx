@@ -83,7 +83,12 @@ import {
   LayoutDashboard,
   Search,
   Trophy,
-  Sparkles
+  Sparkles,
+  Twitter,
+  Instagram,
+  Facebook,
+  Linkedin,
+  Mail
 } from 'lucide-react';
 
 interface UserProfile {
@@ -1290,16 +1295,64 @@ export default function App() {
 
         </div>
 
-        {/* Reset system anchor */}
-        <div className="mt-20 border-t border-zinc-950 pt-8 flex justify-between items-center text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-          <span>DEEP FOCUS INTEGRATED OS v5.0</span>
-          <button 
-            onClick={handleResetSession}
-            className="text-zinc-600 hover:text-red-500 transition-colors focus:outline-none"
-          >
-            [ RESET OS STATE ]
-          </button>
+      {/* MINIMAL CLEAN STUDIO FOOTER (Thomas Nguyen Standard) */}
+      <footer className="border-t border-white/[0.06] bg-[#0b0c10] py-8 px-6 md:px-12 mt-20 relative z-20">
+        <div className="max-w-[1240px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-[#9496a1] font-sans">
+            &copy; 2026 Thomas Nguyen. All rights reserved.
+          </p>
+
+          <div className="flex items-center gap-2">
+            <a 
+              href="https://x.com/thomaseditor_vn" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              title="X / Twitter"
+            >
+              <Twitter size={14} />
+            </a>
+
+            <a 
+              href="https://www.instagram.com/thomasvisualeditor/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              title="Instagram"
+            >
+              <Instagram size={14} />
+            </a>
+
+            <a 
+              href="https://www.facebook.com/profile.php?id=100063990921099" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              title="Facebook"
+            >
+              <Facebook size={14} />
+            </a>
+
+            <a 
+              href="https://www.linkedin.com/in/phucxuannguyen/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              title="LinkedIn"
+            >
+              <Linkedin size={14} />
+            </a>
+
+            <a 
+              href="mailto:thomasnguyen.editor@gmail.com" 
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              title="Email"
+            >
+              <Mail size={14} />
+            </a>
+          </div>
         </div>
+      </footer>
 
       </main>
 
