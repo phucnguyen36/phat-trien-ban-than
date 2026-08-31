@@ -5,7 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { PersonalExpense, ExpenseCategory } from '../types';
-import { Pie, Bar } from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
   ArcElement, 
@@ -13,16 +13,25 @@ import {
   Legend, 
   CategoryScale, 
   LinearScale, 
-  BarElement 
+  BarElement,
+  PointElement,
+  LineElement
 } from 'chart.js';
 import { 
   Plus, 
   Trash2, 
   DollarSign, 
-  Calendar
+  Calendar,
+  TrendingDown,
+  Activity,
+  PieChart,
+  Wallet,
+  ArrowUpRight,
+  Receipt,
+  Filter
 } from 'lucide-react';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
 
 interface ExpenseLedgerProps {
   expenses: PersonalExpense[];
@@ -39,50 +48,36 @@ interface CurrencyMeta {
   suffix?: string;
 }
 
-// Supported Multi-Currency Exchange Rates relative to VND
 const CURRENCIES: Record<string, CurrencyMeta> = {
   VND: { symbol: '₫', label: 'VND (Vietnamese Dong)', rate: 1, suffix: '₫' },
   USD: { symbol: '$', label: 'USD (US Dollar)', rate: 25400, prefix: '$' },
   EUR: { symbol: '€', label: 'EUR (Euro)', rate: 27500, prefix: '€' },
   GBP: { symbol: '£', label: 'GBP (British Pound)', rate: 32000, prefix: '£' },
   JPY: { symbol: '¥', label: 'JPY (Japanese Yen)', rate: 165, prefix: '¥' },
-  KRW: { symbol: '₩', label: 'KRW (Korean Won)', rate: 18.5, prefix: '₩' },
   SGD: { symbol: 'S$', label: 'SGD (Singapore Dollar)', rate: 19000, prefix: 'S$' },
   AUD: { symbol: 'A$', label: 'AUD (Australian Dollar)', rate: 16500, prefix: 'A$' },
-  THB: { symbol: '฿', label: 'THB (Thai Baht)', rate: 720, prefix: '฿' },
-  CNY: { symbol: '¥', label: 'CNY (Chinese Yuan)', rate: 3500, prefix: '¥' },
 };
 
 type CurrencyCode = keyof typeof CURRENCIES;
 
+const CATEGORY_COLORS: Record<ExpenseCategory, { bg: string; border: string; text: string; hex: string }> = {
+  Eating: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', hex: '#f43f5e' },
+  Transport: { bg: 'bg-sky-500/10', border: 'border-sky-500/20', text: 'text-sky-400', hex: '#1591DC' },
+  'Study/Equipment': { bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400', hex: '#a855f7' },
+  Entertainment: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', hex: '#f59e0b' },
+  Others: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', text: 'text-zinc-400', hex: '#71717a' }
+};
+
 export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense, isLightMode }: ExpenseLedgerProps) {
-  // Local Form state
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [amountInput, setAmountInput] = useState<string>('');
   const [categoryInput, setCategoryInput] = useState<ExpenseCategory>('Eating');
   const [noteInput, setNoteInput] = useState<string>('');
   const [dateInput, setDateInput] = useState<string>(todayStr);
 
-  // Multi-Currency Selection State
   const [currency, setCurrency] = useState<CurrencyCode>('VND');
-
-  // Currency Formatter Helper
-  const formatMoney = (vndAmount: number, code: CurrencyCode = currency) => {
-    const meta = CURRENCIES[code] || CURRENCIES.VND;
-    const converted = Math.abs(vndAmount) / meta.rate;
-    const isZeroDecimal = code === 'VND' || code === 'KRW' || code === 'JPY';
-    const formattedNum = isZeroDecimal 
-      ? Math.round(converted).toLocaleString() 
-      : converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    if (meta.prefix) return `${meta.prefix}${formattedNum}`;
-    return `${formattedNum} ${meta.suffix || meta.symbol}`;
-  };
-
-  // Filter Mode State: 'all' vs 'monthly'
   const [filterMode, setFilterMode] = useState<'all' | 'monthly'>('monthly');
 
-  // Month selector YYYY-MM
   const currentMonthStr = useMemo(() => {
     const d = new Date();
     const y = d.getFullYear();
@@ -91,7 +86,18 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
   }, []);
   const [filterMonthYear, setFilterMonthYear] = useState<string>(currentMonthStr);
 
-  // Filtered expense list
+  const formatMoney = (vndAmount: number, code: CurrencyCode = currency) => {
+    const meta = CURRENCIES[code] || CURRENCIES.VND;
+    const converted = Math.abs(vndAmount) / meta.rate;
+    const isZeroDecimal = code === 'VND' || code === 'JPY';
+    const formattedNum = isZeroDecimal 
+      ? Math.round(converted).toLocaleString() 
+      : converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (meta.prefix) return `${meta.prefix}${formattedNum}`;
+    return `${formattedNum} ${meta.suffix || meta.symbol}`;
+  };
+
   const filteredExpenses = useMemo(() => {
     if (filterMode === 'all') {
       return [...expenses].sort((a, b) => b.date.localeCompare(a.date));
@@ -101,7 +107,6 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [expenses, filterMode, filterMonthYear]);
 
-  // Form Submit Handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const num = parseFloat(amountInput);
@@ -120,7 +125,6 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
     setNoteInput('');
   };
 
-  // Category Total Summaries (in VND)
   const categorySummary = useMemo(() => {
     const totals: Record<ExpenseCategory, number> = {
       Eating: 0,
@@ -143,67 +147,146 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
     return totals;
   }, [filteredExpenses]);
 
-  // Total Burn Amount (in VND)
   const totalBurnVnd = useMemo(() => {
     return Object.values(categorySummary).reduce((a: number, b: number) => a + b, 0);
   }, [categorySummary]);
 
-  // Monthly Daily Burn Summary
-  const monthlyDailyBurnSummary = useMemo(() => {
+  // Largest transaction
+  const highestTransaction = useMemo(() => {
+    if (filteredExpenses.length === 0) return null;
+    return filteredExpenses.reduce((max, curr) => 
+      Math.abs(curr.amount) > Math.abs(max.amount) ? curr : max
+    , filteredExpenses[0]);
+  }, [filteredExpenses]);
+
+  // Top category
+  const topCategoryInfo = useMemo(() => {
+    let topCat: ExpenseCategory = 'Others';
+    let topAmt = 0;
+    Object.entries(categorySummary).forEach(([c, amt]) => {
+      if (amt > topAmt) {
+        topAmt = amt;
+        topCat = c as ExpenseCategory;
+      }
+    });
+    const percentage = totalBurnVnd > 0 ? Math.round((topAmt / totalBurnVnd) * 100) : 0;
+    return { category: topCat, amount: topAmt, percentage };
+  }, [categorySummary, totalBurnVnd]);
+
+  // Timeline Trend Data (Daily progression across the month)
+  const timelineData = useMemo(() => {
     if (filterMode === 'monthly' && filterMonthYear) {
       const parts = filterMonthYear.split('-');
-      if (parts.length >= 2) {
-        const year = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10);
-        const totalDaysInMonth = new Date(year, month, 0).getDate();
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const totalDaysInMonth = new Date(year, month, 0).getDate();
 
-        const dailyTotals: Record<string, number> = {};
-        for (let d = 1; d <= totalDaysInMonth; d++) {
-          const dayStr = String(d).padStart(2, '0');
-          dailyTotals[`${filterMonthYear}-${dayStr}`] = 0;
-        }
-
-        filteredExpenses.forEach(item => {
-          if (dailyTotals[item.date] !== undefined) {
-            dailyTotals[item.date] += Math.abs(Number(item.amount) || 0);
-          }
-        });
-
-        const sortedKeys = Object.keys(dailyTotals).sort();
-        return {
-          labels: sortedKeys.map(k => {
-            const parts = k.split('-');
-            return parts[2];
-          }),
-          values: sortedKeys.map(k => {
-            const vnd = dailyTotals[k];
-            const meta = CURRENCIES[currency] || CURRENCIES.VND;
-            return +(vnd / meta.rate).toFixed(2);
-          })
-        };
+      const dailyTotals: Record<string, number> = {};
+      for (let d = 1; d <= totalDaysInMonth; d++) {
+        const dayStr = String(d).padStart(2, '0');
+        dailyTotals[`${filterMonthYear}-${dayStr}`] = 0;
       }
+
+      filteredExpenses.forEach(item => {
+        if (dailyTotals[item.date] !== undefined) {
+          dailyTotals[item.date] += Math.abs(Number(item.amount) || 0);
+        }
+      });
+
+      const sortedKeys = Object.keys(dailyTotals).sort();
+      const meta = CURRENCIES[currency] || CURRENCIES.VND;
+
+      return {
+        labels: sortedKeys.map(k => `Day ${parseInt(k.split('-')[2], 10)}`),
+        values: sortedKeys.map(k => +(dailyTotals[k] / meta.rate).toFixed(2)),
+        rawVnd: sortedKeys.map(k => dailyTotals[k])
+      };
     }
 
+    // All time mode: group by date
     const summary: Record<string, number> = {};
     filteredExpenses.forEach(item => {
       summary[item.date] = (summary[item.date] || 0) + Math.abs(Number(item.amount) || 0);
     });
     const sortedKeys = Object.keys(summary).sort();
+    const meta = CURRENCIES[currency] || CURRENCIES.VND;
+
     return {
       labels: sortedKeys.map(k => {
         const parts = k.split('-');
         return parts.length >= 3 ? `${parts[2]}/${parts[1]}` : k;
       }),
-      values: sortedKeys.map(k => {
-        const vnd = summary[k];
-        const meta = CURRENCIES[currency] || CURRENCIES.VND;
-        return +(vnd / meta.rate).toFixed(2);
-      })
+      values: sortedKeys.map(k => +(summary[k] / meta.rate).toFixed(2)),
+      rawVnd: sortedKeys.map(k => summary[k])
     };
   }, [filteredExpenses, filterMode, filterMonthYear, currency]);
 
-  // Pie Chart Config
-  const pieChartData = useMemo(() => {
+  // Large Timeline Bar Chart Config
+  const timelineChartData = useMemo(() => {
+    return {
+      labels: timelineData.labels,
+      datasets: [
+        {
+          label: 'Outflow',
+          data: timelineData.values,
+          backgroundColor: 'rgba(21, 145, 220, 0.75)',
+          hoverBackgroundColor: '#38bdf8',
+          borderColor: '#1591DC',
+          borderWidth: 1,
+          borderRadius: 6,
+        }
+      ]
+    };
+  }, [timelineData]);
+
+  const timelineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0c0d12',
+        titleColor: '#ffffff',
+        bodyColor: '#38bdf8',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        padding: 10,
+        callbacks: {
+          label: (context: any) => {
+            const val = context.raw;
+            const meta = CURRENCIES[currency] || CURRENCIES.VND;
+            return ` Outflow: ${meta.prefix || ''}${val.toLocaleString()} ${meta.suffix || meta.symbol}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { 
+          color: '#9496a1', 
+          font: { family: 'Plus Jakarta Sans', size: 10 },
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 16
+        }
+      },
+      y: {
+        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        ticks: { 
+          color: '#9496a1', 
+          font: { family: 'Plus Jakarta Sans', size: 10 },
+          callback: (value: any) => {
+            const meta = CURRENCIES[currency] || CURRENCIES.VND;
+            return `${meta.prefix || ''}${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`;
+          }
+        }
+      }
+    }
+  };
+
+  // Doughnut Chart Data for Categories
+  const categoryChartData = useMemo(() => {
     const rawData = [
       categorySummary.Eating,
       categorySummary.Transport,
@@ -216,119 +299,68 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
     const displayData = rawData.map(v => +(v / meta.rate).toFixed(2));
 
     return {
-      labels: ['EATING', 'TRANSPORT', 'STUDY/GEAR', 'ENTERTAINMENT', 'OTHERS'],
+      labels: ['Eating & Food', 'Transport & Travel', 'Study & Equipment', 'Entertainment', 'Others'],
       datasets: [
         {
           data: displayData,
           backgroundColor: [
-            'rgba(253, 164, 175, 0.75)',
-            'rgba(147, 197, 253, 0.75)',
-            'rgba(216, 180, 254, 0.75)',
-            'rgba(254, 240, 138, 0.75)',
-            'rgba(203, 213, 225, 0.75)'
+            CATEGORY_COLORS.Eating.hex,
+            CATEGORY_COLORS.Transport.hex,
+            CATEGORY_COLORS['Study/Equipment'].hex,
+            CATEGORY_COLORS.Entertainment.hex,
+            CATEGORY_COLORS.Others.hex
           ],
-          borderColor: ['rgba(255,255,255,0.2)'],
-          borderWidth: 1,
+          borderColor: '#0b0c10',
+          borderWidth: 2,
         }
       ]
     };
   }, [categorySummary, currency]);
 
-  const pieChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right' as const,
-        labels: {
-          color: '#f4f4f5',
-          font: { family: 'Inter', size: 9 },
-          boxWidth: 10,
-          padding: 10
-        }
-      },
-      tooltip: {
-        backgroundColor: '#09090b',
-        titleFont: { family: 'Inter' },
-        bodyFont: { family: 'Inter' },
-        borderColor: '#18181b',
-        borderWidth: 1,
-        callbacks: {
-          label: (context: any) => {
-            const val = context.raw;
-            const meta = CURRENCIES[currency] || CURRENCIES.VND;
-            return ` ${meta.symbol}${val}`;
-          }
-        }
-      }
-    }
-  };
-
-  const barChartData = useMemo(() => {
-    return {
-      labels: monthlyDailyBurnSummary.labels,
-      datasets: [
-        {
-          label: 'DAILY BURN',
-          data: monthlyDailyBurnSummary.values,
-          backgroundColor: 'rgba(253, 164, 175, 0.75)',
-          borderColor: '#fda4af',
-          borderWidth: 1,
-        }
-      ]
-    };
-  }, [monthlyDailyBurnSummary]);
-
-  const barChartOptions = {
+  const categoryChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#09090b',
-        titleFont: { family: 'Inter' },
-        bodyFont: { family: 'Inter' },
-        borderColor: '#18181b',
+        backgroundColor: '#0c0d12',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1,
+        padding: 10,
         callbacks: {
           label: (context: any) => {
             const val = context.raw;
-            return currency === 'USD' ? ` Spend: $${val}` : ` Spend: ${val.toLocaleString()} ₫`;
+            const meta = CURRENCIES[currency] || CURRENCIES.VND;
+            return ` ${context.label}: ${meta.prefix || ''}${val.toLocaleString()} ${meta.suffix || meta.symbol}`;
           }
         }
       }
     },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 8 } }
-      },
-      y: {
-        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-        ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 8 } }
-      }
-    }
+    cutout: '72%'
   };
 
   return (
-    <div id="expense-ledger" className="kuldeep-card p-6 md:p-8 mb-12 space-y-6">
+    <div id="expense-ledger" className="kuldeep-card p-6 md:p-8 mb-12 space-y-8 font-sans animate-fadeIn">
       
-      {/* Module Title Section */}
+      {/* Header Bar */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-white/[0.08] pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
-            Cash Flow & Expenses
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            <Wallet className="w-6 h-6 text-[#1591DC]" />
+            <span>Cash Flow & Financial Ledger</span>
           </h2>
           <p className="text-xs text-[#9496a1] mt-1">
-            Expenses, category breakdown, and monthly cash flow
+            Track outflow velocity, monitor burn rate, and observe category allocations over time
           </p>
         </div>
 
         {/* Currency Switcher & Month Filter Toolbar */}
         <div className="flex flex-wrap items-center gap-2.5 glass-pill-true p-1.5 w-full lg:w-auto justify-between lg:justify-end">
           
-          {/* Multi-Currency Dropdown Selector */}
-          <div className="flex items-center gap-1.5 glass-card-true px-3 py-1 rounded-full">
+          {/* Multi-Currency Dropdown */}
+          <div className="flex items-center gap-1.5 glass-card-true px-3 py-1 rounded-full text-xs">
             <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
             <span className="text-xs text-[#9496a1]">Currency:</span>
             <select
@@ -344,12 +376,12 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
             </select>
           </div>
 
-          {/* Filter Mode Switcher */}
-          <div className="flex items-center gap-1 glass-card-true p-0.5 rounded-full">
+          {/* Filter Mode */}
+          <div className="flex items-center gap-1 glass-card-true p-0.5 rounded-full text-xs">
             <button
               onClick={() => setFilterMode('monthly')}
               className={`px-3 py-1 text-xs font-medium transition-all rounded-full ${
-                filterMode === 'monthly' ? 'bg-white text-black font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
+                filterMode === 'monthly' ? 'bg-[#1591DC] text-white font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
               }`}
             >
               Monthly
@@ -357,7 +389,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
             <button
               onClick={() => setFilterMode('all')}
               className={`px-3 py-1 text-xs font-medium transition-all rounded-full ${
-                filterMode === 'all' ? 'bg-white text-black font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
+                filterMode === 'all' ? 'bg-[#1591DC] text-white font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
               }`}
             >
               All Time
@@ -366,7 +398,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
 
           {/* Month Picker */}
           {filterMode === 'monthly' && (
-            <div className="flex items-center gap-1.5 glass-card-true px-2.5 py-1 rounded-full">
+            <div className="flex items-center gap-1.5 glass-card-true px-2.5 py-1 rounded-full text-xs">
               <Calendar className="w-3.5 h-3.5 text-[#1591DC]" />
               <input
                 type="month"
@@ -379,53 +411,115 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         </div>
       </div>
 
-      {/* Financial Summary Card */}
-      {(() => {
-        const totalVnd = filteredExpenses.reduce((s, e) => s + Math.abs(e.amount), 0);
-        const displayTotal = formatMoney(totalVnd);
+      {/* 4 Executive KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        // Find top spending category
-        const cats: Record<string, number> = {};
-        filteredExpenses.forEach(e => {
-          cats[e.category] = (cats[e.category] || 0) + Math.abs(e.amount);
-        });
-        let topCat = 'None';
-        let topCatAmt = 0;
-        Object.entries(cats).forEach(([cat, amt]) => {
-          if (amt > topCatAmt) { topCatAmt = amt; topCat = cat; }
-        });
-        const topCatDisplay = formatMoney(topCatAmt);
-
-        return (
-          <div className="p-4 glass-card-true rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <DollarSign className="w-5 h-5 text-emerald-400 shrink-0" />
-              <div>
-                <h4 className="text-xs font-semibold text-white">
-                  Financial summary ({filterMonthYear})
-                </h4>
-                <p className="text-[#9496a1] text-xs mt-0.5">
-                  Total outflow: <strong className="text-white">{displayTotal}</strong> across <strong className="text-white">{filteredExpenses.length}</strong> items.
-                  Top category: <strong className="text-white">{topCat}</strong> ({topCatDisplay}).
-                </p>
-              </div>
-            </div>
-            <div className="text-xs text-[#9496a1] px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] shrink-0">
-              {totalVnd > 15000000 ? 'High Outflow' : 'Within Budget'}
+        {/* Total Outflow */}
+        <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#9496a1] font-medium">Total Outflow</span>
+            <div className="w-7 h-7 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+              <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-        );
-      })()}
+          <div className="text-2xl font-bold font-mono text-white">
+            {formatMoney(totalBurnVnd)}
+          </div>
+          <div className="text-[11px] text-[#9496a1]">
+            {filteredExpenses.length} transactions logged
+          </div>
+        </div>
 
-      {/* Main Grid: Form Logger + Analytics Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+        {/* Daily Burn Rate */}
+        <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#9496a1] font-medium">Daily Burn Rate</span>
+            <div className="w-7 h-7 rounded-lg bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
+              <Activity className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold font-mono text-white">
+            {formatMoney(totalBurnVnd / (timelineData.labels.length || 1))}
+          </div>
+          <div className="text-[11px] text-[#9496a1]">
+            Across {timelineData.labels.length} tracked days
+          </div>
+        </div>
+
+        {/* Highest Single Expense */}
+        <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#9496a1] font-medium">Largest Expense</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Receipt className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold font-mono text-white truncate">
+            {highestTransaction ? formatMoney(Math.abs(highestTransaction.amount)) : '—'}
+          </div>
+          <div className="text-[11px] text-[#9496a1] truncate">
+            {highestTransaction?.note || highestTransaction?.category || 'No data recorded'}
+          </div>
+        </div>
+
+        {/* Top Category */}
+        <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#9496a1] font-medium">Top Category</span>
+            <div className="w-7 h-7 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+              <PieChart className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-white truncate">
+            {topCategoryInfo.category}
+          </div>
+          <div className="text-[11px] text-[#9496a1]">
+            {topCategoryInfo.percentage}% of total budget ({formatMoney(topCategoryInfo.amount)})
+          </div>
+        </div>
+
+      </div>
+
+      {/* Hero Big Timeline Chart Section */}
+      <div className="glass-card-true p-6 md:p-8 rounded-2xl space-y-4 border border-white/[0.08]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#1591DC]" />
+              <span>Cash Flow & Outflow Timeline Progress</span>
+            </h3>
+            <p className="text-xs text-[#9496a1] mt-0.5">
+              Daily burn velocity progression over the {filterMode === 'monthly' ? `month (${filterMonthYear})` : 'recorded period'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-mono text-[#9496a1]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#1591DC]" />
+            <span>Daily Outflow ({currency})</span>
+          </div>
+        </div>
+
+        {/* Big Chart Container (Height: 300px) */}
+        <div className="h-72 md:h-80 w-full relative pt-2">
+          {timelineData.labels.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-xs text-[#9496a1]">
+              No transactions logged for this timeframe.
+            </div>
+          ) : (
+            <Bar data={timelineChartData} options={timelineChartOptions} />
+          )}
+        </div>
+      </div>
+
+      {/* Split Section: Form Logger & Category Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left 4 Columns: Expense Add Form */}
-        <div className="lg:col-span-4 glass-card-true p-6 space-y-4 rounded-2xl">
+        {/* Left (5 cols): Add Expense Form */}
+        <div className="lg:col-span-5 glass-card-true p-6 space-y-4 rounded-2xl border border-white/[0.08]">
           <div className="border-b border-white/[0.08] pb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-              <span>Log Expense</span>
+              <Plus className="w-4 h-4 text-[#1591DC]" />
+              <span>Log New Transaction</span>
             </h3>
           </div>
 
@@ -438,10 +532,11 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                   step="any"
                   value={amountInput}
                   onChange={(e) => setAmountInput(e.target.value)}
-                  placeholder={currency === 'VND' ? '200000' : '50.00'}
-                  className="w-full glass-input-true py-2.5 pl-8 pr-3 text-xs text-white placeholder-zinc-500 font-semibold rounded-lg"
+                  placeholder={currency === 'VND' ? '250000' : '50.00'}
+                  className="w-full glass-input-true py-2.5 pl-8 pr-3 text-xs text-white placeholder-zinc-500 font-semibold rounded-xl focus:outline-none"
+                  required
                 />
-                <span className="text-xs text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 font-bold">
+                <span className="text-xs text-[#1591DC] absolute left-3 top-1/2 -translate-y-1/2 font-bold">
                   {CURRENCIES[currency]?.symbol || '$'}
                 </span>
               </div>
@@ -452,11 +547,11 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
               <select
                 value={categoryInput}
                 onChange={(e) => setCategoryInput(e.target.value as ExpenseCategory)}
-                className="w-full glass-input-true p-2.5 text-xs text-white font-medium cursor-pointer rounded-lg bg-[#0e1015]"
+                className="w-full glass-input-true p-2.5 text-xs text-white font-medium cursor-pointer rounded-xl bg-[#0e1015] focus:outline-none"
               >
                 <option value="Eating" className="bg-[#12141a] text-white">Eating & Food</option>
                 <option value="Transport" className="bg-[#12141a] text-white">Transport & Fuel</option>
-                <option value="Study/Equipment" className="bg-[#12141a] text-white">Study & Gear</option>
+                <option value="Study/Equipment" className="bg-[#12141a] text-white">Study & Equipment</option>
                 <option value="Entertainment" className="bg-[#12141a] text-white">Entertainment & Leisure</option>
                 <option value="Others" className="bg-[#12141a] text-white">Others & Miscellaneous</option>
               </select>
@@ -468,7 +563,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                 type="date"
                 value={dateInput}
                 onChange={(e) => setDateInput(e.target.value)}
-                className="w-full glass-input-true p-2.5 text-xs text-white font-mono cursor-pointer font-medium rounded-lg"
+                className="w-full glass-input-true p-2.5 text-xs text-white font-mono cursor-pointer font-medium rounded-xl focus:outline-none"
               />
             </div>
 
@@ -478,119 +573,131 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                 type="text"
                 value={noteInput}
                 onChange={(e) => setNoteInput(e.target.value)}
-                placeholder="e.g. Coffee, Books, Software..."
-                className="w-full glass-input-true p-2.5 text-xs text-white placeholder-zinc-500 rounded-lg"
+                placeholder="e.g. Domain renewal, Client dinner, Gym..."
+                className="w-full glass-input-true p-2.5 text-xs text-white placeholder-zinc-500 rounded-xl focus:outline-none"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 btn-primary-cyan text-xs font-semibold transition-all flex items-center justify-center gap-2 rounded-full"
+              className="w-full py-3 btn-primary-cyan text-xs font-semibold transition-all flex items-center justify-center gap-2 rounded-xl"
             >
               <Plus className="w-4 h-4" />
-              <span>Add expense</span>
+              <span>Record Expense</span>
             </button>
           </form>
         </div>
 
-        {/* Right 8 Columns: Charts & Analytics Breakdown */}
-        <div className="lg:col-span-8 space-y-6">
-          
-          {/* Summary Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-card-true p-5 space-y-1 rounded-2xl">
-              <span className="text-xs text-[#9496a1] font-medium block">
-                Total outflow ({filterMode === 'monthly' ? filterMonthYear : 'All time'})
-              </span>
-              <div className="text-2xl font-bold text-rose-300">
-                {formatMoney(totalBurnVnd)}
-              </div>
-              <span className="text-xs text-[#9496a1] block">
-                {filteredExpenses.length} transactions logged
-              </span>
-            </div>
-
-            <div className="glass-card-true p-5 space-y-1 rounded-2xl">
-              <span className="text-xs text-[#9496a1] font-medium block">
-                Average daily outflow
-              </span>
-              <div className="text-2xl font-bold text-white">
-                {formatMoney(totalBurnVnd / (monthlyDailyBurnSummary.labels.length || 1))}
-              </div>
-              <span className="text-xs text-[#9496a1] block">
-                Across {monthlyDailyBurnSummary.labels.length} active days
-              </span>
-            </div>
+        {/* Right (7 cols): Category Allocation & Doughnut Chart */}
+        <div className="lg:col-span-7 glass-card-true p-6 space-y-4 rounded-2xl border border-white/[0.08] flex flex-col justify-between">
+          <div className="border-b border-white/[0.08] pb-3">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <PieChart className="w-4 h-4 text-[#1591DC]" />
+              <span>Category Allocation Breakdown</span>
+            </h3>
           </div>
 
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="glass-card-true p-4 h-64 flex flex-col justify-between rounded-2xl">
-              <span className="text-xs font-semibold text-white block">
-                Category Distribution
-              </span>
-              <div className="flex-1 relative min-h-[160px]">
-                <Pie data={pieChartData} options={pieChartOptions} />
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center flex-1">
+            {/* Doughnut Chart */}
+            <div className="sm:col-span-5 h-44 relative flex items-center justify-center">
+              <Doughnut data={categoryChartData} options={categoryChartOptions} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[10px] text-[#9496a1]">Total</span>
+                <span className="text-xs font-mono font-bold text-white">
+                  {formatMoney(totalBurnVnd)}
+                </span>
               </div>
             </div>
 
-            <div className="glass-card-true p-4 h-64 flex flex-col justify-between rounded-2xl">
-              <span className="text-xs font-semibold text-white block">
-                Daily Outflow Trend
-              </span>
-              <div className="flex-1 relative min-h-[160px]">
-                <Bar data={barChartData} options={barChartOptions} />
-              </div>
+            {/* Category Percentages List */}
+            <div className="sm:col-span-7 space-y-2.5">
+              {(['Eating', 'Transport', 'Study/Equipment', 'Entertainment', 'Others'] as ExpenseCategory[]).map(cat => {
+                const amt = categorySummary[cat] || 0;
+                const pct = totalBurnVnd > 0 ? Math.round((amt / totalBurnVnd) * 100) : 0;
+                const colors = CATEGORY_COLORS[cat];
+
+                return (
+                  <div key={cat} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.hex }} />
+                        <span className="text-white font-medium">{cat}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#9496a1] font-mono text-[11px]">{formatMoney(amt)}</span>
+                        <span className="text-zinc-400 font-mono text-[10px] w-8 text-right">{pct}%</span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-white/[0.05] h-1.5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all" 
+                        style={{ width: `${pct}%`, backgroundColor: colors.hex }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
+
       </div>
 
       {/* Expense History Table */}
-      <div className="glass-card-true p-6 space-y-4 rounded-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-          <h3 className="text-sm font-semibold text-white">
-            Transaction History ({filteredExpenses.length})
-          </h3>
-          <span className="text-xs text-[#9496a1]">Sorted by date</span>
+      <div className="glass-card-true p-6 space-y-4 rounded-2xl border border-white/[0.08]">
+        <div className="flex justify-between items-center border-b border-white/[0.08] pb-3">
+          <div className="flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-[#1591DC]" />
+            <h3 className="text-sm font-semibold text-white">
+              Transaction History ({filteredExpenses.length})
+            </h3>
+          </div>
+          <span className="text-xs text-[#9496a1]">
+            Showing records for {filterMode === 'monthly' ? filterMonthYear : 'All Time'}
+          </span>
         </div>
 
         {filteredExpenses.length === 0 ? (
-          <div className="text-center py-10 text-[#9496a1] text-xs">
-            No expenses logged for this period.
+          <div className="py-8 text-center text-xs text-[#9496a1]">
+            No expense transactions logged for this timeframe.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse font-sans">
+            <table className="w-full text-left border-collapse font-sans text-xs">
               <thead>
-                <tr className="border-b border-white/[0.08] text-[#9496a1] text-xs bg-white/[0.02]">
-                  <th className="p-3 font-medium">Date</th>
-                  <th className="p-3 font-medium">Category</th>
-                  <th className="p-3 font-medium">Description</th>
-                  <th className="p-3 text-right font-medium">Amount</th>
-                  <th className="p-3 text-center font-medium">Action</th>
+                <tr className="border-b border-white/[0.08] text-[#9496a1]">
+                  <th className="py-2.5 px-3 font-medium">Date</th>
+                  <th className="py-2.5 px-3 font-medium">Category</th>
+                  <th className="py-2.5 px-3 font-medium">Description</th>
+                  <th className="py-2.5 px-3 font-medium text-right">Amount</th>
+                  <th className="py-2.5 px-3 font-medium text-center w-12">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04] text-[#ededf3]">
-                {filteredExpenses.map(item => {
-                  const absVnd = Math.abs(Number(item.amount) || 0);
-                  const displayAmount = formatMoney(absVnd);
-
+              <tbody className="divide-y divide-white/[0.04] text-zinc-300">
+                {filteredExpenses.map((item) => {
+                  const colors = CATEGORY_COLORS[item.category] || CATEGORY_COLORS.Others;
                   return (
-                    <tr key={item.id} className="hover:bg-white/[0.06] transition-colors">
-                      <td className="p-3 text-zinc-300 font-bold">{item.date}</td>
-                      <td className="p-3">
-                        <span className="px-2.5 py-0.5 text-[9px] uppercase tracking-wider font-bold glass-pill-true text-zinc-200">
+                    <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="py-3 px-3 font-mono text-zinc-400 whitespace-nowrap">
+                        {item.date}
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${colors.bg} ${colors.border} ${colors.text}`}>
                           {item.category}
                         </span>
                       </td>
-                      <td className="p-3 text-zinc-300 font-sans">{item.note || '—'}</td>
-                      <td className="p-3 font-bold text-rose-300">-{displayAmount}</td>
-                      <td className="p-3 text-right">
+                      <td className="py-3 px-3 text-white truncate max-w-xs">
+                        {item.note || '—'}
+                      </td>
+                      <td className="py-3 px-3 font-mono font-bold text-rose-300 text-right whitespace-nowrap">
+                        -{formatMoney(Math.abs(item.amount))}
+                      </td>
+                      <td className="py-3 px-3 text-center">
                         <button
+                          type="button"
                           onClick={() => onDeleteExpense(item.id)}
-                          className="p-1 glass-button-true text-zinc-400 hover:text-red-400 transition-colors"
-                          title="Delete expense"
+                          className="text-[#9496a1] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                          title="Delete transaction"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -603,6 +710,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           </div>
         )}
       </div>
+
     </div>
   );
 }

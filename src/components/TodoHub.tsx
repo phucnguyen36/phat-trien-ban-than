@@ -1001,97 +1001,178 @@ export default function TodoHub({
             </tbody>
           </table>
         </div>
-      ) : (
-        /* Calendar View Mode */
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 glass-card-true rounded-2xl">
+      ) : viewMode === 'calendar' ? (
+        /* Minimal Sleek Calendar View Mode */
+        <div className="space-y-6 animate-fadeIn font-sans">
+          {/* Calendar Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 glass-card-true rounded-2xl">
             <div>
               <span className="text-sm font-semibold text-white block">
-                Calendar • {monthNameStr} {selectedYear}
+                {monthNameStr} {selectedYear}
               </span>
               <span className="text-xs text-[#9496a1]">
-                Select any date to view or add daily tasks
+                Click on any date to inspect and manage daily tasks
               </span>
             </div>
 
-            <form onSubmit={handleCalendarAdd} className="flex gap-2 w-full md:w-auto">
+            <form onSubmit={handleCalendarAdd} className="flex gap-2 w-full sm:w-auto">
               <input
                 type="text"
                 value={calendarInputText}
                 onChange={(e) => setCalendarInputText(e.target.value)}
-                placeholder={`Add task for Day ${selectedDay}...`}
-                className="w-full md:w-72 glass-input-true px-3 py-2 text-xs text-white rounded-lg"
+                placeholder={`New task for ${monthNameStr} ${selectedDay}...`}
+                className="w-full sm:w-64 glass-input-true px-3 py-2 text-xs text-white rounded-xl focus:outline-none"
               />
               <button
                 type="submit"
-                className="px-4 py-2 btn-primary-cyan text-xs font-semibold flex items-center gap-1 shrink-0"
+                className="px-4 py-2 btn-primary-cyan text-xs font-semibold flex items-center gap-1 shrink-0 rounded-xl"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
                 <span>Add</span>
               </button>
             </form>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-[#9496a1]">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="p-2 glass-pill-true text-xs">{d}</div>
+          {/* Compact 7-Day Header */}
+          <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-semibold text-[#9496a1]">
+            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+              <div key={d} className="py-1.5 tracking-wider">{d}</div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          {/* Minimal Day Cells Grid */}
+          <div className="grid grid-cols-7 gap-1.5">
             {Array.from({ length: calendarDays.startDayOfWeek }).map((_, idx) => (
-              <div key={`empty-${idx}`} className="min-h-[90px] opacity-10 glass-card-true" />
+              <div key={`empty-${idx}`} className="h-14 sm:h-16 rounded-xl bg-white/[0.01] border border-white/[0.02]" />
             ))}
 
             {calendarDays.daysArray.map(day => (
-              <div
+              <button
                 key={day.dayStr}
+                type="button"
                 onClick={() => setSelectedDay(day.dayStr)}
-                className={`min-h-[90px] p-2 glass-card-true cursor-pointer transition-all flex flex-col justify-between ${
-                  day.isSelected ? 'border-sky-400 bg-sky-500/20 shadow-lg' : ''
-                } ${day.isToday ? 'border-emerald-400 bg-emerald-500/20' : ''}`}
+                className={`h-14 sm:h-16 p-2 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                  day.isSelected 
+                    ? 'bg-[#1591DC]/15 border-[#1591DC] shadow-[0_0_15px_rgba(21,145,220,0.2)]' 
+                    : day.isToday 
+                      ? 'bg-white/[0.06] border-white/30 text-white' 
+                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] text-[#9496a1]'
+                }`}
               >
-                <div className="flex justify-between items-center text-xs font-mono font-bold">
-                  <span className={day.isToday ? 'text-emerald-300 font-black' : day.isSelected ? 'text-sky-300' : 'text-white'}>
+                <div className="flex justify-between items-center w-full">
+                  <span className={`text-xs font-mono font-bold ${
+                    day.isSelected ? 'text-[#38bdf8]' : day.isToday ? 'text-white font-extrabold' : 'text-zinc-400'
+                  }`}>
                     {day.dayNum}
                   </span>
                   {day.total > 0 && (
-                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${
-                      day.completed === day.total ? 'bg-emerald-500/30 text-emerald-300' : 'bg-white/20 text-white'
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-medium ${
+                      day.completed === day.total 
+                        ? 'bg-emerald-500/20 text-emerald-300' 
+                        : 'bg-[#1591DC]/20 text-[#38bdf8]'
                     }`}>
                       {day.completed}/{day.total}
                     </span>
                   )}
                 </div>
 
-                <div className="space-y-1 my-1 overflow-hidden max-h-[45px]">
-                  {day.dayGoals.slice(0, 2).map(g => (
-                    <div key={g.id} className="text-[9px] font-sans truncate text-zinc-300">
-                      • {getDisplayGoalText(g.text)}
-                    </div>
+                {/* Minimal Task Dots Indicator */}
+                <div className="flex items-center gap-1 overflow-hidden">
+                  {day.dayGoals.slice(0, 4).map((g) => (
+                    <span 
+                      key={g.id} 
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        g.completed ? 'bg-emerald-400' : 'bg-[#1591DC]'
+                      }`} 
+                    />
                   ))}
-                  {day.dayGoals.length > 2 && (
-                    <div className="text-[8px] font-mono text-sky-300 font-bold">
-                      +{day.dayGoals.length - 2} more
-                    </div>
+                  {day.dayGoals.length > 4 && (
+                    <span className="text-[9px] font-mono text-[#9496a1]">
+                      +{day.dayGoals.length - 4}
+                    </span>
                   )}
                 </div>
-
-                <div className="w-full bg-black/40 h-1 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-sky-400"
-                    style={{ width: `${day.total > 0 ? (day.completed / day.total) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
+              </button>
             ))}
           </div>
+
+          {/* Focused Day Task Detail Inspector */}
+          {(() => {
+            const selectedDateGoals = goals.filter(g => 
+              g.timeframe === 'daily' && g.dateContext === `${selectedYear}-${selectedMonth}-${selectedDay}`
+            );
+
+            return (
+              <div className="glass-card-true p-5 rounded-2xl space-y-4 border border-white/[0.08]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-white/[0.08] pb-3">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-[#1591DC]" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Tasks for {monthNameStr} {selectedDay}, {selectedYear}
+                    </span>
+                    <span className="text-xs text-[#9496a1]">
+                      ({selectedDateGoals.length} scheduled)
+                    </span>
+                  </div>
+                  
+                  <span className="text-[11px] text-[#9496a1]">
+                    {selectedDateGoals.filter(g => g.completed).length} completed
+                  </span>
+                </div>
+
+                {selectedDateGoals.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-[#9496a1]">
+                    No tasks scheduled for this day. Use the input above to schedule a task.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedDateGoals.map(g => (
+                      <div 
+                        key={g.id} 
+                        className="flex items-center justify-between p-3 rounded-xl glass-panel-true group hover:border-white/20 transition-all"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => onToggleGoal(g.id, !g.completed)}
+                            className="shrink-0 text-[#9496a1] hover:text-[#1591DC] transition-colors"
+                          >
+                            {g.completed ? (
+                              <CheckSquare className="w-4 h-4 text-emerald-400" />
+                            ) : (
+                              <Square className="w-4 h-4" />
+                            )}
+                          </button>
+                          <span className={`text-xs text-white truncate ${g.completed ? 'line-through text-[#9496a1]' : ''}`}>
+                            {getDisplayGoalText(g.text)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {g.timeEstimate && (
+                            <span className="text-[10px] text-[#9496a1] font-mono bg-white/[0.04] px-2 py-0.5 rounded-full">
+                              {g.timeEstimate}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(g.id)}
+                            className="text-[#9496a1] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
-      )}
-      {/* ---------------------------------------------------- */}
-      {/* 3. WEEKLY & MONTHLY REVIEW PROTOCOL MODE */}
-      {/* ---------------------------------------------------- */}
-      {viewMode === 'review' && (
+      ) : viewMode === 'review' ? (
+        /* Review Protocol View Mode */
         <div className="animate-fadeIn">
           <WeeklyReviewProtocol
             goals={goals}
@@ -1099,7 +1180,7 @@ export default function TodoHub({
             isLightMode={isLightMode}
           />
         </div>
-      )}
+      ) : null}
 
       {/* Notion Task Detail Side Panel Drawer Overlay */}
       {activePanelGoal && (

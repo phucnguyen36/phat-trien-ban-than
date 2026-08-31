@@ -10,15 +10,11 @@ import {
   Hourglass, 
   Target, 
   CheckCircle2, 
-  ChevronRight, 
   Calendar, 
   Sparkles, 
-  ArrowRight,
-  Save,
-  Check,
-  TrendingUp,
-  History,
-  RotateCcw
+  Save, 
+  Check, 
+  TrendingUp 
 } from 'lucide-react';
 
 interface WeeklyReviewProtocolProps {
@@ -29,7 +25,7 @@ interface WeeklyReviewProtocolProps {
 
 interface ReviewEntry {
   periodType: 'weekly' | 'monthly';
-  periodKey: string; // e.g. '2026-W35' or '2026-08'
+  periodKey: string;
   biggestWin: string;
   timeWasters: string;
   topPriorityNext: string;
@@ -55,7 +51,6 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
     reviewType === 'weekly' ? currentWeekStr : currentMonthStr
   );
 
-  // Sync selected period when switching review type
   const handleSwitchType = (type: 'weekly' | 'monthly') => {
     setReviewType(type);
     setSelectedPeriod(type === 'weekly' ? currentWeekStr : currentMonthStr);
@@ -109,7 +104,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
     setTimeout(() => setIsSaved(false), 2500);
   };
 
-  // Convert "Mục tiêu số 1" into an actual goal
+  // Convert "#1 Goal" into an actual task
   const handleConvertGoal = () => {
     if (!topPriorityNext.trim()) return;
     const targetTimeframe: TimeframeType = reviewType === 'weekly' ? 'weekly' : 'monthly';
@@ -128,7 +123,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
     return { total, completed, rate };
   }, [goals, reviewType]);
 
-  // Generate period options (current and last 4 periods)
+  // Generate period options (current and last 6 periods)
   const periodOptions = useMemo(() => {
     const list: { key: string; label: string }[] = [];
     if (reviewType === 'weekly') {
@@ -136,7 +131,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         const w = currentWeekNum - i;
         if (w > 0) {
           const key = `${currentYear}-${String(currentMonthNum).padStart(2, '0')}-W${w}`;
-          list.push({ key, label: `Tuần W${w} (${currentMonthNum}/${currentYear})` });
+          list.push({ key, label: `Week W${w} (${currentMonthNum}/${currentYear})` });
         }
       }
     } else {
@@ -148,7 +143,8 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
           y -= 1;
         }
         const key = `${y}-${String(m).padStart(2, '0')}`;
-        list.push({ key, label: `Tháng ${m}/${y}` });
+        const monthName = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short' });
+        list.push({ key, label: `${monthName} ${y}` });
       }
     }
     return list;
@@ -164,7 +160,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
             <span>{reviewType === 'weekly' ? 'Weekly Review Protocol' : 'Monthly Review Protocol'}</span>
           </h3>
           <p className="text-xs text-[#9496a1] mt-0.5">
-            Tổng kết chu kỳ, nhận diện rào cản và khóa mục tiêu ưu tiên số 1
+            Audit your cycle execution, eliminate bottlenecks, and lock in your #1 next priority
           </p>
         </div>
 
@@ -181,7 +177,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
-              Tổng kết tuần
+              Weekly Review
             </button>
             <button
               type="button"
@@ -192,7 +188,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
-              Tổng kết tháng
+              Monthly Review
             </button>
           </div>
 
@@ -218,7 +214,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#9496a1] block mb-1">Mục tiêu chu kỳ</span>
+            <span className="text-xs text-[#9496a1] block mb-1">Period Targets</span>
             <span className="text-2xl font-bold font-mono text-white">{stats.total}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#9496a1]">
@@ -228,7 +224,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
 
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#9496a1] block mb-1">Đã hoàn thành</span>
+            <span className="text-xs text-[#9496a1] block mb-1">Completed</span>
             <span className="text-2xl font-bold font-mono text-emerald-400">{stats.completed}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -238,7 +234,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
 
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#9496a1] block mb-1">Tỷ lệ hoàn thành</span>
+            <span className="text-xs text-[#9496a1] block mb-1">Win Rate</span>
             <span className="text-2xl font-bold font-mono text-[#1591DC]">{stats.rate}%</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
@@ -250,73 +246,73 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
       {/* 3 Core Questions Section */}
       <div className="space-y-5">
         
-        {/* Question 1: Thắng lợi lớn nhất */}
+        {/* Question 1: Biggest Win */}
         <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-white/[0.08]">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
               <Trophy className="w-3.5 h-3.5" />
             </div>
             <label className="text-xs font-semibold text-white">
-              1. Thắng lợi lớn nhất {reviewType === 'weekly' ? 'tuần' : 'tháng'} qua?
+              1. What was your biggest win {reviewType === 'weekly' ? 'this week' : 'this month'}?
             </label>
           </div>
           <p className="text-[11px] text-[#9496a1] pl-8">
-            Những kết quả nổi bật, bước tiến đáng kể hoặc thói quen bạn đã duy trì xuất sắc nhất:
+            Highlight your key achievements, breakthrough milestones, or standout habits:
           </p>
           <div className="pl-8 pt-1">
             <textarea
               rows={3}
               value={biggestWin}
               onChange={(e) => setBiggestWin(e.target.value)}
-              placeholder="VD: Đã quay xong 5 video ngắn chất lượng cao, chạy bộ đủ 4 buổi..."
+              placeholder="e.g. Shipped 5 high-retention video edits, closed 2 enterprise clients, hit gym 4x..."
               className="w-full glass-input-true p-3 text-xs text-white rounded-xl resize-none focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Question 2: Cái gì làm mất thời gian nhất */}
+        {/* Question 2: Time Wasters & Bottlenecks */}
         <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-white/[0.08]">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
               <Hourglass className="w-3.5 h-3.5" />
             </div>
             <label className="text-xs font-semibold text-white">
-              2. Cái gì làm mất thời gian nhất & rào cản?
+              2. What wasted the most time or created bottlenecks?
             </label>
           </div>
           <p className="text-[11px] text-[#9496a1] pl-8">
-            Các xao nhãng, nút thắt công việc hoặc việc không tên khiến bạn bị trễ tiến độ:
+            Identify distractions, operational frictions, or low-leverage activities:
           </p>
           <div className="pl-8 pt-1">
             <textarea
               rows={3}
               value={timeWasters}
               onChange={(e) => setTimeWasters(e.target.value)}
-              placeholder="VD: Lướt mạng xã hội vào buổi sáng, chưa chốt kịch bản trước khi quay..."
+              placeholder="e.g. Aimless morning social media scrolling, unclear script outlines before shooting..."
               className="w-full glass-input-true p-3 text-xs text-white rounded-xl resize-none focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Question 3: Mục tiêu số 1 */}
+        {/* Question 3: The #1 Priority */}
         <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-[#1591DC]/30 bg-[#1591DC]/[0.02]">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
               <Target className="w-3.5 h-3.5" />
             </div>
             <label className="text-xs font-semibold text-white">
-              3. Mục tiêu số 1 {reviewType === 'weekly' ? 'tuần' : 'tháng'} tới?
+              3. What is your #1 priority {reviewType === 'weekly' ? 'next week' : 'next month'}?
             </label>
           </div>
           <p className="text-[11px] text-[#9496a1] pl-8">
-            The One Thing: Nếu chỉ được hoàn thành DUY NHẤT 1 việc tạo ra 80% kết quả, đó là việc gì?
+            The One Thing: If you could accomplish only ONE high-impact goal that makes everything else easier, what is it?
           </p>
           <div className="pl-8 pt-1 space-y-3">
             <input
               type="text"
               value={topPriorityNext}
               onChange={(e) => setTopPriorityNext(e.target.value)}
-              placeholder="VD: Hoàn thiện landing page khóa học và mở bán đợt đầu..."
+              placeholder="e.g. Launch the creator coaching program landing page and open first 10 spots..."
               className="w-full glass-input-true px-3.5 py-2.5 text-xs text-white rounded-xl font-medium focus:outline-none"
             />
             {topPriorityNext.trim() && (
@@ -332,12 +328,12 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
                 {addedAsGoal ? (
                   <>
                     <Check className="w-3.5 h-3.5" />
-                    <span>Đã tạo task vào danh sách {reviewType === 'weekly' ? 'Tuần' : 'Tháng'}!</span>
+                    <span>Added to {reviewType === 'weekly' ? 'Weekly' : 'Monthly'} Tasks list!</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Tạo ngay thành Task vào {reviewType === 'weekly' ? 'Weekly Tasks' : 'Monthly Tasks'}</span>
+                    <span>Turn into {reviewType === 'weekly' ? 'Weekly Task' : 'Monthly Task'}</span>
                   </>
                 )}
               </button>
@@ -350,7 +346,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
       {/* Action Footer */}
       <div className="flex items-center justify-between pt-4 border-t border-white/[0.08]">
         <span className="text-xs text-[#9496a1]">
-          Dữ liệu tổng kết được tự động lưu lại cho từng chu kỳ.
+          Review logs are automatically saved per cycle.
         </span>
 
         <button
@@ -365,12 +361,12 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
           {isSaved ? (
             <>
               <Check className="w-4 h-4" />
-              <span>Đã lưu tổng kết!</span>
+              <span>Review saved!</span>
             </>
           ) : (
             <>
               <Save className="w-4 h-4" />
-              <span>Lưu tổng kết</span>
+              <span>Save review</span>
             </>
           )}
         </button>
