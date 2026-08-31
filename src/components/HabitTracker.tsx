@@ -251,18 +251,18 @@ export default function HabitTracker({
     <div id="habit-matrix" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl">
       
       {/* Module Title Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-white/15 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-white/10 pb-4">
         <div>
-          <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white uppercase font-sans">
-            Self-Mastery Habit Matrix
+          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans">
+            Habits & Consistency
           </h2>
-          <div className="flex flex-wrap items-center gap-4 mt-1.5">
-            <p className="text-[10px] font-mono text-zinc-300 tracking-widest uppercase font-bold">
-              DISCIPLINE EQUALS FREEDOM • {formattedMonthYearString}
+          <div className="flex flex-wrap items-center gap-4 mt-1">
+            <p className="text-xs font-mono text-zinc-400">
+              Monthly Record • {formattedMonthYearString}
             </p>
             <div className="flex items-center gap-2 glass-pill-true px-3 py-1">
-              <Calendar className="w-3.5 h-3.5 text-zinc-300" />
-              <span className="text-[9px] font-mono text-zinc-300 uppercase font-bold">SELECT MONTH:</span>
+              <Calendar className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-[10px] font-mono text-zinc-400 uppercase font-medium">Month:</span>
               <input
                 type="month"
                 value={selectedMonthYear}

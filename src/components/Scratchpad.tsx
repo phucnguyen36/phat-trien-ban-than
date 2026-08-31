@@ -123,14 +123,14 @@ export default function Scratchpad({
     <div id="scratchpad" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl space-y-6">
       
       {/* Scratchpad Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/15 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
         <div>
-          <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white font-sans flex items-center gap-2">
-            <FileText className="w-5 h-5 text-cyan-300" />
-            <span>Brain Scratchpad</span>
+          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans flex items-center gap-2.5">
+            <FileText className="w-5 h-5 text-white" />
+            <span>Scratchpad Notes</span>
           </h2>
-          <p className="text-xs font-sans text-zinc-400 mt-1">
-            Unfiltered ideas, strategy outlines and quick code snippets
+          <p className="text-xs font-mono text-zinc-400 mt-1">
+            Quick notes, ideas, and strategic scratch outlines
           </p>
         </div>
 

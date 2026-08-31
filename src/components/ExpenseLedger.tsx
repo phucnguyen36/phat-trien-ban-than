@@ -313,14 +313,14 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
   return (
     <div id="expense-ledger" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl">
       
-      {/* Module Title & Currency Switcher Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 border-b border-white/15 pb-6">
+      {/* Module Title Section */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/10 pb-4">
         <div>
-          <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white uppercase font-sans">
-            Financial Burn & Expense Ledger
+          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans">
+            Cash Flow & Expenses
           </h2>
-          <p className="text-[10px] font-mono text-zinc-300 tracking-widest uppercase mt-1 font-bold">
-            DISCIPLINED CAPITAL MANAGEMENT • REAL-TIME CASH BURN TRACKER
+          <p className="text-xs font-mono text-zinc-400 mt-1">
+            Income, Outflow & Category Breakdown
           </p>
         </div>
 

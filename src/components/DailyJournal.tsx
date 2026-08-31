@@ -151,14 +151,14 @@ export default function DailyJournalPanel({
     <div id="daily-journal" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl space-y-8">
       
       {/* 1. Header & Description */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/15 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
         <div>
-          <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white font-sans flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-amber-300" />
-            <span>Energy Journal & Daily Reflection</span>
+          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans flex items-center gap-2.5">
+            <BookOpen className="w-5 h-5 text-white" />
+            <span>Daily Journal</span>
           </h2>
-          <p className="text-xs font-sans text-zinc-400 mt-1">
-            Mental health, daily energy telemetry and gratitude logs
+          <p className="text-xs font-mono text-zinc-400 mt-1">
+            Energy levels, reflections, and daily notes
           </p>
         </div>
 

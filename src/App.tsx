@@ -936,136 +936,128 @@ export default function App() {
         <div className="glow-streak-bottom" />
       </div>
 
-      {/* 1. TOP STATUS BAR HEADER (Ultra-Clean Anti-AI Aesthetic) */}
-      <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-3 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
-        
-        {/* Brand Logo & Clean Time Display */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveSection('overview')}>
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-white font-black text-xs shadow-md group-hover:scale-105 transition-transform">
-              DF
-            </div>
-            <span className="text-sm font-extrabold tracking-tight text-white uppercase font-sans">
-              DEEP FOCUS
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <span className="text-zinc-600">•</span>
-            <Clock className="w-3.5 h-3.5 text-zinc-500" />
-            <span>{currentTime}</span>
-          </div>
-        </div>
-
-        {/* Center Command Palette Search Trigger */}
-        <div className="flex items-center">
-          <button
-            onClick={() => setIsCommandPaletteOpen(true)}
-            className="px-3.5 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-zinc-300 hover:text-white transition-all rounded-lg flex items-center gap-3 text-xs font-medium"
-            title="Search or Jump to Section (Ctrl + K)"
-          >
-            <Search className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="text-zinc-400">Search commands...</span>
-            <kbd className="px-1.5 py-0.5 text-[9px] font-mono bg-white/10 text-zinc-300 rounded border border-white/10">⌘K</kbd>
-          </button>
-        </div>
-
-        {/* Right Controls: Cloud Sync status, Sidebar Toggle, User & Settings */}
-        <div className="flex items-center gap-3">
+      {/* 1. TOP STATUS BAR HEADER (Refined Swiss Precision) */}
+      <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-3 transition-colors">
+        <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-4">
           
-          {/* 1-Click Theme Switcher (Light / Dark Mode) */}
-          <button
-            onClick={() => setIsLightMode(prev => !prev)}
-            className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all rounded-full"
-            title={isLightMode ? "Switch to Dark Mode (Obsidian)" : "Switch to Light Mode (Porcelain)"}
-          >
-            {isLightMode ? (
-              <>
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
-                <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-900">LIGHT</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3.5 h-3.5 text-zinc-300" />
-                <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-300">DARK</span>
-              </>
-            )}
-          </button>
+          {/* Brand Logo & Clean Time Display */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setActiveSection('overview')}>
+              <div className="w-6 h-6 rounded-md bg-white text-black flex items-center justify-center font-black text-[11px] shadow-sm group-hover:scale-105 transition-transform">
+                DF
+              </div>
+              <span className="text-xs font-bold tracking-tight text-white uppercase font-sans">
+                Deep Focus
+              </span>
+            </div>
 
-          {/* Cloud Sync Status Indicator */}
-          <button
-            onClick={() => handleToggleLocalMode(!localOnlyMode)}
-            className="flex items-center gap-1.5 px-3 py-1.5 glass-pill-true text-xs font-mono text-zinc-400 hover:text-white transition-colors"
-            title={localOnlyMode ? "Offline Mode (Click to enable Cloud Sync)" : "Cloud Sync Active (Click to switch to Offline Mode)"}
-          >
-            <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-zinc-600'}`} />
-            <span className="text-[10px] uppercase font-bold tracking-wider">{!localOnlyMode ? 'Cloud Sync' : 'Local Only'}</span>
-          </button>
+            <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-zinc-400">
+              <span className="text-zinc-600">•</span>
+              <Clock className="w-3 h-3 text-zinc-500" />
+              <span>{currentTime}</span>
+            </div>
+          </div>
 
-          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
+          {/* Center Command Palette Search Trigger */}
+          <div className="flex items-center">
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-zinc-300 hover:text-white transition-all rounded-full flex items-center gap-2.5 text-xs font-medium"
+              title="Search or Jump to Section (Ctrl + K)"
+            >
+              <Search className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-zinc-400 text-xs">Search actions...</span>
+              <kbd className="px-1.5 py-0.2 text-[9px] font-mono bg-white/10 text-zinc-300 rounded border border-white/10">⌘K</kbd>
+            </button>
+          </div>
 
-          {/* Toggle Sidebar Navigation */}
-          <button
-            onClick={() => setIsSidebarOpen(prev => !prev)}
-            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors hidden lg:block"
-            title={isSidebarOpen ? "Collapse Navigation Panel" : "Expand Navigation Panel"}
-          >
-            {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-          </button>
+          {/* Right Controls: Theme Switcher, Cloud Sync, Sidebar Toggle, User & Settings */}
+          <div className="flex items-center gap-2.5">
+            
+            {/* 1-Click Theme Switcher (Light / Dark Mode) */}
+            <button
+              onClick={() => setIsLightMode(prev => !prev)}
+              className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all rounded-full"
+              title={isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            >
+              {isLightMode ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-900">LIGHT</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-zinc-300" />
+                  <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-300">DARK</span>
+                </>
+              )}
+            </button>
 
-          {/* User Avatar */}
-          <button
-            onClick={() => {
-              setTempProfile({ ...profile });
-              setIsProfileModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-2 py-1 hover:bg-white/[0.06] rounded-xl transition-colors text-left"
-            title="Edit Profile Settings"
-          >
-            <img 
-              src={profile.avatarUrl} 
-              alt={profile.name} 
-              className="w-7 h-7 rounded-lg border border-white/15 object-cover"
-            />
-            <span className="hidden sm:inline text-xs font-semibold text-zinc-200">
-              {currentUser ? currentUser.name : profile.name}
-            </span>
-          </button>
+            {/* Cloud Sync Status Indicator */}
+            <button
+              onClick={() => handleToggleLocalMode(!localOnlyMode)}
+              className="flex items-center gap-1.5 px-3 py-1.5 glass-pill-true text-xs font-mono text-zinc-400 hover:text-white transition-colors"
+              title={localOnlyMode ? "Offline Mode (Click to enable Cloud Sync)" : "Cloud Sync Active (Click to switch to Offline Mode)"}
+            >
+              <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-zinc-600'}`} />
+              <span className="text-[10px] uppercase font-bold tracking-wider">{!localOnlyMode ? 'Synced' : 'Local'}</span>
+            </button>
 
-          {/* Settings icon */}
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-            title="OS Configuration & Theme Settings"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
+            <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
 
-          {/* Logout icon */}
-          <button
-            onClick={handleLogout}
-            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-            title="Sign Out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+            {/* Toggle Sidebar Navigation */}
+            <button
+              onClick={() => setIsSidebarOpen(prev => !prev)}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors hidden lg:block"
+              title={isSidebarOpen ? "Collapse Navigation Panel" : "Expand Navigation Panel"}
+            >
+              {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+            </button>
+
+            {/* User Avatar */}
+            <button
+              onClick={() => {
+                setTempProfile({ ...profile });
+                setIsProfileModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-2 py-1 hover:bg-white/[0.06] rounded-xl transition-colors text-left"
+              title="Edit Profile"
+            >
+              <img 
+                src={profile.avatarUrl} 
+                alt={profile.name} 
+                className="w-6 h-6 rounded-md border border-white/15 object-cover"
+              />
+              <span className="hidden sm:inline text-xs font-semibold text-zinc-200">
+                {currentUser ? currentUser.name : profile.name}
+              </span>
+            </button>
+
+            {/* Settings icon */}
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            {/* Logout icon */}
+            <button
+              onClick={handleLogout}
+              className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+
+          </div>
 
         </div>
-
       </header>
 
       {/* 2. MAIN WORKSPACE PANELS */}
-      <main className="flex-1 w-full px-4 sm:px-8 md:px-12 py-8 z-10 transition-all duration-300">
-        
-        {/* INTRODUCTORY SYSTEM QUOTE STATUS */}
-        <div className={`mb-10 border-l-2 ${activeTheme.border} pl-6 py-2`}>
-          <span className="text-[9px] font-mono text-zinc-500 tracking-wider uppercase block">
-            CORE EXECUTIVE DIRECTIVE
-          </span>
-          <p className="text-sm font-light text-zinc-400 italic leading-relaxed mt-1">
-            "{profile.bio}"
-          </p>
-        </div>
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 z-10 transition-all duration-300">
 
         {/* Mobile Horizontal Quick Navigation Tabs */}
         {!isLoading && (

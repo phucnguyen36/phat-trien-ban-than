@@ -3,8 +3,6 @@ import { GoalTodo, HabitData, DailyJournal, PersonalExpense } from '../types';
 import { calculateGamification, DAILY_QUOTES } from '../gamification';
 import { UITheme } from '../App';
 import { 
-  Trophy, 
-  Flame, 
   CheckCircle2, 
   Circle, 
   ArrowRight, 
@@ -12,15 +10,10 @@ import {
   DollarSign, 
   CheckSquare, 
   Activity, 
-  Sparkles,
-  Quote,
   Clock,
   TrendingUp,
-  Calendar,
-  Layers,
-  FileText,
-  Target,
-  Zap
+  Zap,
+  Quote
 } from 'lucide-react';
 
 interface ExecutiveDashboardProps {
@@ -46,16 +39,16 @@ export default function ExecutiveDashboard({
 }: ExecutiveDashboardProps) {
   const [timeframeFilter, setTimeframeFilter] = useState<'day' | 'week' | 'month' | 'year'>('day');
 
-  // Gamification Stats
+  // Stats calculation
   const stats = useMemo(() => {
     return calculateGamification(goals, habits, journals, expenses);
   }, [goals, habits, journals, expenses]);
 
-  // Today's day number (1 to 31)
+  // Today's date info
   const todayDate = useMemo(() => new Date(), []);
   const todayDay = todayDate.getDate();
 
-  // Today's completed habits count
+  // Habits completed today
   const todayHabitsDoneCount = useMemo(() => {
     return habits.filter(h => h.completedDays && h.completedDays.includes(todayDay)).length;
   }, [habits, todayDay]);
@@ -71,7 +64,7 @@ export default function ExecutiveDashboard({
     ? Math.round((completedGoalsCount / totalGoalsCount) * 100) 
     : 0;
 
-  // Pending Goals
+  // Immediate pending goals
   const pendingGoals = useMemo(() => {
     return goals.filter(g => !g.completed).slice(0, 6);
   }, [goals]);
@@ -92,201 +85,173 @@ export default function ExecutiveDashboard({
   const dailyQuoteIndex = todayDay % DAILY_QUOTES.length;
   const quoteObj = DAILY_QUOTES[dailyQuoteIndex];
 
-  // Calculated Productivity Score (0 - 100)
+  // Calculated Productivity Rate
   const productivityScore = useMemo(() => {
-    const taskScore = goals.length > 0 ? (completedGoalsCount / goals.length) * 40 : 20;
+    const taskScore = goals.length > 0 ? (completedGoalsCount / goals.length) * 45 : 20;
     const habitScore = habits.length > 0 ? (todayHabitsDoneCount / habits.length) * 40 : 20;
     const recentJournal = journals.some(j => (Date.now() - j.updatedAt) < 2 * 86400000);
-    const journalScore = recentJournal ? 20 : 5;
+    const journalScore = recentJournal ? 15 : 5;
     return Math.min(100, Math.round(taskScore + habitScore + journalScore));
   }, [goals, completedGoalsCount, habits, todayHabitsDoneCount, journals]);
 
-  // Time-block schedule slots simulation for today
+  // Focused schedule blocks for today
   const timeBlocks = [
-    { time: '07:30', label: 'Morning Deep State & Meditation', category: 'Mindset', status: 'done' },
-    { time: '09:00', label: 'High-Impact Strategic Deep Work (Block 1)', category: 'Execution', status: 'current' },
-    { time: '11:30', label: 'Systems Architecture & Product Review', category: 'Build', status: 'upcoming' },
-    { time: '14:00', label: 'Deep Work Focus Block 2 & Refinement', category: 'Execution', status: 'upcoming' },
-    { time: '17:00', label: 'Cardio Fitness / Strength & Bio-Reset', category: 'Health', status: 'upcoming' },
-    { time: '21:00', label: 'Daily Journal & Performance Debrief', category: 'Review', status: 'upcoming' }
+    { time: '08:00', label: 'Morning Planning & Priorities', status: 'done' },
+    { time: '09:30', label: 'Deep Focus Execution Block 1', status: 'current' },
+    { time: '13:30', label: 'Review & Architecture Systems', status: 'upcoming' },
+    { time: '15:30', label: 'Deep Focus Execution Block 2', status: 'upcoming' },
+    { time: '17:30', label: 'Physical Training & Reset', status: 'upcoming' },
+    { time: '21:00', label: 'Daily Review & Log', status: 'upcoming' }
   ];
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn">
       
-      {/* 1. TOP HERO BANNER — SWISS EDITORIAL TYPOGRAPHY & TELEMETRY */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/10">
+      {/* 1. TOP HEADER TITLE & TIMEFRAME SELECTOR (CLEAN SWISS TYPOGRAPHY, ZERO EYEBROWS) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-mono tracking-widest uppercase font-bold glass-pill-true mb-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>EXECUTIVE COMMAND SYSTEM • V5.0</span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white uppercase font-sans">
-            Deep Focus
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white font-sans">
+            Workspace Overview
           </h1>
-          <p className="text-zinc-400 text-xs md:text-sm mt-1 max-w-xl font-normal leading-relaxed">
-            High-leverage personal growth OS: Tactical Objectives, Habit Consistency, and Flow Telemetry.
+          <p className="text-xs text-zinc-400 font-mono mt-0.5">
+            {todayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
 
-        {/* Timeframe selector pills (Day / Week / Month / Year) */}
-        <div className="flex items-center gap-1.5 glass-pill-true p-1.5 self-start md:self-auto">
+        {/* Timeframe selector pills */}
+        <div className="flex items-center gap-1 glass-pill-true p-1 self-start md:self-auto">
           {(['day', 'week', 'month', 'year'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTimeframeFilter(t)}
-              className={`px-3.5 py-1 text-[11px] font-mono uppercase tracking-wider rounded-full transition-all font-bold ${
+              className={`px-3 py-1 text-xs font-mono uppercase tracking-wider rounded-full transition-all ${
                 timeframeFilter === t
-                  ? 'bg-white text-black shadow-md'
+                  ? 'bg-white text-black font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              {t === 'day' ? 'Day' : t === 'week' ? 'Week' : t === 'month' ? 'Month' : 'Year'}
+              {t === 'day' ? 'Today' : t === 'week' ? 'Week' : t === 'month' ? 'Month' : 'Year'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 2. THREE-COLUMN ARCHITECTURAL WIDGET GRID (SWISS LUXURY SPEC) */}
+      {/* 2. THREE-COLUMN ARCHITECTURAL GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left Column (5 Cols): Daily Flow Time-Block Matrix */}
-        <div className="lg:col-span-5 glass-panel-true p-6 md:p-7 space-y-5">
+        {/* Left Column (5 Cols): Daily Schedule */}
+        <div className="lg:col-span-5 glass-panel-true p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4 text-zinc-300" />
-              <h2 className="text-xs font-mono font-bold uppercase tracking-widest text-white">
-                Daily Focus Schedule
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-zinc-400" />
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                Today's Schedule
               </h2>
             </div>
-            <span className="text-[10px] font-mono text-zinc-400 bg-white/5 px-2 py-0.5 rounded-full">
-              {todayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            <span className="text-[10px] font-mono text-zinc-400">
+              {timeBlocks.filter(b => b.status === 'done').length}/{timeBlocks.length} Blocks
             </span>
           </div>
 
           {/* Timeblock Timeline */}
-          <div className="space-y-3 font-sans">
+          <div className="space-y-2.5 font-sans">
             {timeBlocks.map((block, idx) => (
               <div 
                 key={idx}
-                className={`flex items-center gap-3.5 p-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
                   block.status === 'current'
-                    ? 'bg-white/15 border border-white/25 shadow-lg text-white font-semibold'
+                    ? 'bg-white/15 border border-white/25 text-white font-medium shadow-sm'
                     : block.status === 'done'
-                    ? 'bg-white/[0.03] border border-white/5 text-zinc-400 line-through'
+                    ? 'bg-white/[0.02] border border-white/5 text-zinc-400 line-through'
                     : 'glass-card-true text-zinc-200'
                 }`}
               >
-                <span className="font-mono text-xs font-bold text-zinc-400 shrink-0 w-12">
+                <span className="font-mono text-xs font-semibold text-zinc-400 shrink-0 w-12">
                   {block.time}
                 </span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium block truncate">
-                    {block.label}
-                  </span>
-                  <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
-                    {block.category}
-                  </span>
-                </div>
+                <span className="text-xs flex-1 truncate">
+                  {block.label}
+                </span>
                 {block.status === 'current' && (
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
                 )}
                 {block.status === 'done' && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 )}
               </div>
             ))}
           </div>
 
-          {/* Daily Motivational Direct Quote */}
-          <div className="p-4 rounded-xl glass-card-true border border-white/10 flex items-start gap-3 mt-4">
+          {/* Direct Author Quote */}
+          <div className="p-3.5 rounded-xl glass-card-true border border-white/10 flex items-start gap-3 mt-3">
             <Quote className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="text-xs text-zinc-300 italic leading-relaxed">
                 "{quoteObj.quote}"
               </p>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold block">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold block">
                 — {quoteObj.author}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Middle Column (4 Cols): Tactical Roadmaps & Telemetry Sparklines */}
+        {/* Middle Column (4 Cols): Metrics & Progress */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* Progress Telemetry Card */}
-          <div className="glass-panel-true p-6 md:p-7 space-y-4">
+          {/* Progress Card */}
+          <div className="glass-panel-true p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-zinc-300" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-white">
+                <TrendingUp className="w-4 h-4 text-zinc-400" />
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
                   Execution Metrics
                 </h3>
               </div>
               <span className="text-xs font-mono font-bold text-emerald-400">
-                {productivityScore}/100 SCORE
+                {productivityScore}% Score
               </span>
             </div>
 
-            <div className="space-y-1">
-              <div className="text-4xl font-black font-sans text-white tracking-tight">
+            <div className="space-y-0.5">
+              <div className="text-4xl font-extrabold text-white tracking-tight">
                 {overallProgressPercent}%
               </div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block font-semibold">
-                Overall Roadmap Velocity
+              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block">
+                Goals Completed
               </span>
             </div>
 
-            {/* Clean SVG Sparkline Chart */}
-            <div className="py-2">
-              <svg className="w-full h-14 overflow-visible" viewBox="0 0 200 60">
-                <defs>
-                  <linearGradient id="metricGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
-                    <stop offset="100%" stopColor="rgba(255,255,255,0.0)" />
-                  </linearGradient>
-                </defs>
+            {/* Clean SVG Line */}
+            <div className="py-1">
+              <svg className="w-full h-12 overflow-visible" viewBox="0 0 200 50">
                 <path
-                  d="M 0 45 Q 30 15, 60 35 T 120 20 T 160 40 T 200 10 L 200 60 L 0 60 Z"
-                  fill="url(#metricGlow)"
-                />
-                <path
-                  d="M 0 45 Q 30 15, 60 35 T 120 20 T 160 40 T 200 10"
+                  d="M 0 38 Q 30 12, 60 28 T 120 18 T 160 32 T 200 8"
                   fill="none"
                   stroke="#ffffff"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                 />
-                <circle cx="200" cy="10" r="4" fill="#ffffff" />
+                <circle cx="200" cy="8" r="3.5" fill="#ffffff" />
               </svg>
             </div>
 
-            {/* Sub-Pillar Breakdown */}
-            <div className="space-y-3 pt-2 border-t border-white/10 text-xs font-sans">
+            {/* Details */}
+            <div className="space-y-2.5 pt-2 border-t border-white/10 text-xs font-sans">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                  Tactical Objectives
-                </span>
+                <span className="text-zinc-400">Tasks Completed</span>
                 <span className="font-mono font-bold text-white">
-                  {completedGoalsCount}/{totalGoalsCount}
+                  {completedGoalsCount} of {totalGoalsCount}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-                  Daily Habits Consistency
-                </span>
+                <span className="text-zinc-400">Habit Consistency</span>
                 <span className="font-mono font-bold text-white">
                   {habitCompletionPercent}%
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                  Monthly Cash Outflow
-                </span>
+                <span className="text-zinc-400">Monthly Expenses</span>
                 <span className="font-mono font-bold text-white">
                   ${monthlyTotalSpent.toLocaleString('en-US')}
                 </span>
@@ -294,109 +259,69 @@ export default function ExecutiveDashboard({
             </div>
           </div>
 
-          {/* Gamification Level Status Card */}
-          <div className="glass-panel-true p-6 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 glass-button-true text-amber-300">
-                  <Trophy className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block font-bold">LEVEL & TIER</span>
-                  <span className="text-base font-black text-white uppercase">Level {stats.currentLevel} • {stats.tierName}</span>
-                </div>
+          {/* Quick Streak Card */}
+          <div className="glass-panel-true p-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-white/10 text-white">
+                <Zap className="w-4 h-4" />
               </div>
-              <span className="text-xs font-mono font-bold text-zinc-300">
-                {stats.progressPercent}%
-              </span>
+              <div>
+                <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">CONSISTENCY</span>
+                <span className="text-sm font-bold text-white">{stats.activeHabitStreaks} Active Habit Streaks</span>
+              </div>
             </div>
-
-            <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-              <div 
-                className="h-full bg-white rounded-full transition-all duration-500"
-                style={{ width: `${stats.progressPercent}%` }}
-              />
-            </div>
+            <button
+              onClick={() => onNavigate('habits')}
+              className="text-xs font-mono text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+            >
+              Habits <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
 
         </div>
 
-        {/* Right Column (3 Cols): Deep Focus Mode & Quick Access */}
-        <div className="lg:col-span-3 space-y-6">
-          
-          {/* Deep Focus State Graphic Card */}
-          <div className="glass-panel-true p-6 text-center space-y-4 relative overflow-hidden group">
-            <div className="w-28 h-28 mx-auto relative flex items-center justify-center">
-              {/* Minimalist Rotating Orbit Rings */}
-              <div className="absolute inset-0 rounded-full border border-white/20 animate-spin" style={{ animationDuration: '24s' }} />
-              <div className="absolute inset-2 rounded-full border border-dashed border-white/30 animate-spin" style={{ animationDuration: '16s', animationDirection: 'reverse' }} />
-              <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                <Zap className="w-7 h-7 text-white animate-pulse" />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-white">
-                Deep Work State
-              </h3>
-              <p className="text-zinc-400 text-xs leading-relaxed">
-                {stats.activeHabitStreaks} active streak cycles recorded. Maintain rhythm.
-              </p>
-            </div>
-
-            <button
-              onClick={() => onNavigate('todo-hub')}
-              className="w-full py-2.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs uppercase tracking-widest font-bold rounded-full transition-all flex items-center justify-center gap-2 shadow-lg active:scale-98"
-            >
-              <span>OPEN MATRIX</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+        {/* Right Column (3 Cols): Navigation Shortcuts */}
+        <div className="lg:col-span-3 glass-panel-true p-5 space-y-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block font-bold pb-2 border-b border-white/10">
+            QUICK ACCESS
+          </span>
+          <div className="space-y-1 pt-1">
+            {[
+              { label: 'Tasks & Roadmap', id: 'todo-hub', icon: CheckSquare },
+              { label: 'Habit Tracker', id: 'habits', icon: Activity },
+              { label: 'Daily Journal', id: 'journal', icon: BookOpen },
+              { label: 'Cash Flow Ledger', id: 'expenses', icon: DollarSign }
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className="w-full py-2.5 px-3 rounded-lg text-left text-xs font-sans text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Icon className="w-3.5 h-3.5 text-zinc-400" />
+                    {item.label}
+                  </span>
+                  <ArrowRight className="w-3 h-3 text-zinc-500" />
+                </button>
+              );
+            })}
           </div>
-
-          {/* Quick Hub Navigation Shortcuts */}
-          <div className="glass-panel-true p-5 space-y-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 block font-bold pb-2 border-b border-white/10">
-              QUICK LAUNCH
-            </span>
-            <div className="space-y-1 pt-1">
-              {[
-                { label: 'Tactical Tasks Hub', id: 'todo-hub', icon: CheckSquare },
-                { label: 'Habit Consistency', id: 'habits', icon: Activity },
-                { label: 'Daily Reflection', id: 'journal', icon: BookOpen },
-                { label: 'Burn-Rate Ledger', id: 'expenses', icon: DollarSign }
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onNavigate(item.id)}
-                    className="w-full py-2 px-3 rounded-lg text-left text-xs font-sans text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-between transition-colors"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <Icon className="w-3.5 h-3.5 text-zinc-400" />
-                      {item.label}
-                    </span>
-                    <ArrowRight className="w-3 h-3 text-zinc-500" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
         </div>
 
       </div>
 
-      {/* 3. TACTICAL ACTION ITEMS & HABIT QUICK-CHECK ROW */}
+      {/* 3. IMMEDIATE ACTION ITEMS & HABIT MATRIX ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Priority Objectives (7 Cols) */}
-        <div className="lg:col-span-7 glass-panel-true p-6 md:p-7 space-y-4">
+        {/* Pending Tasks (7 Cols) */}
+        <div className="lg:col-span-7 glass-panel-true p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <div className="flex items-center gap-2.5">
-              <CheckSquare className="w-4 h-4 text-zinc-300" />
-              <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-white">
-                Immediate Action Objectives
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 text-zinc-400" />
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                Pending Tasks
               </h3>
             </div>
             <button
@@ -408,17 +333,16 @@ export default function ExecutiveDashboard({
           </div>
 
           {pendingGoals.length === 0 ? (
-            <div className="py-12 text-center text-zinc-400 space-y-2">
-              <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-400" />
-              <p className="text-xs font-mono uppercase tracking-widest font-bold text-white">All tactical tasks completed!</p>
-              <p className="text-xs text-zinc-500">Add new objectives in the Tactical Roadmap tab.</p>
+            <div className="py-10 text-center text-zinc-400 space-y-2">
+              <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-400" />
+              <p className="text-xs font-mono uppercase tracking-wider font-bold text-white">All tasks completed</p>
             </div>
           ) : (
             <div className="space-y-2 font-sans">
               {pendingGoals.map((goal) => (
                 <div
                   key={goal.id}
-                  className="flex items-center justify-between p-3.5 rounded-xl glass-card-true transition-all group hover:border-white/20"
+                  className="flex items-center justify-between p-3 rounded-xl glass-card-true transition-all group hover:border-white/20"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <button
@@ -448,13 +372,13 @@ export default function ExecutiveDashboard({
           )}
         </div>
 
-        {/* Daily Habits Quick Matrix (5 Cols) */}
-        <div className="lg:col-span-5 glass-panel-true p-6 md:p-7 space-y-4">
+        {/* Habits Today (5 Cols) */}
+        <div className="lg:col-span-5 glass-panel-true p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <div className="flex items-center gap-2.5">
-              <Flame className="w-4 h-4 text-zinc-300" />
-              <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-white">
-                Daily Habit Matrix (Day {todayDay})
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-zinc-400" />
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+                Habits for Today (Day {todayDay})
               </h3>
             </div>
             <button
@@ -466,8 +390,8 @@ export default function ExecutiveDashboard({
           </div>
 
           {habits.length === 0 ? (
-            <div className="py-12 text-center text-zinc-400">
-              <p className="text-xs font-mono uppercase tracking-widest font-bold">No habits registered yet.</p>
+            <div className="py-10 text-center text-zinc-400">
+              <p className="text-xs font-mono uppercase tracking-wider font-bold">No habits registered</p>
             </div>
           ) : (
             <div className="space-y-2 font-sans">
@@ -476,7 +400,7 @@ export default function ExecutiveDashboard({
                 return (
                   <div
                     key={habit.id}
-                    className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${
+                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
                       isDoneToday
                         ? 'bg-white/15 border border-white/25 text-white'
                         : 'glass-card-true text-zinc-200'

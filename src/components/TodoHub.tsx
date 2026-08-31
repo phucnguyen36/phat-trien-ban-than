@@ -694,13 +694,13 @@ export default function TodoHub({
       )}
 
       {/* Module Title & Mode Switcher Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 border-b border-white/15 pb-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/10 pb-4">
         <div>
-          <h2 className="text-lg md:text-xl font-extrabold tracking-tight text-white uppercase font-sans">
-            Tactical Roadmap & To-Do Hub
+          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans">
+            Tasks & Roadmap
           </h2>
-          <p className="text-[10px] font-mono text-zinc-300 tracking-widest uppercase mt-1 font-semibold">
-            MULTI-TIER TARGET MANAGEMENT: YEAR • MONTH • WEEK • DAY
+          <p className="text-xs font-mono text-zinc-400 mt-0.5">
+            Scope: Daily • Weekly • Monthly • Yearly
           </p>
         </div>
 
@@ -713,45 +713,45 @@ export default function TodoHub({
               onClick={() => setViewMode('columns')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'columns'
-                  ? 'bg-white/20 text-white font-extrabold shadow-md'
+                  ? 'bg-white text-black font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>COLUMNS</span>
+              <span>Columns</span>
             </button>
             <button
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'table'
-                  ? 'bg-white/20 text-white font-extrabold shadow-md'
+                  ? 'bg-white text-black font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Table className="w-3.5 h-3.5" />
-              <span>DATABASE</span>
+              <span>Database</span>
             </button>
             <button
               onClick={() => setViewMode('calendar')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'calendar'
-                  ? 'bg-white/20 text-white font-extrabold shadow-md'
+                  ? 'bg-white text-black font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
-              <span>CALENDAR</span>
+              <span>Calendar</span>
             </button>
             <button
               onClick={() => setViewMode('review')}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
                 viewMode === 'review'
-                  ? 'bg-white/20 text-white font-extrabold shadow-md'
+                  ? 'bg-white text-black font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
-              <span>WEEKLY & MONTHLY REVIEW</span>
+              <span>Review</span>
             </button>
           </div>
 
