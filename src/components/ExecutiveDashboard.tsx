@@ -290,7 +290,7 @@ export default function ExecutiveDashboard({
                       key={habit.id}
                       className={`flex items-center justify-between p-3 rounded-xl transition-all ${
                         isDoneToday
-                          ? 'bg-emerald-500/10 border border-emerald-500/20 text-white'
+                          ? 'bg-[#1591DC]/10 border border-[#1591DC]/25 text-white'
                           : 'bg-[#0e1015] border border-white/[0.06] text-[#ededf3]'
                       }`}
                     >
@@ -298,7 +298,7 @@ export default function ExecutiveDashboard({
                         <button
                           onClick={() => onToggleHabitDay(habit.id, todayDay)}
                           className={`transition-transform active:scale-95 shrink-0 ${
-                            isDoneToday ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
+                            isDoneToday ? 'text-[#1591DC]' : 'text-[#9496a1] hover:text-white'
                           }`}
                         >
                           {isDoneToday ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
@@ -307,16 +307,16 @@ export default function ExecutiveDashboard({
                           <span className={`text-xs font-medium block truncate ${isDoneToday ? 'line-through opacity-75' : ''}`}>
                             {habit.habitName}
                           </span>
-                          <span className="text-[10px] text-[#9496a1] font-mono">
+                          <span className="text-[11px] text-[#9496a1] font-sans font-normal">
                             {habit.completedDays ? habit.completedDays.length : 0} days recorded
                           </span>
                         </div>
                       </div>
                       <button
                         onClick={() => onToggleHabitDay(habit.id, todayDay)}
-                        className={`px-3 py-1 rounded-full text-[10px] font-medium transition-colors ${
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                           isDoneToday 
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                            ? 'bg-[#1591DC]/20 text-[#38bdf8] border border-[#1591DC]/30' 
                             : 'bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-[#ededf3]'
                         }`}
                       >

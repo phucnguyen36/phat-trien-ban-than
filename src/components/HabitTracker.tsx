@@ -166,12 +166,12 @@ export default function HabitTracker({
       labels: daysArray.map(d => String(d)),
       datasets: [
         {
-          label: 'HABITS COMPLETED',
+          label: 'Completed habits',
           data: stats.dailyCounts,
-          backgroundColor: 'rgba(110, 231, 183, 0.65)',
-          borderColor: '#6ee7b7',
+          backgroundColor: 'rgba(21, 145, 220, 0.75)',
+          borderColor: '#1591DC',
           borderWidth: 1,
-          hoverBackgroundColor: '#6ee7b7'
+          hoverBackgroundColor: '#38bdf8'
         }
       ]
     };
@@ -433,19 +433,19 @@ export default function HabitTracker({
                   const isCompleted = h.completedDays.includes(day);
                   const isItToday = isCurrentMonthActive && day === todayDay;
                   return (
-                    <div key={day} className={`flex justify-center items-center py-0.5 ${isItToday ? 'bg-emerald-500/10' : ''}`}>
+                    <div key={day} className={`flex justify-center items-center py-0.5 ${isItToday ? 'bg-[#1591DC]/10' : ''}`}>
                       <button
                         type="button"
                         onClick={() => onToggleHabitDay(h.id, day)}
-                        className={`w-5 h-5 border transition-all duration-300 flex items-center justify-center rounded-sm focus:outline-none ${
+                        className={`w-5 h-5 border transition-all duration-200 flex items-center justify-center rounded focus:outline-none ${
                           isCompleted 
-                            ? 'bg-[#6ee7b7] border-[#6ee7b7] text-black font-extrabold shadow-[0_0_10px_rgba(110,231,183,0.6)] scale-105' 
+                            ? 'bg-[#1591DC] border-[#1591DC] text-white font-bold shadow-[0_0_12px_rgba(21,145,220,0.4)]' 
                             : isItToday
-                              ? 'border-emerald-400/60 bg-emerald-500/20 hover:border-emerald-300'
-                              : 'border-white/20 bg-black/30 hover:border-white/50'
+                              ? 'border-[#1591DC]/50 bg-[#1591DC]/15 hover:border-[#1591DC]'
+                              : 'border-white/[0.12] bg-white/[0.02] hover:border-white/30'
                         }`}
                       >
-                        {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        {isCompleted && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
                       </button>
                     </div>
                   );

@@ -1107,28 +1107,28 @@ export default function App() {
           {/* Left Sticky Navigation Panel for Desktop */}
           {!isLoading && isSidebarOpen && (
             <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28 space-y-3 glass-panel-true p-5 transition-all duration-300">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <span className="text-[9px] font-mono text-zinc-300 tracking-widest uppercase block font-bold">
-                  OS NAVIGATION PANEL
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+                <span className="text-xs font-semibold text-[#9496a1] tracking-tight block">
+                  Navigation
                 </span>
                 <button
                   onClick={() => setIsSidebarOpen(false)}
-                  className="text-zinc-600 hover:text-zinc-300 transition-colors"
+                  className="text-[#9496a1] hover:text-white transition-colors"
                   title="Collapse Panel"
                 >
                   <PanelLeftClose className="w-3.5 h-3.5" />
                 </button>
               </div>
               
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {[
-                  ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'License & customer management', icon: ShieldCheck }] : []),
-                  { id: 'overview', label: 'Executive Overview', sub: 'Command center & performance stats', icon: LayoutDashboard },
-                  { id: 'todo-hub', label: 'Tactical Roadmap', sub: 'Tasks, timeline & review dashboard', icon: CheckSquare },
-                  { id: 'habit-matrix', label: 'Habit Matrix', sub: 'Daily consistency & streaks', icon: Activity },
-                  { id: 'daily-journal', label: 'Energy Journal', sub: 'Daily energy & reflection logs', icon: BookOpen },
-                  { id: 'expense-ledger', label: 'Cash Flow Ledger', sub: 'Burn rate & budget', icon: DollarSign },
-                  { id: 'scratchpad', label: 'Brain Scratchpad', sub: 'Ideas & quick notes', icon: FileText }
+                  ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'Customer management', icon: ShieldCheck }] : []),
+                  { id: 'overview', label: 'Overview', sub: 'Dashboard & stats', icon: LayoutDashboard },
+                  { id: 'todo-hub', label: 'Tasks', sub: 'Roadmap & timeline', icon: CheckSquare },
+                  { id: 'habit-matrix', label: 'Habits', sub: 'Consistency & streaks', icon: Activity },
+                  { id: 'daily-journal', label: 'Journal', sub: 'Daily reflection', icon: BookOpen },
+                  { id: 'expense-ledger', label: 'Expenses', sub: 'Cash flow & budget', icon: DollarSign },
+                  { id: 'scratchpad', label: 'Scratchpad', sub: 'Ideas & quick notes', icon: FileText }
                 ].map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
@@ -1136,16 +1136,16 @@ export default function App() {
                     <button
                       key={section.id}
                       onClick={() => setActiveSection(section.id)}
-                      className={`w-full text-left p-3 transition-all duration-200 flex items-center gap-3.5 border rounded-xl ${
+                      className={`w-full text-left px-3 py-2.5 transition-all duration-200 flex items-center gap-3 border rounded-xl ${
                         isActive 
-                          ? 'bg-white/15 border-white/25 shadow-md font-semibold text-white' 
-                          : 'border-transparent text-zinc-400 hover:text-white hover:bg-white/5'
+                          ? 'bg-[#1591DC]/15 border-[#1591DC]/30 text-white font-semibold shadow-sm' 
+                          : 'border-transparent text-[#9496a1] hover:text-white hover:bg-white/[0.03]'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-zinc-400'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#1591DC]' : 'text-[#9496a1]'}`} />
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-semibold leading-tight">{section.label}</span>
-                        <span className="text-[10px] font-sans font-normal text-zinc-400 leading-tight mt-1 truncate">{section.sub}</span>
+                        <span className="text-xs font-sans font-medium leading-tight">{section.label}</span>
+                        <span className="text-[10px] font-sans font-normal text-[#9496a1] leading-tight mt-0.5 truncate">{section.sub}</span>
                       </div>
                     </button>
                   );
@@ -1176,7 +1176,7 @@ export default function App() {
                     className="w-full py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
                   >
                     <Upload className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Import JSON</span>
+                    <span>Import</span>
                   </button>
                 </div>
 
