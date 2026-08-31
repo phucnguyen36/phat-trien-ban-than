@@ -204,24 +204,32 @@ export async function loadWorkspaceData(userId?: string) {
   try {
     return await withTimeout((async () => {
       // 1. Fetch Remote Firestore Data in Parallel for Fast Response
-      const [goalsSnap, habitsSnap, journalSnap, expensesSnap, padDoc] = await Promise.all([
+      const [goalsSnap, habitsSnap, journalSnap, expensesSnap, padDoc, rootGoalsSnap, rootHabitsSnap, rootJournalSnap, rootExpensesSnap] = await Promise.all([
         getDocs(collection(db, 'users', uid, 'goals_todo')),
         getDocs(collection(db, 'users', uid, 'habits_data')),
         getDocs(collection(db, 'users', uid, 'daily_journal')),
         getDocs(collection(db, 'users', uid, 'personal_expenses')),
-        getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc'))
+        getDoc(doc(db, 'users', uid, 'quick_scratchpad', 'single_doc')),
+        getDocs(collection(db, 'goals_todo')),
+        getDocs(collection(db, 'habits_data')),
+        getDocs(collection(db, 'daily_journal')),
+        getDocs(collection(db, 'personal_expenses'))
       ]);
 
       const remoteGoals: GoalTodo[] = [];
+      rootGoalsSnap.forEach(d => remoteGoals.push({ id: d.id, ...d.data() } as GoalTodo));
       goalsSnap.forEach(d => remoteGoals.push({ id: d.id, ...d.data() } as GoalTodo));
 
       const remoteHabits: HabitData[] = [];
+      rootHabitsSnap.forEach(d => remoteHabits.push({ id: d.id, ...d.data() } as HabitData));
       habitsSnap.forEach(d => remoteHabits.push({ id: d.id, ...d.data() } as HabitData));
 
       const remoteJournal: DailyJournal[] = [];
+      rootJournalSnap.forEach(d => remoteJournal.push({ id: d.id, ...d.data() } as DailyJournal));
       journalSnap.forEach(d => remoteJournal.push({ id: d.id, ...d.data() } as DailyJournal));
 
       const remoteExpenses: PersonalExpense[] = [];
+      rootExpensesSnap.forEach(d => remoteExpenses.push({ id: d.id, ...d.data() } as PersonalExpense));
       expensesSnap.forEach(d => remoteExpenses.push({ id: d.id, ...d.data() } as PersonalExpense));
 
       const remoteScratchpad = padDoc.exists() ? (padDoc.data() as any).text || '' : '';
