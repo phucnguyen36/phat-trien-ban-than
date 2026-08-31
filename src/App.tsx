@@ -973,10 +973,29 @@ export default function App() {
         {/* Right Controls: Cloud Sync status, Sidebar Toggle, User & Settings */}
         <div className="flex items-center gap-3">
           
+          {/* 1-Click Theme Switcher (Light / Dark Mode) */}
+          <button
+            onClick={() => setIsLightMode(prev => !prev)}
+            className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all rounded-full"
+            title={isLightMode ? "Switch to Dark Mode (Obsidian)" : "Switch to Light Mode (Porcelain)"}
+          >
+            {isLightMode ? (
+              <>
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-900">LIGHT</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-3.5 h-3.5 text-zinc-300" />
+                <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-300">DARK</span>
+              </>
+            )}
+          </button>
+
           {/* Cloud Sync Status Indicator */}
           <button
             onClick={() => handleToggleLocalMode(!localOnlyMode)}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-zinc-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 glass-pill-true text-xs font-mono text-zinc-400 hover:text-white transition-colors"
             title={localOnlyMode ? "Offline Mode (Click to enable Cloud Sync)" : "Cloud Sync Active (Click to switch to Offline Mode)"}
           >
             <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-zinc-600'}`} />
@@ -1115,13 +1134,13 @@ export default function App() {
                       onClick={() => setActiveSection(section.id)}
                       className={`w-full text-left p-3 transition-all duration-200 flex items-center gap-3.5 border rounded-xl ${
                         isActive 
-                          ? `${activeTheme.border} ${activeTheme.bgMuted} text-white shadow-md font-semibold` 
+                          ? 'bg-white/15 border-white/25 shadow-md font-semibold text-white' 
                           : 'border-transparent text-zinc-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? activeTheme.text : 'text-zinc-400'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-zinc-400'}`} />
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-semibold leading-tight text-zinc-100">{section.label}</span>
+                        <span className="text-xs font-sans font-semibold leading-tight">{section.label}</span>
                         <span className="text-[10px] font-sans font-normal text-zinc-400 leading-tight mt-1 truncate">{section.sub}</span>
                       </div>
                     </button>
