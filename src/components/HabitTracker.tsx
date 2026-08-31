@@ -314,7 +314,7 @@ export default function HabitTracker({
         <div className="min-w-[900px]">
           
           {/* Grid Headers */}
-          <div className="grid grid-cols-[200px_repeat(31,1fr)] border-b border-white/[0.08] bg-white/[0.02] py-2.5 text-center items-center font-sans">
+          <div className="grid grid-cols-[280px_repeat(31,1fr)] border-b border-white/[0.08] bg-white/[0.02] py-2.5 text-center items-center font-sans">
             <div className="text-left pl-4 text-xs font-semibold text-[#9496a1]">
               Habit
             </div>
@@ -350,10 +350,10 @@ export default function HabitTracker({
             sortedFilteredHabits.map(h => (
               <div 
                 key={h.id} 
-                className="grid grid-cols-[200px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
+                className="grid grid-cols-[280px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
               >
                 {/* Habit Label + Delete Button + Refined Secondary Subtext */}
-                <div className="flex flex-col pl-4 pr-3 min-w-0">
+                <div className="flex flex-col pl-4 pr-3">
                   <div className="flex items-center justify-between">
                     {editingHabitId === h.id ? (
                       <div className="flex items-center gap-1 w-full my-0.5">
@@ -387,7 +387,7 @@ export default function HabitTracker({
                       <>
                         <span 
                           onDoubleClick={() => handleStartEditHabit(h)}
-                          className="text-xs font-semibold text-white tracking-normal truncate pr-2 cursor-pointer hover:text-[#1591DC] transition-colors"
+                          className="text-xs font-semibold text-white tracking-normal pr-2 cursor-pointer hover:text-[#1591DC] transition-colors"
                           title="Double-click to edit habit name"
                         >
                           {h.habitName}
@@ -412,7 +412,7 @@ export default function HabitTracker({
                     )}
                   </div>
                   
-                  {/* Refined Secondary Text: Consistency stats & sleek Goal Link */}
+                  {/* Refined Secondary Text: Consistency stats & spacious Goal Link */}
                   <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#9496a1] font-sans">
                     <span className="font-medium text-zinc-400">
                       {h.completedDays.length}/{totalDays}d
@@ -420,18 +420,18 @@ export default function HabitTracker({
                     <span className="text-zinc-600 font-bold">•</span>
                     {/* Goal Link Selector */}
                     {goals.length > 0 ? (
-                      <div className="flex items-center gap-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
                         <Link2 className="w-2.5 h-2.5 text-[#1591DC] shrink-0" />
                         <select
                           value={habitGoalLinks[h.id] || ''}
                           onChange={e => saveHabitGoalLink(h.id, e.target.value)}
-                          className="bg-transparent text-[10px] text-[#9496a1] hover:text-white focus:outline-none cursor-pointer truncate max-w-[110px] appearance-none"
+                          className="bg-transparent text-[10px] text-[#9496a1] hover:text-white focus:outline-none cursor-pointer appearance-none"
                           title="Link habit to a Goal"
                         >
                           <option value="" className="bg-[#12141a] text-[#9496a1]">Link goal</option>
                           {goals.filter(g => !g.completed).map(g => (
                             <option key={g.id} value={g.id} className="bg-[#12141a] text-white">
-                              {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 25)}
+                              {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 35)}
                             </option>
                           ))}
                         </select>

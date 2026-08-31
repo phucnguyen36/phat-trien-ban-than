@@ -174,7 +174,7 @@ export default function ExecutiveDashboard({
                       : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15] text-[#ededf3]'
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0 pr-2">
+                  <div className="flex items-center gap-3 pr-2">
                     <button
                       type="button"
                       onClick={() => onToggleGoal(task.id, !task.completed)}
@@ -184,8 +184,8 @@ export default function ExecutiveDashboard({
                     >
                       {task.completed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                     </button>
-                    <div className="min-w-0">
-                      <span className={`text-xs font-medium block truncate ${task.completed ? 'line-through opacity-60' : 'text-white'}`}>
+                    <div>
+                      <span className={`text-xs font-medium block ${task.completed ? 'line-through opacity-60' : 'text-white'}`}>
                         {task.text.replace(/^\[D:[^\]]+\]\s*/, '')}
                       </span>
                     </div>
@@ -247,15 +247,15 @@ export default function ExecutiveDashboard({
                     key={goal.id}
                     className="flex items-center justify-between p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] transition-all group hover:border-white/[0.15]"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={() => onToggleGoal(goal.id, !goal.completed)}
                         className="text-[#9496a1] hover:text-white transition-colors shrink-0"
                       >
                         <Circle className="w-4 h-4" />
                       </button>
-                      <div className="min-w-0">
-                        <span className="text-xs font-medium text-[#ededf3] block truncate group-hover:text-white transition-colors">
+                      <div>
+                        <span className="text-xs font-medium text-[#ededf3] block group-hover:text-white transition-colors">
                           {goal.text.replace(/^\[(W|M|Y):[^\]]+\]\s*/, '')}
                         </span>
                         <span className="text-[10px] text-[#9496a1] font-sans uppercase">
