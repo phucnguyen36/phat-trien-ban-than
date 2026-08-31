@@ -342,8 +342,8 @@ export default function HabitTracker({
 
           {/* Matrix Rows */}
           {sortedFilteredHabits.length === 0 ? (
-            <div className="text-center py-12 text-zinc-400 font-mono text-xs uppercase tracking-widest">
-              No habits recorded for {formattedMonthYearString}. Add a new habit above.
+            <div className="text-center py-12 text-[#9496a1] text-xs font-normal">
+              No habits recorded for {formattedMonthYearString}. Add a new habit above to begin tracking.
             </div>
           ) : (
             sortedFilteredHabits.map(h => (

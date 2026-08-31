@@ -204,9 +204,9 @@ export default function Scratchpad({
           placeholder="Paste code snippets, outline business strategies, or jot down unfiltered thoughts here. Auto-saved in real-time..."
           className="w-full h-96 glass-input-true p-5 text-xs font-mono leading-relaxed text-white placeholder-zinc-500 rounded-xl resize-y"
         />
-        <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 px-1 font-bold">
-          <span>CHARACTER COUNT: {text.length}</span>
-          <span>WORD COUNT: {text.trim() ? text.trim().split(/\s+/).length : 0}</span>
+        <div className="flex justify-between items-center text-xs text-[#9496a1] px-1 font-normal">
+          <span>{text.length} characters</span>
+          <span>{text.trim() ? text.trim().split(/\s+/).length : 0} words</span>
         </div>
       </div>
 

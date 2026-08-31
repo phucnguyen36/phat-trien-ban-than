@@ -414,20 +414,20 @@ export default function TodoHub({
           {/* Column Header */}
           <div className="flex justify-between items-baseline mb-3">
             <h3 className="text-base font-bold tracking-tight text-white flex items-baseline gap-1.5 font-sans">
-              <span>{label} Objectives</span>
+              <span>{label} Tasks</span>
               {isThisDailyAndToday && (
-                <span className="ml-1.5 px-2 py-0.5 text-[9px] glass-pill-true text-emerald-300 font-bold uppercase animate-pulse">Today</span>
+                <span className="ml-1.5 px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/20 text-emerald-300 font-medium">Today</span>
               )}
             </h3>
-            <span className={`font-mono text-[11px] uppercase tracking-widest font-extrabold ${isThisDailyAndToday ? 'text-emerald-400' : accentClass}`}>
-              {rate}% WIN
+            <span className={`text-xs font-mono font-bold ${isThisDailyAndToday ? 'text-emerald-400' : 'text-[#9496a1]'}`}>
+              {rate}% done
             </span>
           </div>
 
           {/* Dynamic Context Tag */}
-          <div className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest mb-2 flex items-center gap-1.5 font-semibold">
-            <CalendarIcon className="w-3.5 h-3.5" />
-            <span>Scope: {activeContextDisplay}</span>
+          <div className="text-xs text-[#9496a1] mb-2 flex items-center gap-1.5 font-normal">
+            <CalendarIcon className="w-3.5 h-3.5 text-[#1591DC]" />
+            <span>{activeContextDisplay}</span>
           </div>
 
           {timeframe === 'weekly' && (
@@ -660,15 +660,15 @@ export default function TodoHub({
       
       {/* Overdue / Incomplete Target Reminder Banner */}
       {!isOverdueBannerDismissed && overdueIncompleteGoals.length > 0 && (
-        <div className="mb-6 p-4 glass-card-true border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-950/20 animate-fadeIn">
+        <div className="mb-6 p-4 glass-card-true border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-500/5 animate-fadeIn">
           <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 animate-pulse" />
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
             <div>
-              <h4 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-widest">
-                Pending Targets Reminder ({overdueIncompleteGoals.length} Overdue)
+              <h4 className="text-xs font-semibold text-amber-300">
+                Incomplete tasks reminder ({overdueIncompleteGoals.length} pending)
               </h4>
-              <p className="text-zinc-300 text-xs mt-0.5 font-sans">
-                You have {overdueIncompleteGoals.length} incomplete daily target{overdueIncompleteGoals.length > 1 ? 's' : ''} from previous days.
+              <p className="text-[#9496a1] text-xs mt-0.5">
+                You have {overdueIncompleteGoals.length} incomplete daily task{overdueIncompleteGoals.length > 1 ? 's' : ''} from previous days.
               </p>
             </div>
           </div>
@@ -676,16 +676,16 @@ export default function TodoHub({
             <button
               type="button"
               onClick={handleRolloverOverdueGoals}
-              className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-amber-200 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 rounded-xl"
+              className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-amber-200 text-xs font-medium flex items-center gap-1.5 rounded-full"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>ROLLOVER TO TODAY</span>
+              <span>Rollover to today</span>
             </button>
             <button
               type="button"
               onClick={() => setIsOverdueBannerDismissed(true)}
-              className="p-1.5 text-zinc-400 hover:text-white transition-colors"
-              title="Dismiss Reminder"
+              className="p-1.5 text-[#9496a1] hover:text-white transition-colors"
+              title="Dismiss"
             >
               <X className="w-4 h-4" />
             </button>
@@ -694,12 +694,12 @@ export default function TodoHub({
       )}
 
       {/* Module Title & Mode Switcher Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/10 pb-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/[0.08] pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
             Tasks & Roadmap
           </h2>
-          <p className="text-xs font-mono text-zinc-400 mt-0.5">
+          <p className="text-xs text-[#9496a1] mt-0.5">
             Scope: Daily • Weekly • Monthly • Yearly
           </p>
         </div>
@@ -711,10 +711,10 @@ export default function TodoHub({
           <div className="flex items-center glass-pill-true p-1">
             <button
               onClick={() => setViewMode('columns')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
                 viewMode === 'columns'
-                  ? 'bg-white text-black font-bold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-[#9496a1] hover:text-white'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -722,10 +722,10 @@ export default function TodoHub({
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
                 viewMode === 'table'
-                  ? 'bg-white text-black font-bold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-[#9496a1] hover:text-white'
               }`}
             >
               <Table className="w-3.5 h-3.5" />
@@ -733,10 +733,10 @@ export default function TodoHub({
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
                 viewMode === 'calendar'
-                  ? 'bg-white text-black font-bold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-[#9496a1] hover:text-white'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
@@ -744,10 +744,10 @@ export default function TodoHub({
             </button>
             <button
               onClick={() => setViewMode('review')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
                 viewMode === 'review'
-                  ? 'bg-white text-black font-bold shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-[#9496a1] hover:text-white'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
@@ -759,39 +759,39 @@ export default function TodoHub({
           <div className="flex flex-wrap items-center gap-2 glass-pill-true p-1.5">
             {/* Year */}
             <div className="flex items-center gap-1 glass-card-true px-2.5 py-1">
-              <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">YEAR:</span>
+              <span className="text-[10px] text-[#9496a1] font-medium">Year:</span>
               <select 
                 value={selectedYear} 
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-transparent text-xs font-mono text-white focus:outline-none cursor-pointer font-bold"
+                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
               >
-                {['2025', '2026', '2027', '2028'].map(y => <option key={y} value={y} className="bg-black text-white">{y}</option>)}
+                {['2025', '2026', '2027', '2028'].map(y => <option key={y} value={y} className="bg-[#12141a] text-white">{y}</option>)}
               </select>
             </div>
 
             {/* Month */}
             <div className="flex items-center gap-1 glass-card-true px-2.5 py-1">
-              <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">MONTH:</span>
+              <span className="text-[10px] text-[#9496a1] font-medium">Month:</span>
               <select 
                 value={selectedMonth} 
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-xs font-mono text-white focus:outline-none cursor-pointer font-bold"
+                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
               >
                 {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(m => (
-                  <option key={m} value={m} className="bg-black text-white">{m}</option>
+                  <option key={m} value={m} className="bg-[#12141a] text-white">{m}</option>
                 ))}
               </select>
             </div>
 
             {/* Week */}
             <div className="flex items-center gap-1 glass-card-true px-2.5 py-1">
-              <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">WEEK:</span>
+              <span className="text-[10px] text-[#9496a1] font-medium">Week:</span>
               <select 
                 value={selectedWeek} 
                 onChange={(e) => setSelectedWeek(e.target.value)}
-                className="bg-transparent text-xs font-mono text-white focus:outline-none cursor-pointer font-bold"
+                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
               >
-                {['W1', 'W2', 'W3', 'W4', 'W5'].map(w => <option key={w} value={w} className="bg-black text-white">{w.replace('W', 'Week ')}</option>)}
+                {['W1', 'W2', 'W3', 'W4', 'W5'].map(w => <option key={w} value={w} className="bg-[#12141a] text-white">{w.replace('W', 'Week ')}</option>)}
               </select>
             </div>
 
@@ -799,14 +799,14 @@ export default function TodoHub({
             <div className={`flex items-center gap-1 glass-card-true px-2.5 py-1 transition-colors ${
               isTodayActive ? 'bg-emerald-500/20 border-emerald-400/50' : ''
             }`}>
-              <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">DAY:</span>
+              <span className="text-[10px] text-[#9496a1] font-medium">Day:</span>
               <select 
                 value={selectedDay} 
                 onChange={(e) => setSelectedDay(e.target.value)}
-                className="bg-transparent text-xs font-mono text-white focus:outline-none cursor-pointer font-bold"
+                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
               >
                 {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map(d => (
-                  <option key={d} value={d} className="bg-black text-white">{d}</option>
+                  <option key={d} value={d} className="bg-[#12141a] text-white">{d}</option>
                 ))}
               </select>
             </div>
@@ -819,49 +819,49 @@ export default function TodoHub({
         <>
           {/* Columns Visibility Filters */}
           <div className="flex flex-wrap items-center gap-3 mb-6 p-3 glass-card-true">
-            <span className="text-[10px] font-mono text-zinc-300 tracking-widest uppercase font-bold">
-              COLUMNS VISIBILITY:
+            <span className="text-xs text-[#9496a1] font-medium">
+              Visible columns:
             </span>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => toggleColumnVisibility('daily')}
-                className={`px-3 py-1 text-[10px] font-mono uppercase tracking-wider rounded-full transition-all ${
+                className={`px-3 py-1 text-xs rounded-full transition-all ${
                   visibleColumns.daily 
-                    ? 'glass-pill-true text-sky-300 font-bold border-sky-400/40' 
-                    : 'opacity-40 text-zinc-500'
+                    ? 'bg-white/10 text-white font-medium border border-white/20' 
+                    : 'opacity-40 text-[#9496a1]'
                 }`}
               >
-                ● Day
+                Day
               </button>
               <button
                 onClick={() => toggleColumnVisibility('weekly')}
-                className={`px-3 py-1 text-[10px] font-mono uppercase tracking-wider rounded-full transition-all ${
+                className={`px-3 py-1 text-xs rounded-full transition-all ${
                   visibleColumns.weekly 
-                    ? 'glass-pill-true text-purple-300 font-bold border-purple-400/40' 
-                    : 'opacity-40 text-zinc-500'
+                    ? 'bg-white/10 text-white font-medium border border-white/20' 
+                    : 'opacity-40 text-[#9496a1]'
                 }`}
               >
-                ● Week
+                Week
               </button>
               <button
                 onClick={() => toggleColumnVisibility('monthly')}
-                className={`px-3 py-1 text-[10px] font-mono uppercase tracking-wider rounded-full transition-all ${
+                className={`px-3 py-1 text-xs rounded-full transition-all ${
                   visibleColumns.monthly 
-                    ? 'glass-pill-true text-amber-300 font-bold border-amber-400/40' 
-                    : 'opacity-40 text-zinc-500'
+                    ? 'bg-white/10 text-white font-medium border border-white/20' 
+                    : 'opacity-40 text-[#9496a1]'
                 }`}
               >
-                ● Month
+                Month
               </button>
               <button
                 onClick={() => toggleColumnVisibility('yearly')}
-                className={`px-3 py-1 text-[10px] font-mono uppercase tracking-wider rounded-full transition-all ${
+                className={`px-3 py-1 text-xs rounded-full transition-all ${
                   visibleColumns.yearly 
-                    ? 'glass-pill-true text-emerald-300 font-bold border-emerald-400/40' 
-                    : 'opacity-40 text-zinc-500'
+                    ? 'bg-white/10 text-white font-medium border border-white/20' 
+                    : 'opacity-40 text-[#9496a1]'
                 }`}
               >
-                ● Year
+                Year
               </button>
             </div>
           </div>

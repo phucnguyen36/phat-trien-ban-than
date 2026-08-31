@@ -102,18 +102,12 @@ export const INITIAL_EXPENSES: PersonalExpense[] = [
   { id: 'exp5', date: '2026-07-15', amount: 210000, category: 'Eating', note: 'Organic Fruit & High-Protein Fuel Supplies' }
 ];
 
-export const INITIAL_SCRATCHPAD_TEXT = `== DEEP FOCUS INTEGRATED OS v5.0 ==
-Architected for Peak Performance — Unwavering Discipline, Open Mindset.
+export const INITIAL_SCRATCHPAD_TEXT = `# Focus & Strategic Notes
 
-[CORE 2026 STRATEGIC OBJECTIVES]
-1. Master personal cash flow velocity and maintain sustainable financial autonomy.
-2. Maintain strict 4-hour daily uninterrupted Deep Work execution.
-3. Optimize cognitive and physical endurance, targeting 100km+ monthly cardio.
+- Priority 1: Maintain 4-hour daily uninterrupted deep work sessions.
+- Priority 2: Optimize personal cash flow and monthly expense allocations.
+- Priority 3: Target 100km+ monthly outdoor cardio and fitness routine.
 
-[CREATIVE INSIGHTS & BREAKTHROUGHS]
-- Automate habit tracking telemetry and export monthly performance analytics in PDF.
-- Draft minimal philosophy essay on workplace layout optimization and focus density.
-
-[QUICK SCRATCHPAD NOTES]
-- Re-allocate non-essential entertainment budget toward education and professional tool stack.
-- Schedule Q3 strategic sync with lead advisor on Saturday morning.`;
+## Ideas & Quick References
+- Clean architecture and minimal Swiss typography create maximum focus density.
+- Schedule weekly review every Sunday evening to calibrate roadmap.`;
