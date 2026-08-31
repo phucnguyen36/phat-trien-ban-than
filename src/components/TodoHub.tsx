@@ -148,7 +148,7 @@ export default function TodoHub({
   }, []);
 
   const monthNameStr = useMemo(() => {
-    const months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const idx = parseInt(selectedMonth) - 1;
     return months[idx] || months[today.getMonth()];
   }, [selectedMonth, today]);
@@ -169,13 +169,13 @@ export default function TodoHub({
     yearly: ''
   });
 
-  // A1 — Time Estimate state per column
+  // Time Estimate presets per column
   const TIME_ESTIMATES: { value: TimeEstimate; label: string; color: string }[] = [
     { value: '15m', label: '15m', color: 'text-emerald-400' },
     { value: '30m', label: '30m', color: 'text-emerald-400' },
-    { value: '1h', label: '1h', color: 'text-amber-400' },
-    { value: '2h', label: '2h', color: 'text-amber-400' },
-    { value: 'half-day', label: '½day', color: 'text-red-400' },
+    { value: '1h', label: '1h', color: 'text-sky-400' },
+    { value: '2h', label: '2h', color: 'text-sky-400' },
+    { value: 'half-day', label: '4h', color: 'text-amber-400' },
   ];
   const [estimates, setEstimates] = useState<Record<TimeframeType, TimeEstimate | ''>>({ daily: '', weekly: '', monthly: '', yearly: '' });
 
@@ -447,39 +447,44 @@ export default function TodoHub({
           </div>
 
           {/* Quick Add Form */}
-          <form onSubmit={(e) => handleAdd(e, timeframe)} className="mb-6 flex flex-col gap-2 w-full">
+          <form onSubmit={(e) => handleAdd(e, timeframe)} className="mb-6 space-y-2 w-full">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={inputs[timeframe]}
                 onChange={(e) => setInputs(prev => ({ ...prev, [timeframe]: e.target.value }))}
-                placeholder={`Add ${label.toLowerCase()} objective...`}
-                className="w-full glass-input-true px-3 py-2 text-xs text-white placeholder-zinc-500 font-sans"
+                placeholder={`Add task for ${label.toLowerCase()}...`}
+                className="w-full glass-input-true px-3 py-2 text-xs text-white placeholder-zinc-500 font-sans rounded-xl focus:outline-none"
               />
               <button 
                 type="submit"
-                className="p-2 glass-button-true text-white transition-all flex-shrink-0"
+                className="p-2 btn-primary-cyan text-white transition-all flex-shrink-0 rounded-xl"
+                title="Add Task"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
-            {/* A1 — Time Estimate Quick Picker */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest">⏱ Est:</span>
-              {TIME_ESTIMATES.map(({ value, label: lbl, color }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setEstimates(prev => ({ ...prev, [timeframe]: prev[timeframe] === value ? '' : value }))}
-                  className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold border transition-all ${
-                    estimates[timeframe] === value
-                      ? `border-current bg-white/10 ${color}`
-                      : 'border-zinc-700 text-zinc-600 hover:text-zinc-400 hover:border-zinc-500'
-                  }`}
-                >
-                  {lbl}
-                </button>
-              ))}
+            
+            {/* Clean Time Estimate Pill Selector */}
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[10px] text-[#9496a1] font-sans font-medium mr-1">Time:</span>
+              {TIME_ESTIMATES.map(({ value, label: lbl }) => {
+                const isSelected = estimates[timeframe] === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setEstimates(prev => ({ ...prev, [timeframe]: isSelected ? '' : value }))}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-medium transition-all ${
+                      isSelected
+                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                        : 'bg-white/[0.03] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/20'
+                    }`}
+                  >
+                    {lbl}
+                  </button>
+                );
+              })}
             </div>
           </form>
 
@@ -560,10 +565,11 @@ export default function TodoHub({
                       )}
                       
                       <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                        {/* A1 — Time Estimate Badge */}
+                        {/* Time Estimate Badge */}
                         {estMeta && (
-                          <span className={`inline-flex items-center gap-0.5 text-[10px] font-sans font-medium ${estMeta.color}`}>
-                            ⏱ {estMeta.label}
+                          <span className="inline-flex items-center gap-1 text-[10px] font-sans font-medium text-[#9496a1] bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                            <Clock className="w-2.5 h-2.5 text-[#1591DC]" />
+                            <span>{estMeta.label}</span>
                           </span>
                         )}
                         {/* B2 — Live Timer Badge */}
