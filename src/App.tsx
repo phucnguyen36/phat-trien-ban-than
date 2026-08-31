@@ -180,20 +180,45 @@ export const THEMES: UITheme[] = [
 ];
 
 export default function App() {
-  // Authentication & Active User State
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
+  // Synchronous User & Session Recovery for Instant 0ms Load
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    const savedUser = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.email) return parsed;
+      } catch (e) {}
+    }
+    return null;
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const savedUser = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        return !!(parsed && parsed.email);
+      } catch (e) { return false; }
+    }
+    return false;
+  });
+
+  // Synchronous Local Data Pre-population (0ms Instant Render, Zero Data Loss on F5)
+  const initialLocalData = useMemo(() => {
+    const email = currentUser?.email;
+    return loadFromLocalStorage(email);
+  }, []);
 
   // Core Data States
-  const [goals, setGoals] = useState<GoalTodo[]>([]);
-  const [habits, setHabits] = useState<HabitData[]>([]);
-  const [journalEntries, setJournalEntries] = useState<DailyJournal[]>([]);
-  const [expenses, setExpenses] = useState<PersonalExpense[]>([]);
-  const [scratchpadText, setScratchpadText] = useState<string>('');
+  const [goals, setGoals] = useState<GoalTodo[]>(initialLocalData.goals);
+  const [habits, setHabits] = useState<HabitData[]>(initialLocalData.habits);
+  const [journalEntries, setJournalEntries] = useState<DailyJournal[]>(initialLocalData.journal);
+  const [expenses, setExpenses] = useState<PersonalExpense[]>(initialLocalData.expenses);
+  const [scratchpadText, setScratchpadText] = useState<string>(initialLocalData.scratchpad);
 
   // App settings state
   const [localOnlyMode, setLocalOnlyMode] = useState<boolean>(isLocalModeEnabled());
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // A4 — Morning Priority Prompt: show once per day on first login
   const [showMorningPrompt, setShowMorningPrompt] = useState<boolean>(false);
@@ -523,20 +548,20 @@ export default function App() {
     };
     
     setGoals(prev => [...prev, newGoal]);
-    await saveGoal(newGoal);
+    await saveGoal(newGoal, currentUser?.email);
   };
 
   const handleToggleGoal = async (id: string, completed: boolean) => {
     setGoals(prev => prev.map(g => g.id === id ? { ...g, completed } : g));
     const goal = goals.find(g => g.id === id);
     if (goal) {
-      await saveGoal({ ...goal, completed });
+      await saveGoal({ ...goal, completed }, currentUser?.email);
     }
   };
 
   const handleDeleteGoal = async (id: string) => {
     setGoals(prev => prev.filter(g => g.id !== id));
-    await deleteGoal(id);
+    await deleteGoal(id, currentUser?.email);
   };
 
   const handleEditGoal = async (id: string, newText: string) => {
@@ -548,15 +573,15 @@ export default function App() {
     const updatedGoal: GoalTodo = { ...goal, text: prefix + newText };
 
     setGoals(prev => prev.map(g => g.id === id ? updatedGoal : g));
-    await saveGoal(updatedGoal);
+    await saveGoal(updatedGoal, currentUser?.email);
   };
 
   const handleUpdateGoal = async (updatedGoal: GoalTodo) => {
     setGoals(prev => prev.map(g => g.id === updatedGoal.id ? updatedGoal : g));
-    await saveGoal(updatedGoal);
+    await saveGoal(updatedGoal, currentUser?.email);
   };
 
-  // A4 — Morning Prompt: submit 3 priorities as daily tasks
+  // Morning Prompt: submit 3 priorities as daily tasks
   const handleMorningPromptSubmit = async () => {
     const filled = morningPriorities.filter(p => p.trim());
     for (const text of filled) {
@@ -582,7 +607,7 @@ export default function App() {
     };
 
     setHabits(prev => [...prev, newHabit]);
-    await saveHabit(newHabit);
+    await saveHabit(newHabit, currentUser?.email);
   };
 
   const handleToggleHabitDay = async (id: string, day: number) => {
@@ -593,7 +618,7 @@ export default function App() {
           : [...h.completedDays, day];
         
         const updated = { ...h, completedDays };
-        saveHabit(updated);
+        saveHabit(updated, currentUser?.email);
         return updated;
       }
       return h;
@@ -606,7 +631,7 @@ export default function App() {
       "Are you sure you want to delete this habit? All check-in logs for this month will be permanently removed.",
       async () => {
         setHabits(prev => prev.filter(h => h.id !== id));
-        await deleteHabit(id);
+        await deleteHabit(id, currentUser?.email);
       }
     );
   };
@@ -618,7 +643,7 @@ export default function App() {
     const updatedHabit: HabitData = { ...habit, habitName: newName };
 
     setHabits(prev => prev.map(h => h.id === id ? updatedHabit : h));
-    await saveHabit(updatedHabit);
+    await saveHabit(updatedHabit, currentUser?.email);
   };
 
   // Handler: Journal operations
@@ -660,18 +685,18 @@ export default function App() {
     };
 
     setExpenses(prev => [...prev, newExpense]);
-    await saveExpense(newExpense);
+    await saveExpense(newExpense, currentUser?.email);
   };
 
   const handleDeleteExpense = async (id: string) => {
     setExpenses(prev => prev.filter(e => e.id !== id));
-    await deleteExpense(id);
+    await deleteExpense(id, currentUser?.email);
   };
 
   // Handler: Scratchpad operations
   const handleSaveScratchpadText = async (text: string) => {
     setScratchpadText(text);
-    await saveScratchpad(text);
+    await saveScratchpad(text, currentUser?.email);
   };
 
   // Handle Profile Save
