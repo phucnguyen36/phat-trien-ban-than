@@ -60,9 +60,14 @@ export default function ExecutiveDashboard({
     ? Math.round((completedGoalsCount / totalGoalsCount) * 100) 
     : 0;
 
-  // Immediate pending goals
-  const pendingGoals = useMemo(() => {
-    return goals.filter(g => !g.completed).slice(0, 5);
+  // Real dynamic Daily Tasks from user data
+  const todayDailyTasks = useMemo(() => {
+    return goals.filter(g => g.timeframe === 'daily');
+  }, [goals]);
+
+  // Strategic longer-term objectives (Weekly / Monthly / Yearly)
+  const strategicGoals = useMemo(() => {
+    return goals.filter(g => g.timeframe !== 'daily' && !g.completed).slice(0, 5);
   }, [goals]);
 
   // Monthly Expenses Total
@@ -80,16 +85,6 @@ export default function ExecutiveDashboard({
   // Daily Quote selection based on day of month
   const dailyQuoteIndex = todayDay % DAILY_QUOTES.length;
   const quoteObj = DAILY_QUOTES[dailyQuoteIndex];
-
-  // Focused schedule blocks for today
-  const timeBlocks = [
-    { time: '08:00', label: 'Morning Setup & Priority Alignment', status: 'done' },
-    { time: '09:30', label: 'Deep Focus Execution Block 1', status: 'current' },
-    { time: '13:30', label: 'System Review & Architecture', status: 'upcoming' },
-    { time: '15:30', label: 'Deep Focus Execution Block 2', status: 'upcoming' },
-    { time: '17:30', label: 'Physical Training & Reset', status: 'upcoming' },
-    { time: '21:00', label: 'Daily Journal & Reflection', status: 'upcoming' }
-  ];
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -125,7 +120,7 @@ export default function ExecutiveDashboard({
               {habitCompletionPercent}%
             </div>
             <div className="text-xs text-[#9496a1] font-medium">
-              Habit Consistency Score ({stats.activeHabitStreaks} active streaks)
+              Daily Habits Recorded ({todayHabitsDoneCount}/{habits.length})
             </div>
           </div>
 
@@ -143,13 +138,13 @@ export default function ExecutiveDashboard({
       {/* 2. CORE WORKSPACE GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left Column (5 Cols): Today's Schedule */}
+        {/* Left Column (5 Cols): Today's Real Daily Tasks */}
         <div className="lg:col-span-5 kuldeep-card p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#1591DC]" />
               <h2 className="text-sm font-semibold text-white">
-                Today's Schedule
+                Today's Daily Tasks
               </h2>
             </div>
             <span className="text-xs text-[#9496a1] font-mono">
@@ -157,36 +152,56 @@ export default function ExecutiveDashboard({
             </span>
           </div>
 
-          {/* Timeblocks */}
-          <div className="space-y-2">
-            {timeBlocks.map((block, idx) => (
-              <div 
-                key={idx}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                  block.status === 'current'
-                    ? 'bg-[#1591DC]/10 border border-[#1591DC]/30 text-white font-medium shadow-sm'
-                    : block.status === 'done'
-                    ? 'bg-white/[0.02] border border-white/[0.04] text-[#9496a1] line-through'
-                    : 'bg-[#0e1015] border border-white/[0.06] text-[#ededf3]'
-                }`}
+          {/* Real User Daily Tasks List */}
+          {todayDailyTasks.length === 0 ? (
+            <div className="py-8 text-center text-[#9496a1] space-y-3">
+              <p className="text-xs font-normal">No daily tasks scheduled for today.</p>
+              <button
+                onClick={() => onNavigate('todo-hub')}
+                className="px-3.5 py-1.5 rounded-full text-xs font-medium bg-[#1591DC]/15 text-[#1591DC] hover:bg-[#1591DC]/25 border border-[#1591DC]/30 transition-all inline-flex items-center gap-1.5"
               >
-                <span className="font-mono text-xs font-semibold text-[#9496a1] shrink-0 w-12">
-                  {block.time}
-                </span>
-                <span className="text-xs flex-1 truncate">
-                  {block.label}
-                </span>
-                {block.status === 'current' && (
-                  <span className="w-2 h-2 rounded-full bg-[#1591DC] animate-ping shrink-0" />
-                )}
-                {block.status === 'done' && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                )}
-              </div>
-            ))}
-          </div>
+                + Add Daily Task in Tasks Hub
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {todayDailyTasks.map((task) => (
+                <div 
+                  key={task.id}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all group ${
+                    task.completed
+                      ? 'bg-white/[0.02] border border-white/[0.04] text-[#9496a1]'
+                      : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15] text-[#ededf3]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
+                    <button
+                      type="button"
+                      onClick={() => onToggleGoal(task.id, !task.completed)}
+                      className={`transition-transform active:scale-95 shrink-0 ${
+                        task.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
+                      }`}
+                    >
+                      {task.completed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                    </button>
+                    <div className="min-w-0">
+                      <span className={`text-xs font-medium block truncate ${task.completed ? 'line-through opacity-60' : 'text-white'}`}>
+                        {task.text.replace(/^\[D:[^\]]+\]\s*/, '')}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {task.timeEstimate && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/[0.04] border border-white/[0.08] text-[#9496a1] shrink-0 font-sans">
+                      {task.timeEstimate === 'half-day' ? '4h' : task.timeEstimate}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
-          {/* Quote */}
+          {/* Daily Quote Card */}
           <div className="p-3.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-start gap-3 mt-3">
             <Quote className="w-4 h-4 text-[#9496a1] shrink-0 mt-0.5" />
             <div className="space-y-1">
@@ -200,16 +215,16 @@ export default function ExecutiveDashboard({
           </div>
         </div>
 
-        {/* Right Column (7 Cols): Immediate Objectives & Habit Check-in */}
+        {/* Right Column (7 Cols): Strategic Objectives & Habit Check-in */}
         <div className="lg:col-span-7 space-y-6">
           
-          {/* Priority Tasks */}
+          {/* Strategic Objectives */}
           <div className="kuldeep-card p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-[#1591DC]" />
                 <h3 className="text-sm font-semibold text-white">
-                  Immediate Priority Tasks
+                  Strategic Objectives (Weekly / Monthly)
                 </h3>
               </div>
               <button
@@ -220,14 +235,14 @@ export default function ExecutiveDashboard({
               </button>
             </div>
 
-            {pendingGoals.length === 0 ? (
+            {strategicGoals.length === 0 ? (
               <div className="py-8 text-center text-[#9496a1] space-y-2">
                 <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-400" />
-                <p className="text-xs font-semibold text-white">All priority tasks completed</p>
+                <p className="text-xs font-semibold text-white">All strategic objectives completed</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {pendingGoals.map((goal) => (
+                {strategicGoals.map((goal) => (
                   <div
                     key={goal.id}
                     className="flex items-center justify-between p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] transition-all group hover:border-white/[0.15]"
@@ -241,10 +256,10 @@ export default function ExecutiveDashboard({
                       </button>
                       <div className="min-w-0">
                         <span className="text-xs font-medium text-[#ededf3] block truncate group-hover:text-white transition-colors">
-                          {goal.text}
+                          {goal.text.replace(/^\[(W|M|Y):[^\]]+\]\s*/, '')}
                         </span>
-                        <span className="text-[10px] text-[#9496a1] font-mono">
-                          {goal.timeframe} {goal.priority ? `• ${goal.priority}` : ''}
+                        <span className="text-[10px] text-[#9496a1] font-sans uppercase">
+                          {goal.timeframe}
                         </span>
                       </div>
                     </div>
