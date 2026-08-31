@@ -24,7 +24,8 @@ import {
   Check,
   ArrowUpDown,
   Pencil,
-  X
+  X,
+  Link2
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -351,7 +352,7 @@ export default function HabitTracker({
                 key={h.id} 
                 className="grid grid-cols-[200px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
               >
-                {/* Habit Label + Delete Button + A3 Goal Link */}
+                {/* Habit Label + Delete Button + Refined Secondary Subtext */}
                 <div className="flex flex-col pl-4 pr-3 min-w-0">
                   <div className="flex items-center justify-between">
                     {editingHabitId === h.id ? (
@@ -364,20 +365,20 @@ export default function HabitTracker({
                             if (e.key === 'Enter') handleSaveEditHabit(h.id);
                             if (e.key === 'Escape') setEditingHabitId(null);
                           }}
-                          className="w-full glass-input-true px-1.5 py-0.5 text-xs text-white"
+                          className="w-full glass-input-true px-2 py-0.5 text-xs text-white rounded-lg focus:outline-none"
                           autoFocus
                         />
                         <button
                           type="button"
                           onClick={() => handleSaveEditHabit(h.id)}
-                          className="p-0.5 text-emerald-400 hover:text-emerald-300"
+                          className="p-1 text-emerald-400 hover:text-emerald-300"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingHabitId(null)}
-                          className="p-0.5 text-zinc-400 hover:text-white"
+                          className="p-1 text-zinc-400 hover:text-white"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -386,7 +387,7 @@ export default function HabitTracker({
                       <>
                         <span 
                           onDoubleClick={() => handleStartEditHabit(h)}
-                          className="text-xs font-semibold text-white truncate pr-2 cursor-pointer hover:text-zinc-200"
+                          className="text-xs font-semibold text-white tracking-normal truncate pr-2 cursor-pointer hover:text-[#1591DC] transition-colors"
                           title="Double-click to edit habit name"
                         >
                           {h.habitName}
@@ -394,14 +395,14 @@ export default function HabitTracker({
                         <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleStartEditHabit(h)}
-                            className="text-zinc-400 hover:text-white transition-all p-0.5"
+                            className="text-[#9496a1] hover:text-white transition-all p-0.5"
                             title="Edit habit name"
                           >
                             <Pencil className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => onDeleteHabit(h.id)}
-                            className="text-zinc-400 hover:text-red-400 transition-all p-0.5"
+                            className="text-[#9496a1] hover:text-red-400 transition-all p-0.5"
                             title="Delete habit"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -410,22 +411,37 @@ export default function HabitTracker({
                       </>
                     )}
                   </div>
-                  {/* A3 — Linked Goal */}
-                  {goals.length > 0 && (
-                    <select
-                      value={habitGoalLinks[h.id] || ''}
-                      onChange={e => saveHabitGoalLink(h.id, e.target.value)}
-                      className="mt-0.5 bg-transparent text-[9px] font-mono text-zinc-500 hover:text-zinc-300 focus:outline-none cursor-pointer truncate max-w-[160px] transition-colors"
-                      title="Link to a Goal"
-                    >
-                      <option value="">+ link goal</option>
-                      {goals.filter(g => !g.completed).map(g => (
-                        <option key={g.id} value={g.id} className="bg-zinc-900 text-white">
-                          {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 30)}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                  
+                  {/* Refined Secondary Text: Consistency stats & sleek Goal Link */}
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#9496a1] font-sans">
+                    <span className="font-medium text-zinc-400">
+                      {h.completedDays.length}/{totalDays}d
+                    </span>
+                    <span className="text-zinc-600 font-bold">•</span>
+                    {/* Goal Link Selector */}
+                    {goals.length > 0 ? (
+                      <div className="flex items-center gap-1 min-w-0">
+                        <Link2 className="w-2.5 h-2.5 text-[#1591DC] shrink-0" />
+                        <select
+                          value={habitGoalLinks[h.id] || ''}
+                          onChange={e => saveHabitGoalLink(h.id, e.target.value)}
+                          className="bg-transparent text-[10px] text-[#9496a1] hover:text-white focus:outline-none cursor-pointer truncate max-w-[110px] appearance-none"
+                          title="Link habit to a Goal"
+                        >
+                          <option value="" className="bg-[#12141a] text-[#9496a1]">Link goal</option>
+                          {goals.filter(g => !g.completed).map(g => (
+                            <option key={g.id} value={g.id} className="bg-[#12141a] text-white">
+                              {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 25)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-zinc-500">
+                        {Math.round((h.completedDays.length / (totalDays || 1)) * 100)}% consistency
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Habit Grid squares */}

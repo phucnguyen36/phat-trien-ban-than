@@ -18,15 +18,23 @@
   color-scheme: dark;
 }
 
-/* Swiss typography with balanced moderate weight & tight architectural tracking */
-html, body, *, ::before, ::after, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div, a, li, th, td, code, kbd {
+/* Swiss typography with balanced moderate weight & clean architectural tracking */
+html, body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div, a, li, th, td {
   font-family: "Neue Haas Grotesk Display Pro", "Neue Haas Grotesk", "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif !important;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+.tracking-wider, .uppercase {
+  letter-spacing: 0.04em !important;
 }
 
 .font-mono {
   font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: 0 !important;
 }
 
 body {
