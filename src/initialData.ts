@@ -12,12 +12,12 @@ export const INITIAL_GOALS: GoalTodo[] = [
   { id: 'g_d3', text: '5km Outdoor Run or Resistance Training', timeframe: 'daily', completed: false, createdAt: Date.now() },
   
   // Weekly
-  { id: 'g_w1', text: 'Read & Summarize 1 Book on Systems Thinking / Management', timeframe: 'weekly', completed: true, createdAt: Date.now() - 3600000 * 24 },
-  { id: 'g_w2', text: 'Weekly Performance Review & Financial Cash Flow Re-balance', timeframe: 'weekly', completed: false, createdAt: Date.now() },
+  { id: 'g_w1', text: 'Read & summarize 1 chapter on design and creative systems', timeframe: 'weekly', completed: true, createdAt: Date.now() - 3600000 * 24 },
+  { id: 'g_w2', text: 'Weekly performance review and cash flow re-balance', timeframe: 'weekly', completed: false, createdAt: Date.now() },
   
   // Monthly
-  { id: 'g_m1', text: 'Achieve $5,000+ Revenue from High-Value Engineering Services', timeframe: 'monthly', completed: false, createdAt: Date.now() - 3600000 * 48 },
-  { id: 'g_m2', text: 'Optimize Automated Personal Investment Protocols', timeframe: 'monthly', completed: true, createdAt: Date.now() }
+  { id: 'g_m1', text: 'Deliver all scheduled video & design client milestones', timeframe: 'monthly', completed: false, createdAt: Date.now() - 3600000 * 48 },
+  { id: 'g_m2', text: 'Optimize automated monthly savings and investments', timeframe: 'monthly', completed: true, createdAt: Date.now() }
 ];
 
 const currentMonthYearStr = new Date().toISOString().slice(0, 7);
@@ -95,11 +95,11 @@ export const INITIAL_JOURNAL: DailyJournal[] = [
 ];
 
 export const INITIAL_EXPENSES: PersonalExpense[] = [
-  { id: 'exp1', date: '2026-07-11', amount: 120000, category: 'Eating', note: 'Artisanal Breakfast & Cold Brew Coffee' },
-  { id: 'exp2', date: '2026-07-12', amount: 350000, category: 'Entertainment', note: 'Evening Live Concert & Gallery Admission' },
-  { id: 'exp3', date: '2026-07-13', amount: 1500000, category: 'Study/Equipment', note: 'Systems Architecture Masterclass Enrollment' },
-  { id: 'exp4', date: '2026-07-14', amount: 80000, category: 'Transport', note: 'Transit & Metro Pass Reload' },
-  { id: 'exp5', date: '2026-07-15', amount: 210000, category: 'Eating', note: 'Organic Fruit & High-Protein Fuel Supplies' }
+  { id: 'exp1', date: '2026-07-11', amount: 120000, category: 'Eating', note: 'Breakfast & Coffee' },
+  { id: 'exp2', date: '2026-07-12', amount: 350000, category: 'Entertainment', note: 'Live Concert & Gallery Admission' },
+  { id: 'exp3', date: '2026-07-13', amount: 1500000, category: 'Study/Equipment', note: 'Design & Motion Masterclass' },
+  { id: 'exp4', date: '2026-07-14', amount: 80000, category: 'Transport', note: 'Transit Pass Reload' },
+  { id: 'exp5', date: '2026-07-15', amount: 210000, category: 'Eating', note: 'Groceries & Nutrition' }
 ];
 
 export const INITIAL_SCRATCHPAD_TEXT = `# Focus & Strategic Notes

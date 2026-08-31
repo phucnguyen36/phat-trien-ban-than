@@ -63,13 +63,13 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   const NAV_ITEMS = [
-    { id: 'overview', label: 'Executive Overview', icon: LayoutDashboard },
-    { id: 'todo-hub', label: 'Tactical Roadmap (Todo Hub)', icon: CheckSquare },
-    { id: 'habits', label: 'Habit Matrix (Habit Tracker)', icon: Activity },
-    { id: 'journal', label: 'Energy Journal (Daily Journal)', icon: BookOpen },
-    { id: 'expenses', label: 'Cash Flow Ledger (Expense Ledger)', icon: DollarSign },
-    { id: 'scratchpad', label: 'Brain Scratchpad', icon: FileText },
-    { id: 'ae-picker', label: 'Life Architecture (AE Picker)', icon: Compass }
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'todo-hub', label: 'Tasks & Roadmap', icon: CheckSquare },
+    { id: 'habits', label: 'Habits & Consistency', icon: Activity },
+    { id: 'journal', label: 'Daily Journal', icon: BookOpen },
+    { id: 'expenses', label: 'Cash Flow & Expenses', icon: DollarSign },
+    { id: 'scratchpad', label: 'Scratchpad Notes', icon: FileText },
+    { id: 'ae-picker', label: 'Theme & Accent', icon: Compass }
   ];
 
   const filteredNav = NAV_ITEMS.filter(item => 
@@ -85,36 +85,36 @@ export default function CommandPalette({
   ).slice(0, 4);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-start justify-center pt-16 md:pt-24 px-4 animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-16 md:pt-24 px-4 animate-fadeIn">
       <div 
-        className="w-full max-w-2xl glass-panel rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[80vh] border border-white/20"
+        className="w-full max-w-2xl kuldeep-card shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 border-b border-white/10 bg-black/40">
-          <Search className="w-5 h-5 text-zinc-400 mr-3" />
+        <div className="flex items-center px-4 border-b border-white/[0.08] bg-white/[0.02]">
+          <Search className="w-4 h-4 text-[#9496a1] mr-3" />
           <input 
             type="text" 
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Type to quick search features, goals, habits... (Ctrl + K)"
-            className="w-full py-4 bg-transparent text-white font-mono placeholder-zinc-500 focus:outline-none text-sm md:text-base"
+            placeholder="Search actions, tasks, habits... (⌘K)"
+            className="w-full py-3.5 bg-transparent text-white font-sans placeholder-zinc-500 focus:outline-none text-xs md:text-sm"
           />
           <button 
             onClick={onClose}
-            className="p-1 text-zinc-400 hover:text-white glass-button rounded-none"
+            className="p-1 text-[#9496a1] hover:text-white rounded-full"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Search Results / Actions List */}
-        <div className="p-3 overflow-y-auto space-y-4 text-zinc-200 text-sm font-mono">
+        <div className="p-3 overflow-y-auto space-y-4 text-xs font-sans">
           {/* Navigation Section */}
           <div>
-            <span className="text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider px-3 mb-1 block">
-              QUICK NAVIGATION
+            <span className="text-[10px] text-[#9496a1] font-semibold px-3 mb-1 block">
+              Navigation
             </span>
             <div className="space-y-1">
               {filteredNav.map(item => {

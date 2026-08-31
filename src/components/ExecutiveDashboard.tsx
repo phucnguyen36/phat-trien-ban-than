@@ -106,7 +106,7 @@ export default function ExecutiveDashboard({
         </h1>
 
         <p className="text-sm md:text-base text-[#9496a1] max-w-2xl font-normal leading-relaxed">
-          Tactical roadmaps, daily habit consistency, and disciplined capital management built for peak performance.
+          Clear roadmaps, daily habit consistency, and disciplined cash flow tracking.
         </p>
 
         {/* 3 Metric Pillars (Thomas Nguyen Standard) */}

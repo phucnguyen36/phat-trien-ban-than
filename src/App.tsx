@@ -287,8 +287,8 @@ export default function App() {
     }
     return {
       name: 'Xuan Phuc',
-      role: 'Master Product Architect',
-      bio: 'Crafting high-impact systems, optimizing peak performance, and expanding financial autonomy.',
+      role: 'Creative Director & Designer',
+      bio: 'Focus, clean aesthetics, and deliberate consistency.',
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
     };
   });
@@ -799,46 +799,46 @@ export default function App() {
   const handleSeedDemoData = async () => {
     setIsLoading(true);
     const demoGoals: GoalTodo[] = [
-      { id: 'g1', text: '[D:2026-07-24] Execute Dark Frosted Glassmorphism UI Overhaul', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 * 3 },
-      { id: 'g2', text: '[D:2026-07-24] Finalize Executive Growth Telemetry Presentation', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 * 2 },
-      { id: 'g3', text: '[D:2026-07-24] Review Q3 Strategic Financial Allocation & Cashflow', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 },
-      { id: 'g4', text: '[D:2026-07-24] Conduct 30-min Meditative Peak Focus Session', timeframe: 'daily', completed: false, createdAt: Date.now() },
-      { id: 'g5', text: '[W:2026-07-W3] Scale System Ingress Infrastructure to 10k Licenses', timeframe: 'weekly', completed: true, createdAt: Date.now() - 86400000 * 5 },
-      { id: 'g6', text: '[W:2026-07-W3] Audit Personal Asset Portfolio & Capital Ledger', timeframe: 'weekly', completed: true, createdAt: Date.now() - 86400000 * 4 },
-      { id: 'g7', text: '[M:2026-07] Launch Deep Focus OS v5.0 Master Product Ingress', timeframe: 'monthly', completed: true, createdAt: Date.now() - 86400000 * 10 },
-      { id: 'g8', text: '[M:2026-07] Expand International Client License Distribution Network', timeframe: 'monthly', completed: false, createdAt: Date.now() - 86400000 * 8 },
-      { id: 'g9', text: '[Y:2026] Achieve 100% Personal Autonomy & Systems Mastery', timeframe: 'yearly', completed: true, createdAt: Date.now() - 86400000 * 30 },
-      { id: 'g10', text: '[Y:2026] Build High-Impact AI Automation Funnels', timeframe: 'yearly', completed: true, createdAt: Date.now() - 86400000 * 25 }
+      { id: 'g1', text: 'Complete visual polish and design system alignment', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 * 3 },
+      { id: 'g2', text: 'Review customer access links and active subscriptions', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 * 2 },
+      { id: 'g3', text: 'Review monthly cash flow and expense ledger', timeframe: 'daily', completed: true, createdAt: Date.now() - 86400000 },
+      { id: 'g4', text: 'Conduct 30-minute mindfulness & focus session', timeframe: 'daily', completed: false, createdAt: Date.now() },
+      { id: 'g5', text: 'Scale cloud storage sync infrastructure', timeframe: 'weekly', completed: true, createdAt: Date.now() - 86400000 * 5 },
+      { id: 'g6', text: 'Audit monthly capital allocations', timeframe: 'weekly', completed: true, createdAt: Date.now() - 86400000 * 4 },
+      { id: 'g7', text: 'Deliver 4K master project assets', timeframe: 'monthly', completed: true, createdAt: Date.now() - 86400000 * 10 },
+      { id: 'g8', text: 'Onboard 3 new client accounts', timeframe: 'monthly', completed: false, createdAt: Date.now() - 86400000 * 8 },
+      { id: 'g9', text: 'Build sustainable creative workflow routines', timeframe: 'yearly', completed: true, createdAt: Date.now() - 86400000 * 30 },
+      { id: 'g10', text: 'Maintain consistent 100km monthly cardio routine', timeframe: 'yearly', completed: true, createdAt: Date.now() - 86400000 * 25 }
     ];
 
     const demoHabits: HabitData[] = [
-      { id: 'h1', habitName: '5:30 AM Peak Protocol & Hydration', monthYear: '2026-07', completedDays: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] },
-      { id: 'h2', habitName: '2-Hour Uninterrupted Deep Work Block', monthYear: '2026-07', completedDays: [1,2,3,4,5,7,8,9,10,11,12,14,15,16,17,18,19,21,22,23,24] },
-      { id: 'h3', habitName: 'Zone-2 Physical Cardio / Gym Session', monthYear: '2026-07', completedDays: [2,4,6,8,10,12,14,16,18,20,22,24] },
-      { id: 'h4', habitName: 'Daily Journal & Energy Telemetry Log', monthYear: '2026-07', completedDays: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] },
-      { id: 'h5', habitName: 'Zero Processed Sugar & High Protein Diet', monthYear: '2026-07', completedDays: [1,3,4,5,6,7,8,9,11,12,13,14,15,16,18,19,20,21,22,23,24] }
+      { id: 'h1', habitName: 'Morning Planning & Water', monthYear: '2026-07', completedDays: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] },
+      { id: 'h2', habitName: '2-Hour Deep Work Block', monthYear: '2026-07', completedDays: [1,2,3,4,5,7,8,9,10,11,12,14,15,16,17,18,19,21,22,23,24] },
+      { id: 'h3', habitName: 'Cardio / Workout Session', monthYear: '2026-07', completedDays: [2,4,6,8,10,12,14,16,18,20,22,24] },
+      { id: 'h4', habitName: 'Daily Journal & Reflection', monthYear: '2026-07', completedDays: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24] },
+      { id: 'h5', habitName: 'Reading & Synthesis (30m)', monthYear: '2026-07', completedDays: [1,3,4,5,6,7,8,9,11,12,13,14,15,16,18,19,20,21,22,23,24] }
     ];
 
     const demoJournal: DailyJournal[] = [
-      { id: '2026-07-24', energy: 5, text: 'Peak clarity today. Completed the Dark Frosted Glassmorphism UI overhaul. Systems are running smoothly.', updatedAt: Date.now() },
-      { id: '2026-07-23', energy: 5, text: 'Great progress on product funnel and commercial licensing. High focus velocity throughout the afternoon.', updatedAt: Date.now() - 86400000 },
-      { id: '2026-07-22', energy: 4, text: 'Solid strategic planning session. Financial cashflow ledger audited and optimized.', updatedAt: Date.now() - 86400000 * 2 },
-      { id: '2026-07-21', energy: 4, text: 'Consistent execution on habit streaks. 2-hour deep work block completed uninterrupted.', updatedAt: Date.now() - 86400000 * 3 },
-      { id: '2026-07-20', energy: 5, text: 'High energy output. Expanded commercial license architecture for client deployments.', updatedAt: Date.now() - 86400000 * 4 },
-      { id: '2026-07-19', energy: 3, text: 'Sunday reflection and strategic roadmap review. Refueled for upcoming high-intensity week.', updatedAt: Date.now() - 86400000 * 5 },
-      { id: '2026-07-18', energy: 4, text: 'Cardio session and mental reset. Re-calibrated weekly priorities.', updatedAt: Date.now() - 86400000 * 6 }
+      { id: '2026-07-24', energy: 5, text: 'Great focus session today. Completed the Swiss UI overhaul. System running smoothly.', updatedAt: Date.now() },
+      { id: '2026-07-23', energy: 5, text: 'Strong client delivery turnaround. Clear communication and fast approvals.', updatedAt: Date.now() - 86400000 },
+      { id: '2026-07-22', energy: 4, text: 'Financial ledger reconciled. Expenses and savings are balanced.', updatedAt: Date.now() - 86400000 * 2 },
+      { id: '2026-07-21', energy: 4, text: 'Completed 2-hour uninterrupted deep work session.', updatedAt: Date.now() - 86400000 * 3 },
+      { id: '2026-07-20', energy: 5, text: 'Solid productivity day. Clean workspace and organized notes.', updatedAt: Date.now() - 86400000 * 4 },
+      { id: '2026-07-19', energy: 3, text: 'Sunday weekly review and reset. Set priorities for the coming week.', updatedAt: Date.now() - 86400000 * 5 },
+      { id: '2026-07-18', energy: 4, text: 'Cardio session and reset. Good stamina throughout the day.', updatedAt: Date.now() - 86400000 * 6 }
     ];
 
     const demoExpenses: PersonalExpense[] = [
-      { id: 'e1', date: '2026-07-24', amount: -180000, category: 'Eating', note: 'Executive Team Lunch' },
-      { id: 'e2', date: '2026-07-23', amount: -1250000, category: 'Study/Equipment', note: 'High-Performance Monitor Arm & Ergonomic Gear' },
-      { id: 'e3', date: '2026-07-22', amount: -350000, category: 'Transport', note: 'Fuel & Commute Service' },
-      { id: 'e4', date: '2026-07-20', amount: -450000, category: 'Entertainment', note: 'Books & Audible Subscription' },
-      { id: 'e5', date: '2026-07-18', amount: -220000, category: 'Eating', note: 'Nutrition & Organic Groceries' },
-      { id: 'e6', date: '2026-07-15', amount: -890000, category: 'Study/Equipment', note: 'Cloud Server Ingress Hosting Fee' }
+      { id: 'e1', date: '2026-07-24', amount: -180000, category: 'Eating', note: 'Team Lunch & Coffee' },
+      { id: 'e2', date: '2026-07-23', amount: -1250000, category: 'Study/Equipment', note: 'Monitor Arm & Desk Setup' },
+      { id: 'e3', date: '2026-07-22', amount: -350000, category: 'Transport', note: 'Transit Pass Reload' },
+      { id: 'e4', date: '2026-07-20', amount: -450000, category: 'Entertainment', note: 'Books & Learning Subscriptions' },
+      { id: 'e5', date: '2026-07-18', amount: -220000, category: 'Eating', note: 'Groceries & Nutrition' },
+      { id: 'e6', date: '2026-07-15', amount: -890000, category: 'Study/Equipment', note: 'Cloud Server & Domain Hosting' }
     ];
 
-    const demoScratchpad = `# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\n1. CORE PRINCIPLE: Simplicity + High Visual Elegance (Dark Frosted Glassmorphism).\n2. COMMERCIAL DISTRIBUTION:\n   - License Tier Standard ($49 Lifetime)\n   - License Tier VIP Coaching ($149 System Integration)\n3. DAILY FOCUS PROTOCOL:\n   - Block 1 (08:00 - 11:00): Core Systems Architecture & Product Code\n   - Block 2 (13:00 - 15:30): Growth Funnels & Marketing Ingress\n   - Block 3 (16:30 - 18:00): Physical Training & Reflection Telemetry`;
+    const demoScratchpad = `# Focus & Strategic Notes\n\n- Priority 1: Maintain 4-hour daily uninterrupted deep work sessions.\n- Priority 2: Optimize personal cash flow and monthly expense allocations.\n- Priority 3: Target 100km+ monthly outdoor cardio and fitness routine.\n\n## Ideas & Quick References\n- Clean architecture and minimal Swiss typography create maximum focus density.\n- Schedule weekly review every Sunday evening to calibrate roadmap.`;
 
     const activeEmail = currentUser?.email;
     localStorage.setItem(`df_goals_todo_${activeEmail}`, JSON.stringify(demoGoals));

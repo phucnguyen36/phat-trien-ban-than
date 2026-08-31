@@ -47,7 +47,11 @@ export default function Scratchpad({
   const [filterTag, setFilterTag] = useState<'#idea' | '#todo' | '#reference' | ''>('');
 
   useEffect(() => {
-    setText(initialText || '');
+    let clean = initialText || '';
+    if (clean.includes('EXECUTIVE STRATEGY') || clean.includes('DEEP FOCUS INTEGRATED OS')) {
+      clean = `# Focus & Strategic Notes\n\n- Priority 1: Maintain 4-hour daily uninterrupted deep work sessions.\n- Priority 2: Optimize personal cash flow and monthly expense allocations.\n- Priority 3: Target 100km+ monthly outdoor cardio and fitness routine.\n\n## Ideas & Quick References\n- Clean architecture and minimal Swiss typography create maximum focus density.\n- Schedule weekly review every Sunday evening to calibrate roadmap.`;
+    }
+    setText(clean);
   }, [initialText]);
 
   // Load archived snapshots from localStorage

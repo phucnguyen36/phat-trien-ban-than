@@ -166,11 +166,20 @@ export function loadFromLocalStorage(userId?: string) {
   const savedExpenses = getStorageItem('df_personal_expenses');
   const savedScratchpad = getStorageItem('df_quick_scratchpad');
 
-  const goals: GoalTodo[] = savedGoals ? JSON.parse(savedGoals) : [];
-  const habits: HabitData[] = savedHabits ? JSON.parse(savedHabits) : [];
-  const journal: DailyJournal[] = savedJournal ? JSON.parse(savedJournal) : [];
-  const expenses: PersonalExpense[] = savedExpenses ? JSON.parse(savedExpenses) : [];
-  const scratchpad: string = savedScratchpad || '# EXECUTIVE STRATEGY & BREAKTHROUGH SYSTEM\n\nStart typing notes for this account...';
+  const cleanDefaultScratchpad = `# Focus & Strategic Notes
+
+- Priority 1: Maintain 4-hour daily uninterrupted deep work sessions.
+- Priority 2: Optimize personal cash flow and monthly expense allocations.
+- Priority 3: Target 100km+ monthly outdoor cardio and fitness routine.
+
+## Ideas & Quick References
+- Clean architecture and minimal Swiss typography create maximum focus density.
+- Schedule weekly review every Sunday evening to calibrate roadmap.`;
+
+  let scratchpad: string = savedScratchpad || cleanDefaultScratchpad;
+  if (scratchpad.includes('EXECUTIVE STRATEGY') || scratchpad.includes('DEEP FOCUS INTEGRATED OS')) {
+    scratchpad = cleanDefaultScratchpad;
+  }
 
   // Automatically cache to standardized key
   if (savedGoals && !localStorage.getItem(`df_goals_todo_${uid}`)) {

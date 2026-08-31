@@ -141,20 +141,17 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
           >
             {/* Top Brand Banner */}
             <div className="text-center space-y-2">
-              <span className="text-[9px] font-mono tracking-[0.25em] text-zinc-400 uppercase block font-bold">
-                DEEP FOCUS SYSTEM INGRESS • v5.0
-              </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold font-mono uppercase tracking-tight text-white">
-                Deep Focus OS
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">
+                Deep Focus
               </h1>
-              <p className="text-xs font-sans text-zinc-300">
-                Executive Personal Growth & Performance System
+              <p className="text-xs text-[#9496a1]">
+                Personal productivity & focus toolkit
               </p>
             </div>
 
             {/* Success Notice */}
             {successNotice && (
-              <div className="p-3 bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 text-xs font-mono flex items-center gap-2 animate-fadeIn rounded-xl">
+              <div className="p-3 bg-emerald-500/10 border border-emerald-400/20 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn rounded-xl">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
                 <span>{successNotice}</span>
               </div>
@@ -162,23 +159,23 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-3 glass-card-true border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2 animate-fadeIn rounded-xl">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2 animate-fadeIn rounded-xl">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {/* Login Form */}
-            <form onSubmit={handleLogin} className="space-y-4 text-xs font-mono">
+            <form onSubmit={handleLogin} className="space-y-4 text-xs font-sans">
               <div className="space-y-1">
-                <label className="text-zinc-300 uppercase tracking-widest text-[10px] font-bold">LOGIN EMAIL:</label>
+                <label className="text-[#9496a1] text-xs font-medium">Email address:</label>
                 <div className="relative">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@domain.com"
-                    className="w-full glass-input-true py-3 pl-9 pr-3 rounded-xl font-sans text-white"
+                    className="w-full glass-input-true py-2.5 pl-9 pr-3 rounded-lg text-white"
                     autoFocus
                   />
                   <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -186,14 +183,14 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-zinc-300 uppercase tracking-widest text-[10px] font-bold">ACCESS KEY PASSWORD:</label>
+                <label className="text-[#9496a1] text-xs font-medium">Password:</label>
                 <div className="relative">
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full glass-input-true py-3 pl-9 pr-3 rounded-xl font-mono text-white"
+                    className="w-full glass-input-true py-2.5 pl-9 pr-3 rounded-lg font-mono text-white"
                   />
                   <Key className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
@@ -202,16 +199,16 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 glass-button-true text-white font-mono text-xs uppercase tracking-widest font-extrabold flex items-center justify-center gap-2 transition-all shadow-xl active:scale-98 rounded-xl disabled:opacity-50 cursor-pointer"
+                className="w-full py-3 btn-primary-cyan text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 rounded-full disabled:opacity-50 cursor-pointer"
               >
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>AUTHENTICATING...</span>
+                    <span>Signing in...</span>
                   </>
                 ) : (
                   <>
-                    <span>CONFIRM SYSTEM INGRESS</span>
+                    <span>Sign in</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -219,8 +216,8 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
             </form>
 
             {/* Footer Copyright */}
-            <div className="text-center text-[10px] font-mono text-zinc-500 tracking-widest uppercase pt-2">
-              Xuan Phuc © 2026 • Executive Product OS
+            <div className="text-center text-xs text-[#9496a1] pt-2">
+              Deep Focus • Studio Edition
             </div>
           </motion.div>
         </motion.div>

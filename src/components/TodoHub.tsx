@@ -876,38 +876,37 @@ export default function TodoHub({
         </>
       ) : viewMode === 'table' ? (
         /* Notion Database Table View Mode */
-        <div className="glass-panel-true border border-white/15 overflow-x-auto p-4 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/10">
+        <div className="glass-panel-true border border-white/15">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
-              <Table className="w-4 h-4 text-zinc-300" />
-              <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                DATABASE MATRIX • {filteredGoals.length} OBJECTIVES
+              <Table className="w-4 h-4 text-[#1591DC]" />
+              <span className="text-sm font-semibold text-white">
+                Tasks Database ({filteredGoals.length})
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-              <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white font-bold">FULL DATABASE VIEW</span>
-              <span>Click any row to open Task Side Panel & Sub-tasks</span>
+            <div className="flex items-center gap-2 text-xs text-[#9496a1]">
+              <span>Click any row to open task details and sub-tasks</span>
             </div>
           </div>
 
-          <table className="w-full text-left border-collapse min-w-[900px]">
+          <table className="w-full text-left border-collapse min-w-[900px] font-sans">
             <thead>
-              <tr className="border-b border-white/10 text-[10px] font-mono text-zinc-400 uppercase tracking-widest bg-white/[0.03]">
-                <th className="py-2.5 px-3 w-16 text-center">Done?</th>
-                <th className="py-2.5 px-3">Task Name</th>
-                <th className="py-2.5 px-3 w-28">Timeframe</th>
-                <th className="py-2.5 px-3 w-28">Sub-tasks</th>
-                <th className="py-2.5 px-3 w-24">Time Est</th>
-                <th className="py-2.5 px-3 w-32">Priority</th>
-                <th className="py-2.5 px-3 w-32">Context Tag</th>
-                <th className="py-2.5 px-3 w-32">Actions</th>
+              <tr className="border-b border-white/[0.08] text-xs text-[#9496a1] bg-white/[0.02]">
+                <th className="py-2.5 px-3 w-16 text-center font-medium">Status</th>
+                <th className="py-2.5 px-3 font-medium">Task Name</th>
+                <th className="py-2.5 px-3 w-28 font-medium">Timeframe</th>
+                <th className="py-2.5 px-3 w-28 font-medium">Sub-tasks</th>
+                <th className="py-2.5 px-3 w-24 font-medium">Time Est</th>
+                <th className="py-2.5 px-3 w-32 font-medium">Priority</th>
+                <th className="py-2.5 px-3 w-32 font-medium">Context Tag</th>
+                <th className="py-2.5 px-3 w-32 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-xs font-sans">
+            <tbody className="divide-y divide-white/[0.04] text-xs text-[#ededf3]">
               {filteredGoals.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-zinc-500 font-mono text-xs uppercase tracking-widest">
-                    No objectives in active filter view. Add a new objective above or switch context.
+                  <td colSpan={8} className="text-center py-10 text-[#9496a1] text-xs">
+                    No tasks in active view. Add a new task above.
                   </td>
                 </tr>
               ) : (
@@ -918,90 +917,89 @@ export default function TodoHub({
                   const prio = g.priority || 'Medium';
                   
                   const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : prio === 'High' ? 'bg-red-500/20 text-red-300 border-red-500/40'
-                    : prio === 'Low' ? 'bg-zinc-500/20 text-zinc-400 border-zinc-500/40'
-                    : 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+                    : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                    : prio === 'Medium' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-700';
 
                   return (
                     <tr 
                       key={g.id} 
-                      className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
                       onClick={() => setActivePanelGoalId(g.id)}
+                      className={`hover:bg-white/[0.03] transition-colors cursor-pointer group ${g.completed ? 'opacity-50' : ''}`}
                     >
-                      <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <button
                           type="button"
-                          onClick={() => onToggleGoal(g.id, !g.completed)}
-                          className="text-zinc-400 hover:text-white transition-colors"
+                          onClick={() => handleToggle(g.id, !g.completed)}
+                          className={`transition-transform active:scale-90 ${g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
                         >
-                          {g.completed ? (
-                            <CheckSquare className="w-4 h-4 text-emerald-400" />
-                          ) : (
-                            <Square className="w-4 h-4 text-zinc-500" />
-                          )}
+                          {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
                         </button>
                       </td>
 
                       <td className="py-3 px-3 font-medium text-white">
                         <div className="flex items-center gap-2">
-                          <span className={g.completed ? 'line-through text-zinc-500' : 'text-zinc-100'}>
-                            {getDisplayGoalText(g.text)}
+                          <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
+                            {g.text}
                           </span>
-                          {g.notes && (
-                            <FileText className="w-3 h-3 text-amber-400/80 inline shrink-0" title="Has Notes" />
+                          {g.timeEstimate && estMeta && (
+                            <span className="text-[10px] text-[#9496a1] flex items-center gap-1 font-mono">
+                              <Clock className="w-3 h-3 text-[#9496a1]" />
+                              {estMeta.label}
+                            </span>
                           )}
                         </div>
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-[10px] uppercase font-bold text-zinc-300">
-                        <span className="bg-white/10 px-2 py-0.5 rounded border border-white/10">
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/[0.06] text-[#ededf3]">
                           {g.timeframe}
                         </span>
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-[10px]">
+                      <td className="py-3 px-3 font-mono text-[11px] text-[#9496a1]">
                         {subCount > 0 ? (
-                          <span className="text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
-                            {subDone}/{subCount} Done ({Math.round((subDone/subCount)*100)}%)
+                          <span className={`px-2 py-0.5 rounded-full ${subDone === subCount ? 'text-emerald-400 bg-emerald-500/10' : 'text-[#9496a1]'}`}>
+                            {subDone}/{subCount}
                           </span>
                         ) : (
-                          <span className="text-zinc-600 font-mono">-</span>
+                          <span className="opacity-40">-</span>
                         )}
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-[10px]">
-                        {estMeta ? (
-                          <span className={`${estMeta.color} font-bold`}>⏱ {estMeta.label}</span>
-                        ) : (
-                          <span className="text-zinc-600">-</span>
-                        )}
+                      <td className="py-3 px-3 font-mono text-[11px] text-[#9496a1]">
+                        {estMeta ? estMeta.label : '-'}
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-[10px]">
-                        <span className={`px-2 py-0.5 rounded border font-bold uppercase ${prioColor}`}>
+                      <td className="py-3 px-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
                           {prio}
                         </span>
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-[10px] text-zinc-300">
-                        {g.contextTag ? (
-                          <span className="bg-sky-500/10 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded font-bold">
-                            {g.contextTag}
-                          </span>
-                        ) : (
-                          <span className="text-zinc-600">-</span>
-                        )}
+                      <td className="py-3 px-3 text-[#9496a1] text-xs">
+                        {g.contextTag || '-'}
                       </td>
 
-                      <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => setActivePanelGoalId(g.id)}
-                          className="px-2.5 py-1 glass-button-true text-zinc-300 hover:text-white text-[10px] font-mono font-bold flex items-center gap-1.5 rounded-lg"
-                        >
-                          <PanelRightOpen className="w-3.5 h-3.5 text-zinc-400" />
-                          <span>OPEN PANEL</span>
-                        </button>
+                      <td className="py-3 px-3" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setActivePanelGoalId(g.id)}
+                            className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded"
+                            title="Task Details & Sub-tasks"
+                          >
+                            <SlidersHorizontal className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(g.id)}
+                            className="p-1 text-[#9496a1] hover:text-red-400 glass-button-true rounded"
+                            title="Delete Task"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1013,13 +1011,13 @@ export default function TodoHub({
       ) : (
         /* Calendar View Mode */
         <div className="space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 glass-card-true">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 glass-card-true rounded-2xl">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-sky-300 font-extrabold block">
-                MONTHLY CALENDAR MATRIX • {monthNameStr} {selectedYear}
+              <span className="text-sm font-semibold text-white block">
+                Calendar • {monthNameStr} {selectedYear}
               </span>
-              <span className="text-[10px] font-mono text-zinc-300">
-                Click any day to view or add daily objectives
+              <span className="text-xs text-[#9496a1]">
+                Select any date to view or add daily tasks
               </span>
             </div>
 
@@ -1028,22 +1026,22 @@ export default function TodoHub({
                 type="text"
                 value={calendarInputText}
                 onChange={(e) => setCalendarInputText(e.target.value)}
-                placeholder={`Add objective for Day ${selectedDay}...`}
-                className="w-full md:w-72 glass-input-true px-3 py-2 text-xs text-white"
+                placeholder={`Add task for Day ${selectedDay}...`}
+                className="w-full md:w-72 glass-input-true px-3 py-2 text-xs text-white rounded-lg"
               />
               <button
                 type="submit"
-                className="px-4 py-2 glass-button-true text-xs uppercase tracking-widest font-bold text-white flex items-center gap-1"
+                className="px-4 py-2 btn-primary-cyan text-xs font-semibold flex items-center gap-1 shrink-0"
               >
                 <Plus className="w-4 h-4" />
-                <span>ADD</span>
+                <span>Add</span>
               </button>
             </form>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-mono font-bold uppercase text-zinc-300">
-            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-              <div key={d} className="p-2 glass-pill-true">{d}</div>
+          <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-[#9496a1]">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+              <div key={d} className="p-2 glass-pill-true text-xs">{d}</div>
             ))}
           </div>
 
@@ -1119,10 +1117,10 @@ export default function TodoHub({
               ].map(s => {
                 const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 return (
-                  <div key={s.label} className="p-4 glass-card-true border border-white/10 rounded-2xl text-center space-y-1">
-                    <div className={`text-3xl font-black font-mono ${s.color}`}>{pct}%</div>
-                    <div className="text-xs font-semibold text-white uppercase tracking-wider">{s.label}</div>
-                    <div className="text-[10px] text-zinc-400 font-mono">{s.done} completed / {s.total} total</div>
+                  <div key={s.label} className="p-4 glass-card-true rounded-2xl text-center space-y-1">
+                    <div className={`text-3xl font-bold font-mono ${s.color}`}>{pct}%</div>
+                    <div className="text-xs font-semibold text-white">{s.label}</div>
+                    <div className="text-xs text-[#9496a1]">{s.done} completed / {s.total} total</div>
                   </div>
                 );
               });
@@ -1130,10 +1128,10 @@ export default function TodoHub({
           </div>
 
           {/* Bar Chart: Target Completion Velocity */}
-          <div className="glass-card-true p-6 border border-white/10 rounded-2xl space-y-4">
-            <h3 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-widest flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-zinc-300" />
-              <span>Target Velocity Dashboard (Completion rate by Tier)</span>
+          <div className="glass-card-true p-6 rounded-2xl space-y-4">
+            <h3 className="text-xs font-semibold text-white flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-[#1591DC]" />
+              <span>Completion Rate by Timeframe</span>
             </h3>
             <div className="h-64 relative">
               <Bar 
@@ -1148,8 +1146,8 @@ export default function TodoHub({
                         goals.filter(g => g.timeframe === 'monthly' && g.completed).length,
                         goals.filter(g => g.timeframe === 'yearly' && g.completed).length,
                       ],
-                      backgroundColor: 'rgba(167, 139, 250, 0.7)',
-                      borderColor: '#a78bfa',
+                      backgroundColor: 'rgba(21, 145, 220, 0.7)',
+                      borderColor: '#1591DC',
                       borderWidth: 1,
                     },
                     {
@@ -1160,8 +1158,8 @@ export default function TodoHub({
                         goals.filter(g => g.timeframe === 'monthly' && !g.completed).length,
                         goals.filter(g => g.timeframe === 'yearly' && !g.completed).length,
                       ],
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      borderColor: 'rgba(255, 255, 255, 0.15)',
                       borderWidth: 1,
                     }
                   ]
@@ -1170,11 +1168,11 @@ export default function TodoHub({
                   responsive: true,
                   maintainAspectRatio: false,
                   plugins: {
-                    legend: { labels: { color: '#e4e4e7', font: { family: 'Inter', size: 10 } } }
+                    legend: { labels: { color: '#e4e4e7', font: { family: 'Plus Jakarta Sans', size: 11 } } }
                   },
                   scales: {
-                    x: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } }, grid: { display: false } },
-                    y: { ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    x: { ticks: { color: '#9496a1', font: { family: 'Plus Jakarta Sans', size: 11 } }, grid: { display: false } },
+                    y: { ticks: { color: '#9496a1', font: { family: 'Plus Jakarta Sans', size: 11 } }, grid: { color: 'rgba(255, 255, 255, 0.06)' } }
                   }
                 }} 
               />
@@ -1182,10 +1180,10 @@ export default function TodoHub({
           </div>
 
           {/* Weekly Reflection Questions */}
-          <div className="glass-card-true p-6 border border-white/10 rounded-2xl space-y-4">
-            <h3 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-widest flex items-center gap-2">
-              <Zap className="w-4 h-4 text-zinc-300" />
-              <span>Weekly & Monthly Review Reflections</span>
+          <div className="glass-card-true p-6 rounded-2xl space-y-4">
+            <h3 className="text-xs font-semibold text-white flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#1591DC]" />
+              <span>Weekly Reflections</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1221,30 +1219,30 @@ export default function TodoHub({
         <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm transition-opacity">
           <div className="flex-1" onClick={() => setActivePanelGoalId(null)} />
 
-          <div className="w-full max-w-xl bg-[#09090b] border-l border-white/15 h-full overflow-y-auto p-6 md:p-8 flex flex-col justify-between shadow-2xl relative">
+          <div className="w-full max-w-xl bg-[#0e1017] border-l border-white/[0.08] h-full overflow-y-auto p-6 md:p-8 flex flex-col justify-between shadow-2xl relative font-sans">
             <div>
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+              <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/[0.08]">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-amber-400" />
-                  <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
-                    TASK SPECIFICATION & SUB-TASKS
+                  <FileText className="w-4 h-4 text-[#1591DC]" />
+                  <span className="text-xs font-semibold text-white">
+                    Task details & sub-tasks
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActivePanelGoalId(null)}
-                  className="p-1.5 rounded-lg glass-button-true text-zinc-400 hover:text-white transition-colors"
+                  className="p-1.5 rounded-full hover:bg-white/[0.06] text-[#9496a1] hover:text-white transition-colors"
                   title="Close Side Panel"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Task Title Input */}
               <div className="mb-6">
-                <label className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest font-bold block mb-1">
-                  TASK OBJECTIVE TITLE
+                <label className="text-xs text-[#9496a1] font-medium block mb-1.5">
+                  Task title
                 </label>
                 <input
                   type="text"
@@ -1254,35 +1252,35 @@ export default function TodoHub({
                     const prefix = match ? match[1] : '';
                     handleUpdateProperty(activePanelGoal, 'text', prefix + e.target.value);
                   }}
-                  className="w-full bg-white/[0.04] border border-white/15 focus:border-amber-400/80 px-3.5 py-2.5 text-base md:text-lg font-bold text-white focus:outline-none rounded-xl transition-colors"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] px-3.5 py-2.5 text-base font-semibold text-white focus:outline-none rounded-xl transition-colors"
                   placeholder="Enter task title..."
                 />
               </div>
 
               {/* Properties Grid */}
-              <div className="grid grid-cols-2 gap-3 mb-8 p-4 glass-card-true border border-white/10 rounded-xl">
+              <div className="grid grid-cols-2 gap-3 mb-8 p-4 glass-card-true rounded-xl">
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">STATUS</span>
+                  <span className="text-xs text-[#9496a1] font-medium block mb-1.5">Status</span>
                   <button
                     type="button"
                     onClick={() => onToggleGoal(activePanelGoal.id, !activePanelGoal.completed)}
-                    className={`w-full py-1.5 px-3 rounded-lg text-xs font-mono font-bold flex items-center justify-center gap-2 border transition-all ${
+                    className={`w-full py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border transition-all ${
                       activePanelGoal.completed
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                        : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-zinc-500'
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        : 'bg-white/[0.04] text-[#ededf3] border-white/[0.08] hover:border-white/20'
                     }`}
                   >
-                    {activePanelGoal.completed ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-zinc-400" />}
-                    <span>{activePanelGoal.completed ? 'COMPLETED' : 'IN PROGRESS'}</span>
+                    {activePanelGoal.completed ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-[#9496a1]" />}
+                    <span>{activePanelGoal.completed ? 'Completed' : 'In progress'}</span>
                   </button>
                 </div>
 
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">TIMEFRAME</span>
+                  <span className="text-xs text-[#9496a1] font-medium block mb-1.5">Timeframe</span>
                   <select
                     value={activePanelGoal.timeframe}
                     onChange={(e) => handleUpdateProperty(activePanelGoal, 'timeframe', e.target.value as TimeframeType)}
-                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer uppercase font-bold"
+                    className="w-full bg-[#12141a] border border-white/[0.08] text-xs text-white p-2 rounded-lg focus:outline-none cursor-pointer"
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -1292,11 +1290,11 @@ export default function TodoHub({
                 </div>
 
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">PRIORITY</span>
+                  <span className="text-xs text-[#9496a1] font-medium block mb-1.5">Priority</span>
                   <select
                     value={activePanelGoal.priority || 'Medium'}
                     onChange={(e) => handleUpdateProperty(activePanelGoal, 'priority', e.target.value)}
-                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer font-bold"
+                    className="w-full bg-[#12141a] border border-white/[0.08] text-xs text-white p-2 rounded-lg focus:outline-none cursor-pointer"
                   >
                     <option value="The One Thing">🔥 The One Thing</option>
                     <option value="High">🔴 High Priority</option>
@@ -1307,61 +1305,61 @@ export default function TodoHub({
                 </div>
 
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">ESTIMATED TIME</span>
+                  <span className="text-xs text-[#9496a1] font-medium block mb-1.5">Estimated time</span>
                   <select
                     value={activePanelGoal.timeEstimate || ''}
                     onChange={(e) => handleUpdateProperty(activePanelGoal, 'timeEstimate', e.target.value || undefined)}
-                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer font-bold"
+                    className="w-full bg-[#12141a] border border-white/[0.08] text-xs text-white p-2 rounded-lg focus:outline-none cursor-pointer"
                   >
                     <option value="">No estimate</option>
-                    <option value="15m">⏱ 15 Minutes</option>
-                    <option value="30m">⏱ 30 Minutes</option>
-                    <option value="1h">⏱ 1 Hour</option>
-                    <option value="2h">⏱ 2 Hours</option>
-                    <option value="half-day">⏱ Half Day</option>
+                    <option value="15m">15 Minutes</option>
+                    <option value="30m">30 Minutes</option>
+                    <option value="1h">1 Hour</option>
+                    <option value="2h">2 Hours</option>
+                    <option value="half-day">Half Day</option>
                   </select>
                 </div>
 
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">CONTEXT TAG</span>
+                  <span className="text-xs text-[#9496a1] font-medium block mb-1.5">Context tag</span>
                   <input
                     type="text"
                     value={activePanelGoal.contextTag || ''}
                     onChange={(e) => handleUpdateProperty(activePanelGoal, 'contextTag', e.target.value)}
-                    placeholder="e.g. Productivity, Editing..."
-                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none"
+                    placeholder="e.g. Design, Video..."
+                    className="w-full bg-[#12141a] border border-white/[0.08] text-xs text-white p-2 rounded-lg focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold block mb-1">DEADLINE</span>
+                  <span className="text-xs text-[#9496a1] font-medium block mb-1.5">Deadline</span>
                   <input
                     type="date"
                     value={activePanelGoal.deadline || ''}
                     onChange={(e) => handleUpdateProperty(activePanelGoal, 'deadline', e.target.value)}
-                    className="w-full bg-zinc-900 border border-white/10 text-xs font-mono text-white p-2 rounded-lg focus:outline-none cursor-pointer"
+                    className="w-full bg-[#12141a] border border-white/[0.08] text-xs text-white p-2 rounded-lg focus:outline-none cursor-pointer"
                   />
                 </div>
               </div>
 
               {/* Sub-tasks Module */}
-              <div className="mb-8 p-5 glass-panel-true border border-white/15 rounded-2xl">
+              <div className="mb-8 p-5 glass-panel-true border border-white/[0.08] rounded-2xl">
                 <div className="flex justify-between items-center mb-3">
                   <div className="flex items-center gap-2">
                     <ListChecks className="w-4 h-4 text-emerald-400" />
-                    <h4 className="text-xs font-mono font-extrabold text-white uppercase tracking-wider">
-                      SUB-TASKS & CHECKLIST ({(activePanelGoal.subTasks || []).filter(s => s.completed).length}/{(activePanelGoal.subTasks || []).length})
+                    <h4 className="text-xs font-semibold text-white">
+                      Sub-tasks ({(activePanelGoal.subTasks || []).filter(s => s.completed).length}/{(activePanelGoal.subTasks || []).length})
                     </h4>
                   </div>
                   {(activePanelGoal.subTasks || []).length > 0 && (
-                    <span className="text-[10px] font-mono font-bold text-emerald-400">
-                      {Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}% Done
+                    <span className="text-xs font-medium text-emerald-400 font-mono">
+                      {Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}% done
                     </span>
                   )}
                 </div>
 
                 {(activePanelGoal.subTasks || []).length > 0 && (
-                  <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mb-4">
+                  <div className="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden mb-4">
                     <div 
                       className="h-full bg-emerald-400 transition-all duration-500" 
                       style={{ width: `${Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}%` }} 
@@ -1371,14 +1369,14 @@ export default function TodoHub({
 
                 <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
                   {(activePanelGoal.subTasks || []).length === 0 ? (
-                    <p className="text-[11px] font-mono text-zinc-500 py-2 text-center">
-                      No sub-tasks assigned yet. Add actionable steps below.
+                    <p className="text-xs text-[#9496a1] py-2 text-center">
+                      No sub-tasks yet. Add actionable steps below.
                     </p>
                   ) : (
                     (activePanelGoal.subTasks || []).map(sub => (
                       <div 
                         key={sub.id} 
-                        className="flex items-center justify-between gap-3 p-2.5 bg-white/[0.03] border border-white/5 rounded-xl hover:border-white/15 transition-colors"
+                        className="flex items-center justify-between gap-3 p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl hover:border-white/[0.1] transition-colors"
                       >
                         <button
                           type="button"
@@ -1388,16 +1386,16 @@ export default function TodoHub({
                           {sub.completed ? (
                             <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
                           ) : (
-                            <Square className="w-4 h-4 text-zinc-500 shrink-0" />
+                            <Square className="w-4 h-4 text-[#9496a1] shrink-0" />
                           )}
-                          <span className={sub.completed ? 'line-through text-zinc-500' : 'text-zinc-200 font-medium'}>
+                          <span className={sub.completed ? 'line-through text-[#9496a1]' : 'text-[#ededf3] font-medium'}>
                             {sub.title}
                           </span>
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteSubTask(activePanelGoal, sub.id)}
-                          className="text-zinc-500 hover:text-red-400 p-1 transition-colors"
+                          className="text-[#9496a1] hover:text-red-400 p-1 transition-colors"
                           title="Delete sub-task"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1419,49 +1417,49 @@ export default function TodoHub({
                     value={newSubTaskTitle}
                     onChange={(e) => setNewSubTaskTitle(e.target.value)}
                     placeholder="Add actionable sub-task..."
-                    className="w-full glass-input-true px-3 py-1.5 text-xs text-white placeholder-zinc-500 font-sans"
+                    className="w-full glass-input-true px-3 py-1.5 text-xs text-white placeholder-zinc-500 font-sans rounded-lg"
                   />
                   <button
                     type="submit"
-                    className="px-3.5 py-1.5 glass-button-true text-white text-xs font-mono font-bold uppercase tracking-wider shrink-0 flex items-center gap-1 rounded-xl"
+                    className="px-3.5 py-1.5 btn-primary-cyan text-white text-xs font-semibold shrink-0 flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>ADD</span>
+                    <span>Add</span>
                   </button>
                 </form>
               </div>
 
-              {/* Notion Notes */}
+              {/* Task Notes */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>📝 TASK SPECIFICATIONS & BRAINDUMP NOTES</span>
+                  <span className="text-xs text-[#9496a1] font-medium flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#1591DC]" />
+                    <span>Task notes</span>
                   </span>
-                  <span className="text-[9px] font-mono text-zinc-400">AUTO-SAVED TO CLOUD</span>
+                  <span className="text-[10px] text-[#9496a1]">Auto-saved</span>
                 </div>
                 <textarea
                   value={activePanelGoal.notes || ''}
                   onChange={(e) => handleUpdateNotes(activePanelGoal, e.target.value)}
-                  placeholder="Write detailed notes, meeting summaries, specifications, or links for this task..."
+                  placeholder="Write notes, links, or outlines for this task..."
                   rows={7}
-                  className="w-full bg-white/[0.03] border border-white/15 focus:border-amber-400/80 p-4 text-xs font-sans leading-relaxed text-zinc-100 placeholder-zinc-600 focus:outline-none rounded-xl transition-colors resize-none"
+                  className="w-full bg-white/[0.02] border border-white/[0.08] focus:border-[#1591DC] p-4 text-xs font-sans leading-relaxed text-[#ededf3] placeholder-zinc-600 focus:outline-none rounded-xl transition-colors resize-none"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-              <span className="text-[9px] font-mono text-zinc-400 uppercase">CREATED: {new Date(activePanelGoal.createdAt).toLocaleDateString()}</span>
+            <div className="pt-4 border-t border-white/[0.08] flex justify-between items-center text-xs">
+              <span className="text-[10px] text-[#9496a1]">Created: {new Date(activePanelGoal.createdAt).toLocaleDateString()}</span>
               <button
                 type="button"
                 onClick={() => {
                   onDeleteGoal(activePanelGoal.id);
                   setActivePanelGoalId(null);
                 }}
-                className="px-3 py-1.5 text-xs font-mono font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors flex items-center gap-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>DELETE TASK</span>
+                <span>Delete task</span>
               </button>
             </div>
           </div>
