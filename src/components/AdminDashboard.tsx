@@ -26,7 +26,8 @@ import {
   AlertCircle,
   RefreshCw,
   Link as LinkIcon,
-  Pencil
+  Pencil,
+  X
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -105,8 +106,8 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
     await refreshUsers();
     setIsAddModalOpen(false);
     onNotice(
-      "CUSTOMER ACCOUNT ISSUED",
-      `Successfully generated credentials for ${newName} (${newEmail}). You can now copy access link or login details below!`
+      "Customer Account Created",
+      `Successfully generated credentials for ${newName} (${newEmail}). You can now copy access link or login details below.`
     );
 
     // Reset Form
@@ -120,17 +121,17 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
   // Copy Delivery Info with 1-Click Access Link
   const handleCopyDeliveryInfo = (user: UserAccount) => {
     const accessLink = generateAccessLink(user);
-    const deliveryMsg = `[DEEP FOCUS OS COMMERCIAL ACCESS]\n` +
+    const deliveryMsg = `[Deep Focus Access Details]\n` +
       `Hello ${user.name},\n` +
-      `Your executive license for Deep Focus OS is active!\n\n` +
-      `👉 1-CLICK INSTANT ACCESS LINK:\n` +
+      `Your account for Deep Focus is active!\n\n` +
+      `👉 1-Click Instant Access Link:\n` +
       `${accessLink}\n\n` +
-      `Or login manually:\n` +
-      `- Ingress URL: ${window.location.origin}\n` +
+      `Or login directly:\n` +
+      `- URL: ${window.location.origin}\n` +
       `- Email: ${user.email}\n` +
       `- Password: ${user.password}\n` +
       `- Tier: ${user.tier}\n\n` +
-      `Elevate your personal growth & peak performance!`;
+      `Welcome to Deep Focus!`;
 
     navigator.clipboard.writeText(deliveryMsg);
     setCopiedId(user.id);
@@ -168,50 +169,46 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header Banner - Glassmorphism */}
-      <div className="relative overflow-hidden rounded-none glass-panel p-6 md:p-8 text-zinc-100">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-mono tracking-widest uppercase font-bold glass-pill text-zinc-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-zinc-300" />
-              MASTER ADMIN CONTROL PORTAL
-            </div>
-            <h1 className="text-xl md:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
+      {/* Header Banner - Swiss Studio Standard */}
+      <div className="kuldeep-card p-6 md:p-8 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">
               License & Customer Management
             </h1>
-            <p className="text-zinc-400 text-xs md:text-sm max-w-xl font-sans leading-relaxed">
-              Issue new customer credentials, deliver access details, and manage commercial software licenses.
+            <p className="text-[#9496a1] text-xs md:text-sm max-w-xl font-normal leading-relaxed">
+              Issue new customer credentials, deliver access details, and manage active software licenses.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             <button
               onClick={() => {
                 generatePassword();
                 setIsAddModalOpen(true);
               }}
-              className="px-4 py-2.5 bg-white hover:bg-zinc-200 text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95 border border-white rounded-xl"
+              className="px-4 py-2 btn-primary-cyan text-xs font-semibold flex items-center gap-2 transition-all shadow-md active:scale-95"
             >
               <UserPlus className="w-4 h-4" />
-              + ISSUE CUSTOMER ACCOUNT
+              <span>Issue customer account</span>
             </button>
             <button
               onClick={async () => {
                 await refreshUsers();
-                onNotice("CLOUD REGISTRY SYNCED", `Successfully synchronized ${users.length} accounts with Cloud Firestore.`);
+                onNotice("Cloud Sync", `Successfully synchronized ${users.length} accounts with Cloud Firestore.`);
               }}
               disabled={isSyncing}
-              className="px-4 py-2.5 glass-button-true text-zinc-200 hover:text-white font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all rounded-xl"
+              className="px-3.5 py-2 glass-button-true text-xs text-[#ededf3] hover:text-white flex items-center gap-2 transition-all"
             >
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span>{isSyncing ? 'SYNCING...' : 'SYNC CLOUD'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'Syncing...' : 'Sync cloud'}</span>
             </button>
             <button
               onClick={handleExportRegistry}
-              className="px-4 py-2.5 glass-button-true text-zinc-300 font-mono text-xs uppercase tracking-widest flex items-center gap-2 transition-all rounded-xl"
+              className="px-3.5 py-2 glass-button-true text-xs text-[#ededf3] hover:text-white flex items-center gap-2 transition-all"
             >
-              <Download className="w-4 h-4" />
-              EXPORT REGISTRY JSON
+              <Download className="w-3.5 h-3.5" />
+              <span>Export JSON</span>
             </button>
           </div>
         </div>
@@ -219,97 +216,97 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
       {/* Overview Business Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass-panel p-5 space-y-2">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            <span>TOTAL CUSTOMERS</span>
-            <Users className="w-4 h-4 text-zinc-300" />
+        <div className="kuldeep-card p-5 space-y-1.5">
+          <div className="flex justify-between items-center text-xs text-[#9496a1] font-medium">
+            <span>Total customers</span>
+            <Users className="w-4 h-4 text-[#1591DC]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
-            {customerList.length} <span className="text-xs text-zinc-400 font-normal">users</span>
+          <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+            {customerList.length} <span className="text-xs text-[#9496a1] font-normal">users</span>
           </div>
-          <div className="text-[10px] font-mono text-zinc-300">
+          <div className="text-xs text-[#9496a1]">
             {activeCustomers.length} active customer licenses
           </div>
         </div>
 
-        <div className="glass-panel p-5 space-y-2">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            <span>TOTAL REVENUE</span>
-            <DollarSign className="w-4 h-4 text-zinc-300" />
+        <div className="kuldeep-card p-5 space-y-1.5">
+          <div className="flex justify-between items-center text-xs text-[#9496a1] font-medium">
+            <span>Total revenue</span>
+            <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
             ${totalRevenue.toLocaleString('en-US')}
           </div>
-          <div className="text-[10px] font-mono text-zinc-400">
+          <div className="text-xs text-[#9496a1]">
             Accumulated license sales
           </div>
         </div>
 
-        <div className="glass-panel p-5 space-y-2">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            <span>DEFAULT ADMIN IDENTITY</span>
-            <ShieldCheck className="w-4 h-4 text-zinc-300" />
+        <div className="kuldeep-card p-5 space-y-1.5">
+          <div className="flex justify-between items-center text-xs text-[#9496a1] font-medium">
+            <span>Default admin identity</span>
+            <ShieldCheck className="w-4 h-4 text-[#1591DC]" />
           </div>
-          <div className="text-xs font-mono font-bold text-zinc-200 truncate">
+          <div className="text-xs font-mono font-semibold text-white truncate">
             {DEFAULT_ADMIN.email}
           </div>
-          <div className="text-[10px] font-mono text-zinc-400">
+          <div className="text-xs text-[#9496a1]">
             Master system access rights
           </div>
         </div>
       </div>
 
       {/* Customer Registry Table */}
-      <div className="glass-panel p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
+      <div className="kuldeep-card p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/[0.08] pb-4">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-zinc-300" />
-            <h2 className="text-sm font-mono uppercase tracking-wider text-white font-bold">
+            <Users className="w-4 h-4 text-[#1591DC]" />
+            <h2 className="text-sm font-semibold text-white">
               Customer Registry ({customerList.length})
             </h2>
           </div>
 
           <div className="w-full sm:w-72 relative">
-            <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#9496a1] absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search Name or Email..."
-              className="w-full pl-9 pr-3 py-1.5 glass-input text-xs font-mono rounded-none"
+              placeholder="Search by name or email..."
+              className="w-full pl-9 pr-3 py-1.5 glass-input-true text-xs rounded-lg placeholder-zinc-500"
             />
           </div>
         </div>
 
         {filteredCustomers.length === 0 ? (
-          <div className="text-center py-12 text-zinc-400 space-y-2 font-mono text-xs">
+          <div className="text-center py-12 text-[#9496a1] space-y-2 text-xs">
             <Users className="w-8 h-8 text-zinc-600 mx-auto" />
             <p>No customer accounts match the search query.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono border-collapse">
+            <table className="w-full text-left text-xs border-collapse font-sans">
               <thead>
-                <tr className="border-b border-white/10 text-zinc-400 uppercase tracking-widest text-[10px] bg-black/40">
-                  <th className="p-3">Customer / Email</th>
-                  <th className="p-3">Password</th>
-                  <th className="p-3">Tier</th>
-                  <th className="p-3">Price Paid</th>
-                  <th className="p-3">Issue Date</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3 text-right">Delivery Actions</th>
+                <tr className="border-b border-white/[0.08] text-[#9496a1] text-xs bg-white/[0.02]">
+                  <th className="p-3 font-medium">Customer / Email</th>
+                  <th className="p-3 font-medium">Password</th>
+                  <th className="p-3 font-medium">Tier</th>
+                  <th className="p-3 font-medium">Price paid</th>
+                  <th className="p-3 font-medium">Issue date</th>
+                  <th className="p-3 font-medium">Status</th>
+                  <th className="p-3 text-right font-medium">Delivery actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-zinc-300">
+              <tbody className="divide-y divide-white/[0.04] text-[#ededf3]">
                 {filteredCustomers.map(cust => (
-                  <tr key={cust.id} className="hover:bg-white/[0.04] transition-colors">
+                  <tr key={cust.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="p-3">
-                      <div className="font-bold text-white">{cust.name}</div>
-                      <div className="text-[10px] text-zinc-400">{cust.email}</div>
+                      <div className="font-semibold text-white">{cust.name}</div>
+                      <div className="text-xs text-[#9496a1]">{cust.email}</div>
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="glass-pill px-2 py-0.5 text-[11px] text-zinc-200 font-mono">
+                        <span className="glass-pill-true px-2 py-0.5 text-xs font-mono text-[#ededf3]">
                           {cust.password}
                         </span>
                         <button
@@ -319,10 +316,10 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                             if (newPass && newPass.trim() && newPass.trim() !== cust.password) {
                               updateUserPassword(cust.id, newPass.trim());
                               refreshUsers();
-                              onNotice("PASSWORD UPDATED", `Password for ${cust.email} changed to: ${newPass.trim()}`);
+                              onNotice("Password Updated", `Password for ${cust.email} changed to: ${newPass.trim()}`);
                             }
                           }}
-                          className="p-1 text-zinc-400 hover:text-white glass-button rounded transition-colors"
+                          className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded transition-colors"
                           title="Change password"
                         >
                           <Pencil className="w-3 h-3" />
@@ -330,21 +327,24 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                       </div>
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold glass-pill text-zinc-300">
+                      <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/[0.06] text-[#ededf3]">
                         {cust.tier}
                       </span>
                     </td>
                     <td className="p-3 font-semibold text-white">
                       ${(cust.pricePaid || 0).toLocaleString('en-US')}
                     </td>
-                    <td className="p-3 text-zinc-400 text-[10px]">
+                    <td className="p-3 text-[#9496a1] text-xs">
                       {new Date(cust.createdAt).toLocaleDateString('en-US')}
                     </td>
                     <td className="p-3">
-                      <span className={`px-2 py-0.5 text-[9px] uppercase tracking-widest glass-pill ${
-                        cust.status === 'active' ? 'text-emerald-400' : 'text-zinc-500'
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium rounded-full ${
+                        cust.status === 'active' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                          : 'bg-zinc-800 text-zinc-400'
                       }`}>
-                        {cust.status === 'active' ? 'ACTIVE' : 'SUSPENDED'}
+                        <span className={`w-1.5 h-1.5 rounded-full ${cust.status === 'active' ? 'bg-emerald-400' : 'bg-zinc-500'}`} />
+                        {cust.status === 'active' ? 'Active' : 'Suspended'}
                       </span>
                     </td>
                     <td className="p-3 text-right">
@@ -356,37 +356,37 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                             navigator.clipboard.writeText(link);
                             setCopiedId('link_' + cust.id);
                             setTimeout(() => setCopiedId(null), 2500);
-                            onNotice("1-CLICK LINK COPIED", `Instant access link for ${cust.name} copied to clipboard!`);
+                            onNotice("Link Copied", `Instant access link for ${cust.name} copied to clipboard.`);
                           }}
-                          className="px-2 py-1 glass-button-true text-sky-300 hover:text-white text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all rounded-lg"
+                          className="px-2.5 py-1 glass-button-true text-[#1591DC] hover:text-white text-xs flex items-center gap-1 transition-all rounded-full"
                           title="Copy 1-Click Instant Login Link"
                         >
                           {copiedId === ('link_' + cust.id) ? (
                             <Check className="w-3 h-3 text-emerald-400" />
                           ) : (
-                            <LinkIcon className="w-3 h-3 text-sky-400" />
+                            <LinkIcon className="w-3 h-3 text-[#1591DC]" />
                           )}
-                          <span>{copiedId === ('link_' + cust.id) ? 'LINK COPIED' : '1-CLICK LINK'}</span>
+                          <span>{copiedId === ('link_' + cust.id) ? 'Copied' : '1-Click link'}</span>
                         </button>
 
                         {/* Copy Delivery Info */}
                         <button
                           onClick={() => handleCopyDeliveryInfo(cust)}
-                          className="px-2 py-1 glass-button text-zinc-200 text-[10px] uppercase tracking-widest flex items-center gap-1 transition-all rounded-lg"
+                          className="px-2.5 py-1 glass-button-true text-[#ededf3] text-xs flex items-center gap-1 transition-all rounded-full"
                           title="Copy full delivery message to customer"
                         >
                           {copiedId === cust.id ? (
                             <Check className="w-3 h-3 text-emerald-400" />
                           ) : (
-                            <Copy className="w-3 h-3 text-zinc-400" />
+                            <Copy className="w-3 h-3 text-[#9496a1]" />
                           )}
-                          <span>{copiedId === cust.id ? 'COPIED' : 'COPY INFOS'}</span>
+                          <span>{copiedId === cust.id ? 'Copied' : 'Copy info'}</span>
                         </button>
 
                         {/* Toggle Suspend/Active */}
                         <button
                           onClick={() => handleToggleStatus(cust)}
-                          className="p-1.5 glass-button text-zinc-400 hover:text-white transition-all rounded-lg"
+                          className="p-1.5 glass-button-true text-[#9496a1] hover:text-white transition-all rounded-full"
                           title={cust.status === 'active' ? 'Suspend Account' : 'Reactivate Account'}
                         >
                           {cust.status === 'active' ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -395,7 +395,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                         {/* Delete User */}
                         <button
                           onClick={() => handleDeleteUser(cust)}
-                          className="p-1.5 glass-button text-zinc-500 hover:text-red-400 transition-all rounded-lg"
+                          className="p-1.5 glass-button-true text-[#9496a1] hover:text-red-400 transition-all rounded-full"
                           title="Delete Customer Account"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -412,114 +412,109 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
 
       {/* Modal Add New Customer Account (Glass Modal) */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-          <div className="w-full max-w-md glass-panel p-6 space-y-5 border border-white/20">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="w-full max-w-md kuldeep-card p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-zinc-300" />
-                <h3 className="text-sm font-mono uppercase tracking-wider text-white font-bold">
+                <UserPlus className="w-4 h-4 text-[#1591DC]" />
+                <h3 className="text-sm font-semibold text-white">
                   Issue New Customer Account
                 </h3>
               </div>
               <button 
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-zinc-400 hover:text-white text-xs font-mono"
+                className="text-[#9496a1] hover:text-white p-1 rounded-full"
               >
-                [X]
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {formError && (
-              <div className="p-3 glass-card border-red-500/40 text-red-300 text-xs font-mono flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleCreateAccount} className="space-y-4 text-xs font-mono">
+            <form onSubmit={handleCreateAccount} className="space-y-4 text-xs font-sans">
               <div className="space-y-1">
-                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Customer Name:</label>
+                <label className="text-[#9496a1] text-xs font-medium">Customer Name:</label>
                 <input 
                   type="text" 
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
                   placeholder="e.g. Alexander Pierce"
-                  className="w-full p-2.5 glass-input rounded-none"
+                  className="w-full p-2.5 glass-input-true rounded-lg"
                   autoFocus
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Login Email:</label>
+                <label className="text-[#9496a1] text-xs font-medium">Customer Email:</label>
                 <input 
                   type="email" 
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
-                  placeholder="customer@domain.com"
-                  className="w-full p-2.5 glass-input rounded-none"
+                  placeholder="customer@gmail.com"
+                  className="w-full p-2.5 glass-input-true rounded-lg"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Generated Password:</label>
+                  <label className="text-[#9496a1] text-xs font-medium">Password:</label>
                   <button 
                     type="button" 
                     onClick={generatePassword}
-                    className="text-[9px] text-zinc-300 hover:text-white hover:underline"
+                    className="text-[10px] text-[#1591DC] hover:underline"
                   >
-                    Randomize
+                    Regenerate
                   </button>
                 </div>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    placeholder="Password"
-                    className="w-full p-2.5 glass-input font-mono rounded-none"
-                  />
-                  <Key className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2" />
-                </div>
+                <input 
+                  type="text" 
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="w-full p-2.5 glass-input-true font-mono rounded-lg"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">License Tier:</label>
-                  <select 
+                  <label className="text-[#9496a1] text-xs font-medium">License Tier:</label>
+                  <select
                     value={newTier}
-                    onChange={e => setNewTier(e.target.value as 'Standard' | 'VIP')}
-                    className="w-full p-2.5 glass-input rounded-none"
+                    onChange={e => setNewTier(e.target.value as any)}
+                    className="w-full p-2.5 glass-input-true rounded-lg bg-[#0e1015]"
                   >
-                    <option value="Standard" className="bg-black text-white">Standard ($49 Lifetime)</option>
-                    <option value="VIP" className="bg-black text-white">VIP ($149 Coaching)</option>
+                    <option value="Standard">Standard</option>
+                    <option value="VIP">VIP</option>
                   </select>
                 </div>
-
                 <div className="space-y-1">
-                  <label className="text-zinc-400 uppercase tracking-widest text-[10px]">Price Charged ($):</label>
+                  <label className="text-[#9496a1] text-xs font-medium">Price Paid ($ USD):</label>
                   <input 
                     type="number" 
                     value={newPrice}
                     onChange={e => setNewPrice(Number(e.target.value))}
-                    className="w-full p-2.5 glass-input rounded-none font-bold"
+                    className="w-full p-2.5 glass-input-true rounded-lg"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 flex gap-3">
+              <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="flex-1 py-2.5 glass-button text-zinc-400 hover:text-white uppercase tracking-widest text-[10px]"
+                  className="px-4 py-2 glass-button-true rounded-full text-xs"
                 >
-                  CANCEL
+                  Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-black font-bold uppercase tracking-widest text-[10px]"
+                  className="px-4 py-2 btn-primary-cyan text-xs font-semibold"
                 >
-                  ISSUE ACCOUNT
+                  Create Account
                 </button>
               </div>
             </form>

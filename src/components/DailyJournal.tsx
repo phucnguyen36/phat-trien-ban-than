@@ -148,62 +148,62 @@ export default function DailyJournalPanel({
   const energyLabels = ['Very Low', 'Low', 'Normal', 'High', 'Peak'];
 
   return (
-    <div id="daily-journal" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl space-y-8">
+    <div id="daily-journal" className="kuldeep-card p-6 md:p-8 mb-12 space-y-8">
       
       {/* 1. Header & Description */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/[0.08] pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans flex items-center gap-2.5">
-            <BookOpen className="w-5 h-5 text-white" />
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans flex items-center gap-2.5">
+            <BookOpen className="w-5 h-5 text-[#1591DC]" />
             <span>Daily Journal</span>
           </h2>
-          <p className="text-xs font-mono text-zinc-400 mt-1">
+          <p className="text-xs text-[#9496a1] mt-1">
             Energy levels, reflections, and daily notes
           </p>
         </div>
 
         <button
           onClick={() => setIsArchiveOpen(prev => !prev)}
-          className="px-3.5 py-1.5 glass-button-true text-xs font-sans font-semibold text-zinc-200 hover:text-white flex items-center gap-2 rounded-full"
+          className="px-3.5 py-1.5 glass-button-true text-xs font-medium text-[#ededf3] hover:text-white flex items-center gap-2 rounded-full"
         >
-          <History className="w-4 h-4 text-amber-400" />
-          <span>Journal History ({activeEntries.length})</span>
-          {isArchiveOpen ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+          <History className="w-4 h-4 text-[#1591DC]" />
+          <span>Journal history ({activeEntries.length})</span>
+          {isArchiveOpen ? <ChevronUp className="w-4 h-4 text-[#9496a1]" /> : <ChevronDown className="w-4 h-4 text-[#9496a1]" />}
         </button>
       </div>
 
       {/* Save Success Toast */}
       {showSaveNotice && (
-        <div className="p-3 glass-card-true border-emerald-500/40 text-emerald-300 text-xs font-sans flex items-center gap-2 animate-fadeIn rounded-xl">
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Journal entry for <strong>{selectedDate}</strong> successfully saved to your system database!</span>
+          <span>Journal entry for <strong>{selectedDate}</strong> successfully saved.</span>
         </div>
       )}
 
       {/* 2. Logger Editor & Chart Wave Trend */}
-      <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
+      <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
         
         {/* Left Column: Logger Editor */}
         <div className="w-full lg:w-1/2 flex flex-col justify-between space-y-6">
           <form onSubmit={handleSave} className="space-y-6">
             {/* Date Picker Row */}
             <div className="flex items-center gap-4 glass-card-true p-4 rounded-xl">
-              <Calendar className="w-4 h-4 text-zinc-300" />
+              <Calendar className="w-4 h-4 text-[#1591DC]" />
               <div className="flex-1 flex justify-between items-center">
-                <span className="text-xs font-sans text-zinc-300 font-semibold">Select Log Date:</span>
+                <span className="text-xs text-[#9496a1] font-medium">Log date:</span>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="glass-input-true px-3 py-1.5 text-xs text-white font-mono text-right font-bold cursor-pointer rounded-lg"
+                  className="glass-input-true px-3 py-1.5 text-xs text-white font-mono text-right font-medium cursor-pointer rounded-lg"
                 />
               </div>
             </div>
 
             {/* Energy Level Selector (1 to 5) */}
             <div className="space-y-3">
-              <label className="text-xs font-sans text-zinc-300 block font-semibold">
-                Daily Energy Level (1 - 5)
+              <label className="text-xs text-[#9496a1] block font-medium">
+                Daily energy level (1 - 5)
               </label>
               <div className="grid grid-cols-5 gap-2">
                 {[1, 2, 3, 4, 5].map(level => {
@@ -214,11 +214,11 @@ export default function DailyJournalPanel({
                       key={level}
                       onClick={() => setEditorEnergy(level)}
                       className={`py-3 flex flex-col items-center justify-center gap-1.5 glass-button-true transition-all rounded-xl ${
-                        isActive ? 'bg-amber-500/30 border-amber-400 text-amber-200 shadow-lg scale-105 font-bold' : 'text-zinc-300'
+                        isActive ? 'bg-[#1591DC]/20 border-[#1591DC]/40 text-white font-semibold' : 'text-[#9496a1]'
                       }`}
                     >
-                      <span className="text-lg font-mono font-bold">{level}</span>
-                      <span className="text-[9px] font-sans font-semibold text-zinc-400">
+                      <span className="text-base font-mono font-bold">{level}</span>
+                      <span className="text-[10px] text-[#9496a1]">
                         {energyLabels[level - 1]}
                       </span>
                     </button>
@@ -230,17 +230,17 @@ export default function DailyJournalPanel({
             {/* Gratitude/Brain Dump Text Area */}
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
-                <label className="text-xs font-sans text-zinc-300 block font-semibold">
-                  Gratitude & Reflection Notes
+                <label className="text-xs text-[#9496a1] block font-medium">
+                  Gratitude & reflections
                 </label>
-                <span className="text-[10px] font-mono text-zinc-400">
+                <span className="text-[10px] text-[#9496a1]">
                   {editorText.length} chars
                 </span>
               </div>
               <textarea
                 value={editorText}
                 onChange={(e) => setEditorText(e.target.value)}
-                placeholder="Write down 3 things you are grateful for today, thoughts, or key lessons learned..."
+                placeholder="Write down reflections, lessons learned, or key insights today..."
                 className="w-full h-36 glass-input-true p-4 text-xs leading-relaxed text-white placeholder-zinc-500 font-sans resize-none rounded-xl"
               />
             </div>
@@ -248,34 +248,34 @@ export default function DailyJournalPanel({
             {/* Save Button */}
             <button
               type="submit"
-              className="w-full py-3.5 glass-button-true text-amber-300 hover:text-white font-sans text-xs tracking-wider uppercase font-bold transition-all rounded-xl flex items-center justify-center gap-2"
+              className="w-full py-3 btn-primary-cyan text-xs font-semibold transition-all rounded-full flex items-center justify-center gap-2"
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Save Journal Entry</span>
+              <Sparkles className="w-4 h-4" />
+              <span>Save journal entry</span>
             </button>
           </form>
         </div>
 
         {/* Right Column: Chart Wave Trend */}
-        <div className="w-full lg:w-1/2 flex flex-col h-full self-stretch border-t lg:border-t-0 lg:border-l border-white/15 pt-8 lg:pt-0 lg:pl-10 space-y-4">
+        <div className="w-full lg:w-1/2 flex flex-col h-full self-stretch border-t lg:border-t-0 lg:border-l border-white/[0.08] pt-8 lg:pt-0 lg:pl-8 space-y-4">
           <div className="flex justify-between items-center">
-            <h4 className="text-xs font-sans text-zinc-200 font-bold uppercase tracking-wider">
-              14-Day Energy Telemetry Trend
+            <h4 className="text-xs font-semibold text-white">
+              14-Day Energy Trend
             </h4>
-            <span className="text-[10px] font-mono text-zinc-400">
+            <span className="text-[10px] text-[#9496a1]">
               {sortedEntries.length} logs recorded
             </span>
           </div>
 
-          <div className="flex-1 min-h-[240px] relative glass-card-true p-4 rounded-xl">
+          <div className="flex-1 min-h-[220px] relative glass-card-true p-4 rounded-xl">
             <Line data={chartData} options={chartOptions} />
           </div>
 
-          <div className="p-4 glass-card-true text-xs font-sans text-zinc-300 leading-relaxed space-y-1 rounded-xl">
-            <span className="font-sans text-amber-300 font-bold block">
-              💡 Energy Management Tip
+          <div className="p-4 glass-card-true text-xs text-[#9496a1] leading-relaxed space-y-1 rounded-xl">
+            <span className="text-white font-medium block">
+              Energy management tip
             </span>
-            <p className="text-zinc-400">
+            <p>
               High energy levels (4-5) should be aligned with deep work sessions. Low energy days (1-2) are ideal for recovery and passive reading.
             </p>
           </div>

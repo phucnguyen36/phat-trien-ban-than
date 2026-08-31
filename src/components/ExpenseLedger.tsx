@@ -311,53 +311,53 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
   };
 
   return (
-    <div id="expense-ledger" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl">
+    <div id="expense-ledger" className="kuldeep-card p-6 md:p-8 mb-12 space-y-6">
       
       {/* Module Title Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/10 pb-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-white/[0.08] pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-white font-sans">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
             Cash Flow & Expenses
           </h2>
-          <p className="text-xs font-mono text-zinc-400 mt-1">
-            Income, Outflow & Category Breakdown
+          <p className="text-xs text-[#9496a1] mt-1">
+            Expenses, category breakdown, and monthly cash flow
           </p>
         </div>
 
         {/* Currency Switcher & Month Filter Toolbar */}
-        <div className="flex flex-wrap items-center gap-3 glass-pill-true p-2 w-full lg:w-auto justify-between lg:justify-end">
+        <div className="flex flex-wrap items-center gap-2.5 glass-pill-true p-1.5 w-full lg:w-auto justify-between lg:justify-end">
           
           {/* Multi-Currency Dropdown Selector */}
-          <div className="flex items-center gap-2 glass-card-true px-3 py-1 rounded-full border border-white/10">
+          <div className="flex items-center gap-1.5 glass-card-true px-3 py-1 rounded-full">
             <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-[10px] font-mono text-zinc-300 uppercase font-bold">CURRENCY:</span>
+            <span className="text-xs text-[#9496a1]">Currency:</span>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-              className="bg-transparent text-xs font-mono font-bold text-white focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
             >
               {Object.entries(CURRENCIES).map(([code, meta]) => (
-                <option key={code} value={code} className="bg-zinc-900 text-white font-mono text-xs">
-                  {meta.symbol} {code} - {meta.label.split('(')[1]?.replace(')', '') || code}
+                <option key={code} value={code} className="bg-[#12141a] text-white text-xs">
+                  {meta.symbol} {code}
                 </option>
               ))}
             </select>
           </div>
 
           {/* Filter Mode Switcher */}
-          <div className="flex items-center gap-2 glass-card-true p-1">
+          <div className="flex items-center gap-1 glass-card-true p-0.5 rounded-full">
             <button
               onClick={() => setFilterMode('monthly')}
-              className={`px-3 py-1 text-[10px] font-mono uppercase font-bold transition-all rounded-full ${
-                filterMode === 'monthly' ? 'bg-white/20 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+              className={`px-3 py-1 text-xs font-medium transition-all rounded-full ${
+                filterMode === 'monthly' ? 'bg-white text-black font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-3 py-1 text-[10px] font-mono uppercase font-bold transition-all rounded-full ${
-                filterMode === 'all' ? 'bg-white/20 text-white shadow-md' : 'text-zinc-400 hover:text-white'
+              className={`px-3 py-1 text-xs font-medium transition-all rounded-full ${
+                filterMode === 'all' ? 'bg-white text-black font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
               }`}
             >
               All Time
@@ -366,20 +366,20 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
 
           {/* Month Picker */}
           {filterMode === 'monthly' && (
-            <div className="flex items-center gap-1.5 glass-card-true px-2.5 py-1">
-              <Calendar className="w-3.5 h-3.5 text-zinc-300" />
+            <div className="flex items-center gap-1.5 glass-card-true px-2.5 py-1 rounded-full">
+              <Calendar className="w-3.5 h-3.5 text-[#1591DC]" />
               <input
                 type="month"
                 value={filterMonthYear}
                 onChange={(e) => setFilterMonthYear(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none font-mono cursor-pointer font-bold"
+                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
               />
             </div>
           )}
         </div>
       </div>
 
-      {/* B4 — Automatic Monthly Financial Summary Card */}
+      {/* Financial Summary Card */}
       {(() => {
         const totalVnd = filteredExpenses.reduce((s, e) => s + Math.abs(e.amount), 0);
         const displayTotal = formatMoney(totalVnd);
@@ -397,41 +397,41 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         const topCatDisplay = formatMoney(topCatAmt);
 
         return (
-          <div className="mb-6 p-4 glass-card-true border border-emerald-500/20 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="p-4 glass-card-true rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <DollarSign className="w-5 h-5 text-zinc-300 shrink-0" />
+              <DollarSign className="w-5 h-5 text-emerald-400 shrink-0" />
               <div>
-                <h4 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-widest">
-                  Monthly Capital Intelligence Summary ({filterMonthYear})
+                <h4 className="text-xs font-semibold text-white">
+                  Financial summary ({filterMonthYear})
                 </h4>
-                <p className="text-zinc-300 text-xs mt-0.5 font-sans">
-                  Total Burn: <strong className="text-white font-mono">{displayTotal}</strong> across <strong className="text-white font-mono">{filteredExpenses.length}</strong> items.
-                  Top Category: <strong className="text-zinc-200 font-mono">{topCat}</strong> ({topCatDisplay}).
+                <p className="text-[#9496a1] text-xs mt-0.5">
+                  Total outflow: <strong className="text-white">{displayTotal}</strong> across <strong className="text-white">{filteredExpenses.length}</strong> items.
+                  Top category: <strong className="text-white">{topCat}</strong> ({topCatDisplay}).
                 </p>
               </div>
             </div>
-            <div className="text-[10px] font-mono text-zinc-400 bg-black/40 px-3 py-1.5 rounded-lg border border-white/10 shrink-0">
-              Status: {totalVnd > 15000000 ? 'High Burn Rate' : 'Within Budget'}
+            <div className="text-xs text-[#9496a1] px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] shrink-0">
+              {totalVnd > 15000000 ? 'High Outflow' : 'Within Budget'}
             </div>
           </div>
         );
       })()}
 
       {/* Main Grid: Form Logger + Analytics Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
         
         {/* Left 4 Columns: Expense Add Form */}
-        <div className="lg:col-span-4 glass-card-true p-6 space-y-6">
-          <div className="border-b border-white/10 pb-3">
-            <h3 className="text-sm uppercase tracking-wider text-white font-extrabold flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-300" />
-              <span>Log New Expense</span>
+        <div className="lg:col-span-4 glass-card-true p-6 space-y-4 rounded-2xl">
+          <div className="border-b border-white/[0.08] pb-3">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <span>Log Expense</span>
             </h3>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
             <div className="space-y-1">
-              <label className="text-[10px] font-mono text-zinc-300 uppercase tracking-wider font-bold">Amount Spent ({currency}):</label>
+              <label className="text-[#9496a1] text-xs font-medium">Amount ({currency}):</label>
               <div className="relative">
                 <input
                   type="number"
@@ -439,56 +439,56 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                   value={amountInput}
                   onChange={(e) => setAmountInput(e.target.value)}
                   placeholder={currency === 'VND' ? '200000' : '50.00'}
-                  className="w-full glass-input-true py-2.5 pl-9 pr-3 text-xs text-white placeholder-zinc-500 font-bold"
+                  className="w-full glass-input-true py-2.5 pl-8 pr-3 text-xs text-white placeholder-zinc-500 font-semibold rounded-lg"
                 />
-                <span className="text-xs font-mono text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 font-bold">
+                <span className="text-xs text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 font-bold">
                   {CURRENCIES[currency]?.symbol || '$'}
                 </span>
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-mono text-zinc-300 uppercase tracking-wider font-bold">Category:</label>
+              <label className="text-[#9496a1] text-xs font-medium">Category:</label>
               <select
                 value={categoryInput}
                 onChange={(e) => setCategoryInput(e.target.value as ExpenseCategory)}
-                className="w-full glass-input-true p-2.5 text-xs text-white font-semibold cursor-pointer"
+                className="w-full glass-input-true p-2.5 text-xs text-white font-medium cursor-pointer rounded-lg bg-[#0e1015]"
               >
-                <option value="Eating" className="bg-black text-white">Eating & Food</option>
-                <option value="Transport" className="bg-black text-white">Transport & Fuel</option>
-                <option value="Study/Equipment" className="bg-black text-white">Study & Gear</option>
-                <option value="Entertainment" className="bg-black text-white">Entertainment & Leisure</option>
-                <option value="Others" className="bg-black text-white">Others & Miscellaneous</option>
+                <option value="Eating" className="bg-[#12141a] text-white">Eating & Food</option>
+                <option value="Transport" className="bg-[#12141a] text-white">Transport & Fuel</option>
+                <option value="Study/Equipment" className="bg-[#12141a] text-white">Study & Gear</option>
+                <option value="Entertainment" className="bg-[#12141a] text-white">Entertainment & Leisure</option>
+                <option value="Others" className="bg-[#12141a] text-white">Others & Miscellaneous</option>
               </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-mono text-zinc-300 uppercase tracking-wider font-bold">Log Date:</label>
+              <label className="text-[#9496a1] text-xs font-medium">Date:</label>
               <input
                 type="date"
                 value={dateInput}
                 onChange={(e) => setDateInput(e.target.value)}
-                className="w-full glass-input-true p-2.5 text-xs text-white font-mono cursor-pointer font-bold"
+                className="w-full glass-input-true p-2.5 text-xs text-white font-mono cursor-pointer font-medium rounded-lg"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-mono text-zinc-300 uppercase tracking-wider font-bold">Note / Description:</label>
+              <label className="text-[#9496a1] text-xs font-medium">Description:</label>
               <input
                 type="text"
                 value={noteInput}
                 onChange={(e) => setNoteInput(e.target.value)}
-                placeholder="e.g. Lunch with team, Books..."
-                className="w-full glass-input-true p-2.5 text-xs text-white placeholder-zinc-500 font-sans"
+                placeholder="e.g. Coffee, Books, Software..."
+                className="w-full glass-input-true p-2.5 text-xs text-white placeholder-zinc-500 rounded-lg"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 glass-button-true text-emerald-300 hover:text-white font-mono text-xs uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 btn-primary-cyan text-xs font-semibold transition-all flex items-center justify-center gap-2 rounded-full"
             >
               <Plus className="w-4 h-4" />
-              <span>RECORD TRANSACTION</span>
+              <span>Add expense</span>
             </button>
           </form>
         </div>
@@ -498,45 +498,45 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           
           {/* Summary Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-card-true p-5 space-y-1">
-              <span className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest font-bold">
-                TOTAL BURN ({filterMode === 'monthly' ? filterMonthYear : 'ALL TIME'})
+            <div className="glass-card-true p-5 space-y-1 rounded-2xl">
+              <span className="text-xs text-[#9496a1] font-medium block">
+                Total outflow ({filterMode === 'monthly' ? filterMonthYear : 'All time'})
               </span>
-              <div className="text-2xl font-extrabold font-mono text-rose-300">
+              <div className="text-2xl font-bold text-rose-300">
                 {formatMoney(totalBurnVnd)}
               </div>
-              <span className="text-[10px] font-mono text-zinc-400 block">
+              <span className="text-xs text-[#9496a1] block">
                 {filteredExpenses.length} transactions logged
               </span>
             </div>
 
-            <div className="glass-card-true p-5 space-y-1">
-              <span className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest font-bold">
-                AVERAGE DAILY BURN
+            <div className="glass-card-true p-5 space-y-1 rounded-2xl">
+              <span className="text-xs text-[#9496a1] font-medium block">
+                Average daily outflow
               </span>
-              <div className="text-2xl font-extrabold font-mono text-white">
+              <div className="text-2xl font-bold text-white">
                 {formatMoney(totalBurnVnd / (monthlyDailyBurnSummary.labels.length || 1))}
               </div>
-              <span className="text-[10px] font-mono text-zinc-400 block">
-                Based on active period telemetry
+              <span className="text-xs text-[#9496a1] block">
+                Across {monthlyDailyBurnSummary.labels.length} active days
               </span>
             </div>
           </div>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="glass-card-true p-4 h-64 flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest font-bold block">
-                CATEGORY DISTRIBUTION
+            <div className="glass-card-true p-4 h-64 flex flex-col justify-between rounded-2xl">
+              <span className="text-xs font-semibold text-white block">
+                Category Distribution
               </span>
               <div className="flex-1 relative min-h-[160px]">
                 <Pie data={pieChartData} options={pieChartOptions} />
               </div>
             </div>
 
-            <div className="glass-card-true p-4 h-64 flex flex-col justify-between">
-              <span className="text-[10px] font-mono text-zinc-300 uppercase tracking-widest font-bold block">
-                DAILY BURN TREND
+            <div className="glass-card-true p-4 h-64 flex flex-col justify-between rounded-2xl">
+              <span className="text-xs font-semibold text-white block">
+                Daily Outflow Trend
               </span>
               <div className="flex-1 relative min-h-[160px]">
                 <Bar data={barChartData} options={barChartOptions} />
@@ -547,31 +547,31 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       </div>
 
       {/* Expense History Table */}
-      <div className="glass-card-true p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+      <div className="glass-card-true p-6 space-y-4 rounded-2xl">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <h3 className="text-sm font-semibold text-white">
             Transaction History ({filteredExpenses.length})
           </h3>
-          <span className="text-[10px] font-mono text-zinc-400">Sorted by Date</span>
+          <span className="text-xs text-[#9496a1]">Sorted by date</span>
         </div>
 
         {filteredExpenses.length === 0 ? (
-          <div className="text-center py-10 text-zinc-400 font-mono text-xs uppercase tracking-widest">
+          <div className="text-center py-10 text-[#9496a1] text-xs">
             No expenses logged for this period.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono border-collapse">
+            <table className="w-full text-left text-xs border-collapse font-sans">
               <thead>
-                <tr className="border-b border-white/10 text-zinc-400 uppercase tracking-widest text-[10px] bg-white/[0.04]">
-                  <th className="p-3">Date</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">Description / Note</th>
-                  <th className="p-3">Amount Spent</th>
-                  <th className="p-3 text-right">Action</th>
+                <tr className="border-b border-white/[0.08] text-[#9496a1] text-xs bg-white/[0.02]">
+                  <th className="p-3 font-medium">Date</th>
+                  <th className="p-3 font-medium">Category</th>
+                  <th className="p-3 font-medium">Description</th>
+                  <th className="p-3 text-right font-medium">Amount</th>
+                  <th className="p-3 text-center font-medium">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-zinc-200">
+              <tbody className="divide-y divide-white/[0.04] text-[#ededf3]">
                 {filteredExpenses.map(item => {
                   const absVnd = Math.abs(Number(item.amount) || 0);
                   const displayAmount = formatMoney(absVnd);
