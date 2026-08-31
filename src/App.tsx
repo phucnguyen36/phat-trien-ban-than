@@ -45,7 +45,7 @@ import TodoHub from './components/TodoHub';
 import HabitTracker from './components/HabitTracker';
 import DailyJournalPanel from './components/DailyJournal';
 import ExpenseLedger from './components/ExpenseLedger';
-import Scratchpad from './components/Scratchpad';
+import DeepWorkTimer from './components/DeepWorkTimer';
 import AEPicker from './components/AEPicker';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CommandPalette from './components/CommandPalette';
@@ -979,7 +979,6 @@ export default function App() {
               { id: 'habit-matrix', label: 'Habits' },
               { id: 'daily-journal', label: 'Journal' },
               { id: 'expense-ledger', label: 'Expenses' },
-              { id: 'scratchpad', label: 'Scratchpad' },
               ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin' }] : [])
             ].map(item => {
               const isActive = activeSection === item.id;
@@ -1003,6 +1002,9 @@ export default function App() {
           {/* Right Action Tools */}
           <div className="flex items-center gap-2.5">
             
+            {/* Minimal Deep Work Timer (Pomodoro) */}
+            <DeepWorkTimer isLightMode={isLightMode} />
+
             {/* Quick Command Search */}
             <button
               onClick={() => setIsCommandPaletteOpen(true)}
@@ -1079,8 +1081,7 @@ export default function App() {
               { id: 'todo-hub', label: 'Tasks', icon: CheckSquare },
               { id: 'habit-matrix', label: 'Habits', icon: Activity },
               { id: 'daily-journal', label: 'Journal', icon: BookOpen },
-              { id: 'expense-ledger', label: 'Expenses', icon: DollarSign },
-              { id: 'scratchpad', label: 'Scratchpad', icon: FileText }
+              { id: 'expense-ledger', label: 'Expenses', icon: DollarSign }
             ].map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
@@ -1088,10 +1089,10 @@ export default function App() {
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`px-3 py-2 flex items-center gap-1.5 border shrink-0 text-[10px] font-mono uppercase tracking-widest transition-all rounded-full ${
+                  className={`px-3 py-2 flex items-center gap-1.5 border shrink-0 text-xs font-medium transition-all rounded-full ${
                     isActive 
-                      ? `${activeTheme.border} ${activeTheme.bgMuted} ${activeTheme.text} font-bold` 
-                      : 'border-white/10 bg-black/20 text-zinc-400 hover:text-white'
+                      ? 'bg-[#1591DC] text-white font-semibold' 
+                      : 'border-white/[0.08] bg-white/[0.03] text-[#9496a1] hover:text-white'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -1127,8 +1128,7 @@ export default function App() {
                   { id: 'todo-hub', label: 'Tasks', sub: 'Roadmap & timeline', icon: CheckSquare },
                   { id: 'habit-matrix', label: 'Habits', sub: 'Consistency & streaks', icon: Activity },
                   { id: 'daily-journal', label: 'Journal', sub: 'Daily reflection', icon: BookOpen },
-                  { id: 'expense-ledger', label: 'Expenses', sub: 'Cash flow & budget', icon: DollarSign },
-                  { id: 'scratchpad', label: 'Scratchpad', sub: 'Ideas & quick notes', icon: FileText }
+                  { id: 'expense-ledger', label: 'Expenses', sub: 'Cash flow & budget', icon: DollarSign }
                 ].map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
@@ -1290,17 +1290,6 @@ export default function App() {
                       onAddExpense={handleAddExpense}
                       onDeleteExpense={handleDeleteExpense}
                       isLightMode={isLightMode}
-                    />
-                  </section>
-                )}
-
-                {/* Module 5: Quick Scratchpad / Brain Dump */}
-                {activeSection === 'scratchpad' && (
-                  <section id="scratchpad">
-                    <Scratchpad
-                      initialText={scratchpadText}
-                      isCloudConnected={!localOnlyMode}
-                      onSaveText={handleSaveScratchpadText}
                     />
                   </section>
                 )}

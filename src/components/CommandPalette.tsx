@@ -68,7 +68,6 @@ export default function CommandPalette({
     { id: 'habits', label: 'Habits & Consistency', icon: Activity },
     { id: 'journal', label: 'Daily Journal', icon: BookOpen },
     { id: 'expenses', label: 'Cash Flow & Expenses', icon: DollarSign },
-    { id: 'scratchpad', label: 'Scratchpad Notes', icon: FileText },
     { id: 'ae-picker', label: 'Theme & Accent', icon: Compass }
   ];
 

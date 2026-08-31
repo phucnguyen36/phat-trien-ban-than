@@ -47,8 +47,10 @@ import {
   Calendar,
   Maximize2,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from 'lucide-react';
+import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -741,8 +743,8 @@ export default function TodoHub({
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5" />
-              <span>Review</span>
+              <Trophy className="w-3.5 h-3.5 text-[#1591DC]" />
+              <span>Review Protocol</span>
             </button>
           </div>
 
@@ -1087,121 +1089,15 @@ export default function TodoHub({
         </div>
       )}
       {/* ---------------------------------------------------- */}
-      {/* 3. WEEKLY & MONTHLY REVIEW DASHBOARD MODE */}
+      {/* 3. WEEKLY & MONTHLY REVIEW PROTOCOL MODE */}
       {/* ---------------------------------------------------- */}
       {viewMode === 'review' && (
-        <div className="space-y-8 animate-fadeIn">
-          {/* Top Review Stats Header */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {(() => {
-              const dailyCount = goals.filter(g => g.timeframe === 'daily').length;
-              const dailyDone = goals.filter(g => g.timeframe === 'daily' && g.completed).length;
-              const weeklyCount = goals.filter(g => g.timeframe === 'weekly').length;
-              const weeklyDone = goals.filter(g => g.timeframe === 'weekly' && g.completed).length;
-              const monthlyCount = goals.filter(g => g.timeframe === 'monthly').length;
-              const monthlyDone = goals.filter(g => g.timeframe === 'monthly' && g.completed).length;
-
-              return [
-                { label: 'Daily Win Rate', done: dailyDone, total: dailyCount, color: 'text-emerald-400' },
-                { label: 'Weekly Execution', done: weeklyDone, total: weeklyCount, color: 'text-violet-400' },
-                { label: 'Monthly Targets', done: monthlyDone, total: monthlyCount, color: 'text-amber-400' },
-              ].map(s => {
-                const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
-                return (
-                  <div key={s.label} className="p-4 glass-card-true rounded-2xl text-center space-y-1">
-                    <div className={`text-3xl font-bold font-mono ${s.color}`}>{pct}%</div>
-                    <div className="text-xs font-semibold text-white">{s.label}</div>
-                    <div className="text-xs text-[#9496a1]">{s.done} completed / {s.total} total</div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-
-          {/* Bar Chart: Target Completion Velocity */}
-          <div className="glass-card-true p-6 rounded-2xl space-y-4">
-            <h3 className="text-xs font-semibold text-white flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#1591DC]" />
-              <span>Completion Rate by Timeframe</span>
-            </h3>
-            <div className="h-64 relative">
-              <Bar 
-                data={{
-                  labels: ['Daily Tasks', 'Weekly Goals', 'Monthly Objectives', 'Yearly Vision'],
-                  datasets: [
-                    {
-                      label: 'Completed Tasks',
-                      data: [
-                        goals.filter(g => g.timeframe === 'daily' && g.completed).length,
-                        goals.filter(g => g.timeframe === 'weekly' && g.completed).length,
-                        goals.filter(g => g.timeframe === 'monthly' && g.completed).length,
-                        goals.filter(g => g.timeframe === 'yearly' && g.completed).length,
-                      ],
-                      backgroundColor: 'rgba(21, 145, 220, 0.7)',
-                      borderColor: '#1591DC',
-                      borderWidth: 1,
-                    },
-                    {
-                      label: 'Pending Tasks',
-                      data: [
-                        goals.filter(g => g.timeframe === 'daily' && !g.completed).length,
-                        goals.filter(g => g.timeframe === 'weekly' && !g.completed).length,
-                        goals.filter(g => g.timeframe === 'monthly' && !g.completed).length,
-                        goals.filter(g => g.timeframe === 'yearly' && !g.completed).length,
-                      ],
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      borderColor: 'rgba(255, 255, 255, 0.15)',
-                      borderWidth: 1,
-                    }
-                  ]
-                }} 
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { labels: { color: '#e4e4e7', font: { family: 'Plus Jakarta Sans', size: 11 } } }
-                  },
-                  scales: {
-                    x: { ticks: { color: '#9496a1', font: { family: 'Plus Jakarta Sans', size: 11 } }, grid: { display: false } },
-                    y: { ticks: { color: '#9496a1', font: { family: 'Plus Jakarta Sans', size: 11 } }, grid: { color: 'rgba(255, 255, 255, 0.06)' } }
-                  }
-                }} 
-              />
-            </div>
-          </div>
-
-          {/* Weekly Reflection Questions */}
-          <div className="glass-card-true p-6 rounded-2xl space-y-4">
-            <h3 className="text-xs font-semibold text-white flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#1591DC]" />
-              <span>Weekly Reflections</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { icon: Key, q: 'Highest Leverage Win', key: `df_weekly_review_q0_${new Date().getFullYear()}` },
-                { icon: Ban, q: 'Biggest Time Waster', key: `df_weekly_review_q1_${new Date().getFullYear()}` },
-                { icon: Target, q: 'Next Focus Priority', key: `df_weekly_review_q2_${new Date().getFullYear()}` },
-              ].map((item) => {
-                const IconComp = item.icon;
-                return (
-                  <div key={item.key} className="space-y-1.5">
-                    <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                      <IconComp className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>{item.q}</span>
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="Enter reflection note..."
-                      className="w-full glass-input-true p-3 text-xs text-white rounded-xl resize-none font-sans"
-                      onChange={(e) => localStorage.setItem(item.key, e.target.value)}
-                      defaultValue={localStorage.getItem(item.key) || ''}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        <div className="animate-fadeIn">
+          <WeeklyReviewProtocol
+            goals={goals}
+            onAddGoal={onAddGoal}
+            isLightMode={isLightMode}
+          />
         </div>
       )}
 
