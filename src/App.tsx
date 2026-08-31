@@ -960,8 +960,13 @@ export default function App() {
               <span className="font-semibold text-sm tracking-tight text-white leading-none">
                 Deep Focus
               </span>
-              <span className="text-[10px] font-mono text-[#9496a1] leading-none mt-1">
-                {currentUser ? currentUser.name : profile.name}
+              <span className="text-xs text-[#9496a1] leading-none mt-1 font-sans flex items-center gap-1.5">
+                <span>{currentUser ? currentUser.name : profile.name}</span>
+                {currentUser?.role === 'admin' && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#1591DC]/15 text-[#1591DC] font-medium leading-none">
+                    Admin
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -1147,39 +1152,50 @@ export default function App() {
                 })}
               </div>
 
-              {/* Streamlined Utility Controls (Tối giản khu vực panel) */}
-              <div className="pt-3 mt-2 border-t border-white/10 grid grid-cols-2 gap-2 text-center">
-                <button
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="py-2 px-2.5 glass-button-true text-zinc-300 hover:text-white font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5"
-                  title="Configure System Settings"
-                >
-                  <Settings className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Config</span>
-                </button>
+              {/* Streamlined Utility Controls */}
+              <div className="pt-3 mt-2 border-t border-white/[0.08] grid grid-cols-2 gap-2 text-center">
                 <button
                   onClick={handleExportAllData}
-                  className="py-2 px-2.5 glass-button-true text-zinc-300 hover:text-white font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  className="py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
                   title="Export Backup Data (JSON)"
                 >
-                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <Download className="w-3.5 h-3.5 text-[#1591DC]" />
                   <span>Backup</span>
                 </button>
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportData}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                    title="Import JSON Backup"
+                  />
+                  <button
+                    type="button"
+                    className="w-full py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Import JSON</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  title="Configure System Settings"
+                >
+                  <Settings className="w-3.5 h-3.5 text-[#9496a1]" />
+                  <span>Config</span>
+                </button>
+
                 <button
                   onClick={() => setIsShortcutsModalOpen(true)}
-                  className="py-2 px-2.5 glass-button-true text-zinc-300 hover:text-white font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5"
+                  className="py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
                   title="Keyboard Shortcuts Cheatsheet (?)"
                 >
-                  <span>⌨️</span>
+                  <Compass className="w-3.5 h-3.5 text-[#9496a1]" />
                   <span>Shortcuts</span>
-                </button>
-                <button
-                  onClick={handleClearAllData}
-                  className="py-2 px-2.5 glass-button-true text-red-400 hover:text-red-300 font-sans text-[11px] font-semibold transition-all rounded-xl flex items-center justify-center gap-1.5 border-red-500/20"
-                  title="Reset Workspace Data"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Reset</span>
                 </button>
               </div>
             </aside>
@@ -1358,57 +1374,57 @@ export default function App() {
 
       {/* 3. PROFILE SETTINGS MODAL OVERLAY */}
       {isProfileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6 backdrop-blur-md">
-          <div className="w-full max-w-md glass-panel-true border border-white/15 p-7 shadow-2xl relative rounded-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
+          <div className="w-full max-w-md glass-panel-true border border-white/[0.08] p-7 shadow-2xl relative rounded-2xl font-sans">
             
             {/* Close Button */}
             <button 
               onClick={() => setIsProfileModalOpen(false)}
-              className="absolute right-5 top-5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
+              className="absolute right-5 top-5 text-[#9496a1] hover:text-white transition-colors focus:outline-none"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Header */}
-            <h3 className="text-lg font-bold tracking-tight text-white mb-1">
-              Master Profile Settings
+            <h3 className="text-lg font-semibold text-white mb-1">
+              Profile Settings
             </h3>
-            <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/10 pb-4 font-bold">
-              USER IDENTITY & MISSION STATEMENT
+            <p className="text-xs text-[#9496a1] mb-6 border-b border-white/[0.08] pb-3 font-normal">
+              Manage personal details and profile bio
             </p>
 
-            <form onSubmit={handleSaveProfile} className="space-y-4">
+            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
               
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">DISPLAY NAME</label>
+                <label className="text-xs text-[#9496a1] font-medium">Display name</label>
                 <input
                   type="text"
                   required
                   value={tempProfile.name}
                   onChange={(e) => setTempProfile(prev => ({ ...prev, name: e.target.value }))}
-                  className="glass-input-true px-3 py-2.5 text-xs text-white focus:outline-none rounded-xl font-sans"
+                  className="glass-input-true px-3 py-2 text-xs text-white focus:outline-none rounded-xl"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">ROLE / TITLE</label>
+                <label className="text-xs text-[#9496a1] font-medium">Role or title</label>
                 <input
                   type="text"
                   required
                   value={tempProfile.role}
                   onChange={(e) => setTempProfile(prev => ({ ...prev, role: e.target.value }))}
-                  className="glass-input-true px-3 py-2.5 text-xs text-white focus:outline-none rounded-xl font-sans"
+                  className="glass-input-true px-3 py-2 text-xs text-white focus:outline-none rounded-xl"
                 />
               </div>
 
               {/* Avatar Image Upload & URL Input */}
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">AVATAR IMAGE</label>
-                <div className="flex items-center gap-4 glass-card-true p-3 rounded-xl border border-white/10">
+                <label className="text-xs text-[#9496a1] font-medium">Avatar image</label>
+                <div className="flex items-center gap-4 glass-card-true p-3 rounded-xl">
                   <img
                     src={tempProfile.avatarUrl}
                     alt="Preview"
-                    className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md shrink-0"
+                    className="w-12 h-12 rounded-full object-cover border border-white/20 shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
                     }}
@@ -1435,10 +1451,10 @@ export default function App() {
                       />
                       <button
                         type="button"
-                        className="w-full py-2 glass-button-true text-cyan-300 hover:text-cyan-100 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 border border-cyan-500/30"
+                        className="w-full py-1.5 glass-button-true text-[#ededf3] hover:text-white text-xs font-medium rounded-lg flex items-center justify-center gap-2"
                       >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Upload Image File</span>
+                        <Upload className="w-3.5 h-3.5 text-[#1591DC]" />
+                        <span>Upload Image</span>
                       </button>
                     </div>
                     <input
@@ -1446,19 +1462,19 @@ export default function App() {
                       value={tempProfile.avatarUrl}
                       onChange={(e) => setTempProfile(prev => ({ ...prev, avatarUrl: e.target.value }))}
                       placeholder="Or paste image URL..."
-                      className="w-full glass-input-true px-2.5 py-1.5 text-[10px] text-white focus:outline-none rounded-lg font-mono truncate"
+                      className="w-full glass-input-true px-2.5 py-1 text-[11px] text-[#ededf3] focus:outline-none rounded-lg truncate"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-mono text-zinc-400 uppercase font-bold">BIO / MISSION STATEMENT</label>
+                <label className="text-xs text-[#9496a1] font-medium">Bio</label>
                 <textarea
                   required
                   value={tempProfile.bio}
                   onChange={(e) => setTempProfile(prev => ({ ...prev, bio: e.target.value }))}
-                  className="glass-input-true p-3 h-24 text-xs text-white focus:outline-none rounded-xl font-sans resize-none"
+                  className="glass-input-true p-3 h-20 text-xs text-white focus:outline-none rounded-xl resize-none"
                 />
               </div>
 
@@ -1467,15 +1483,15 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setIsProfileModalOpen(false)}
-                  className="flex-1 py-2.5 border border-white/10 hover:border-white/25 text-zinc-400 hover:text-white font-mono text-xs uppercase tracking-widest rounded-xl transition-all font-bold"
+                  className="flex-1 py-2.5 glass-button-true text-[#9496a1] hover:text-white text-xs font-medium rounded-full transition-all"
                 >
-                  CANCEL
+                  Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 glass-button-true text-cyan-300 hover:text-cyan-100 font-mono text-xs uppercase tracking-widest rounded-xl transition-all font-bold border border-cyan-500/30"
+                  className="flex-1 py-2.5 btn-primary-cyan text-white text-xs font-semibold rounded-full transition-all"
                 >
-                  SAVE PROFILE
+                  Save changes
                 </button>
               </div>
 
@@ -1487,30 +1503,30 @@ export default function App() {
 
       {/* 4. SYSTEM SETTINGS & THEMES CONFIGURATION MODAL */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6 backdrop-blur-md">
-          <div className="w-full max-w-lg glass-panel-true border border-white/15 p-7 shadow-2xl relative transition-all duration-300 max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-md">
+          <div className="w-full max-w-lg glass-panel-true border border-white/[0.08] p-7 shadow-2xl relative transition-all duration-300 max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-none font-sans">
             
             {/* Close Button */}
             <button 
               onClick={() => setIsSettingsOpen(false)}
-              className="absolute right-5 top-5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
+              className="absolute right-5 top-5 text-[#9496a1] hover:text-white transition-colors focus:outline-none"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Header */}
-            <h3 className="text-lg font-bold tracking-tight text-white mb-1">
-              System Configuration Settings
+            <h3 className="text-lg font-semibold text-white mb-1">
+              Settings & Preferences
             </h3>
-            <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mb-6 border-b border-white/10 pb-4 font-bold">
-              THEME MODE & DATA MANAGEMENT
+            <p className="text-xs text-[#9496a1] mb-6 border-b border-white/[0.08] pb-3">
+              Theme mode, storage status, and workspace backup
             </p>
 
             {/* Section 0: Theme Mode (Light / Dark) */}
             <div className="mb-6">
-              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 font-bold">
-                {isLightMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-violet-400" />}
-                THEME MODE (LIGHT / DARK)
+              <h4 className="text-xs font-medium text-[#9496a1] mb-3 flex items-center gap-1.5">
+                {isLightMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-[#1591DC]" />}
+                <span>Theme Mode</span>
               </h4>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -1520,14 +1536,14 @@ export default function App() {
                     document.documentElement.classList.remove('light-mode');
                     localStorage.setItem('df_is_light_mode', 'false');
                   }}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-mono uppercase font-bold transition-all border ${
+                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium transition-all ${
                     !isLightMode 
-                      ? 'bg-white text-black border-white shadow-lg font-black' 
-                      : 'glass-button-true text-zinc-400 hover:text-white'
+                      ? 'bg-[#1591DC] text-white shadow-md font-semibold' 
+                      : 'glass-button-true text-[#9496a1] hover:text-white'
                   }`}
                 >
                   <Moon className="w-4 h-4" />
-                  <span>DARK MODE {!isLightMode && '✓'}</span>
+                  <span>Dark Mode {!isLightMode && '✓'}</span>
                 </button>
                 <button
                   type="button"
@@ -1536,36 +1552,36 @@ export default function App() {
                     document.documentElement.classList.add('light-mode');
                     localStorage.setItem('df_is_light_mode', 'true');
                   }}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-mono uppercase font-bold transition-all border ${
+                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium transition-all ${
                     isLightMode 
-                      ? 'bg-white text-black border-white shadow-lg font-black' 
-                      : 'glass-button-true text-zinc-400 hover:text-white'
+                      ? 'bg-white text-zinc-900 shadow-md font-semibold' 
+                      : 'glass-button-true text-[#9496a1] hover:text-white'
                   }`}
                 >
                   <Sun className="w-4 h-4" />
-                  <span>LIGHT MODE {isLightMode && '✓'}</span>
+                  <span>Light Mode {isLightMode && '✓'}</span>
                 </button>
               </div>
             </div>
 
             {/* Section 2: Storage Status & Import/Export */}
             <div className="mb-6">
-              <h4 className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 font-bold">
-                <Database className="w-3.5 h-3.5 text-zinc-400" />
-                DATA PERSISTENCE & BACKUP
+              <h4 className="text-xs font-medium text-[#9496a1] mb-3 flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-[#1591DC]" />
+                <span>Data & Backup</span>
               </h4>
 
-              <div className="glass-card-true p-4 mb-4 rounded-xl border border-white/10">
-                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
-                  <span className="text-[9px] font-mono text-zinc-400 uppercase font-bold">STORAGE ARCHITECTURE</span>
-                  <span className={`text-[9px] font-mono font-bold uppercase ${localOnlyMode ? 'text-zinc-400' : 'text-emerald-400 animate-pulse'}`}>
-                    {localOnlyMode ? 'PURE LOCAL (OFFLINE)' : 'CLOUD FIRESTORE (CONNECTED)'}
+              <div className="glass-card-true p-4 mb-4 rounded-xl">
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/[0.08]">
+                  <span className="text-xs text-[#9496a1] font-medium">Storage status</span>
+                  <span className={`text-xs font-medium ${localOnlyMode ? 'text-zinc-400' : 'text-emerald-400'}`}>
+                    {localOnlyMode ? 'Local only (Offline)' : 'Cloud Firestore (Syncing)'}
                   </span>
                 </div>
-                <p className="text-[10px] text-zinc-300 leading-relaxed font-sans">
+                <p className="text-xs text-[#9496a1] leading-relaxed font-sans">
                   {localOnlyMode 
-                    ? 'All application telemetry is securely stored in your browser LocalStorage.' 
-                    : 'Data is synchronized in real-time with Cloud Firestore for multi-device availability.'}
+                    ? 'All workspace data is stored in your local browser storage.' 
+                    : 'Data is synchronized across devices with Cloud Firestore.'}
                 </p>
               </div>
 
@@ -1574,10 +1590,10 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleExportData}
-                  className="flex items-center justify-center gap-2 py-2.5 glass-button-true text-zinc-200 hover:text-white font-mono text-xs uppercase rounded-xl transition-all font-bold"
+                  className="flex items-center justify-center gap-2 py-2.5 glass-button-true text-[#ededf3] hover:text-white text-xs font-medium rounded-xl transition-all"
                 >
-                  <Download className="w-4 h-4" />
-                  EXPORT JSON
+                  <Download className="w-4 h-4 text-[#1591DC]" />
+                  <span>Export JSON</span>
                 </button>
 
                 {/* Import Button */}
@@ -1591,10 +1607,10 @@ export default function App() {
                   />
                   <button
                     type="button"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 glass-button-true text-zinc-200 hover:text-white font-mono text-xs uppercase rounded-xl transition-all font-bold"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 glass-button-true text-[#ededf3] hover:text-white text-xs font-medium rounded-xl transition-all"
                   >
-                    <Upload className="w-4 h-4" />
-                    IMPORT JSON
+                    <Upload className="w-4 h-4 text-emerald-400" />
+                    <span>Import JSON</span>
                   </button>
                 </div>
               </div>
@@ -1603,10 +1619,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={handleClearAllData}
-                className="w-full flex items-center justify-center gap-2.5 py-2.5 bg-red-950/30 border border-red-500/30 hover:border-red-400 text-red-400 hover:text-red-200 font-mono text-xs uppercase rounded-xl transition-all font-bold"
+                className="w-full flex items-center justify-center gap-2.5 py-2.5 bg-rose-500/10 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 hover:text-rose-300 text-xs font-medium rounded-xl transition-all"
               >
                 <Trash2 className="w-4 h-4" />
-                PERMANENTLY WIPE ALL DATA
+                <span>Reset all workspace data</span>
               </button>
             </div>
 

@@ -33,7 +33,7 @@ export const DEFAULT_ADMIN: UserAccount = {
   id: 'usr_admin_001',
   email: 'work.xuanphuc@gmail.com',
   password: 'toantin1',
-  name: 'Xuan Phuc (Master Admin)',
+  name: 'Xuan Phuc',
   role: 'admin',
   tier: 'VIP',
   status: 'active',

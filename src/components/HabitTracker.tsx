@@ -205,12 +205,12 @@ export default function HabitTracker({
 
   const doughnutChartData = useMemo(() => {
     return {
-      labels: ['CONSISTENCY', 'REMAINING'],
+      labels: ['Consistency', 'Remaining'],
       datasets: [
         {
           data: [stats.consistency, Math.max(0, 100 - stats.consistency)],
-          backgroundColor: ['#6ee7b7', 'rgba(255, 255, 255, 0.1)'],
-          borderColor: ['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.1)'],
+          backgroundColor: ['#1591DC', 'rgba(255, 255, 255, 0.08)'],
+          borderColor: ['rgba(21, 145, 220, 0.3)', 'rgba(255, 255, 255, 0.08)'],
           borderWidth: 2,
         }
       ]
@@ -462,12 +462,12 @@ export default function HabitTracker({
       </div>
 
       {/* Visual Analytics - Side by Side Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 border-t border-white/15 pt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 border-t border-white/[0.08] pt-8">
         
         {/* Left Column: Vertical Bar Chart */}
-        <div className="lg:col-span-2 flex flex-col h-full self-stretch pr-0 lg:pr-8 border-b lg:border-b-0 lg:border-r border-white/15 pb-8 lg:pb-0">
-          <h4 className="text-xs font-mono tracking-widest text-zinc-300 uppercase mb-6 font-bold">
-            DAILY COMPLETION VOLUME
+        <div className="lg:col-span-2 flex flex-col h-full self-stretch pr-0 lg:pr-8 border-b lg:border-b-0 lg:border-r border-white/[0.08] pb-8 lg:pb-0">
+          <h4 className="text-xs font-semibold text-white mb-6">
+            Daily completion volume
           </h4>
           <div className="flex-1 min-h-[220px] relative">
             <Bar data={barChartData} options={barChartOptions} />
@@ -477,19 +477,19 @@ export default function HabitTracker({
         {/* Right Column: Doughnut Consistency Chart */}
         <div className="flex flex-col items-center justify-center">
           <div className="w-full text-left mb-6">
-            <h4 className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-bold">
-              MONTHLY CONSISTENCY RATE
+            <h4 className="text-xs font-semibold text-white">
+              Monthly consistency rate
             </h4>
           </div>
           
           <div className="relative w-48 h-48 flex items-center justify-center mb-4">
             <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
             <div className="absolute text-center">
-              <span className="text-3xl font-extrabold font-mono text-[#6ee7b7] tracking-tighter">
+              <span className="text-3xl font-bold font-mono text-[#1591DC] tracking-tight">
                 {stats.consistency}%
               </span>
-              <p className="text-[8px] font-mono text-zinc-300 uppercase tracking-widest mt-1 font-bold">
-                CONSISTENCY
+              <p className="text-xs text-[#9496a1] mt-1 font-medium">
+                Consistency
               </p>
             </div>
           </div>
