@@ -929,55 +929,84 @@ export default function App() {
   return (
     <div className={`min-h-screen text-zinc-100 font-sans antialiased flex flex-col relative selection:bg-white/20 selection:text-white ${isLightMode ? 'light-mode' : ''}`}>
       
-      {/* Vercel Aesthetic Dark Gradient Mesh + Noise Overlay + Ambient Glow Streaks */}
-      <div className="glass-background-mesh">
-        <div className="noise-overlay" />
-        <div className="glow-streak-top" />
-        <div className="glow-streak-bottom" />
+      {/* Film Grain Noise Overlay */}
+      <div className="noise-overlay" aria-hidden="true" />
+
+      {/* Atmospheric Ambient Glow */}
+      <div className="ambient-glow fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-[#1591DC]/12 via-[#1591DC]/3 to-transparent blur-[120px]" />
       </div>
 
-      {/* 1. TOP STATUS BAR HEADER (Refined Swiss Precision) */}
-      <header className="sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-3 transition-colors">
-        <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-4">
+      {/* 1. CLEAN STICKY HEADER (Thomas Nguyen & Swiss Studio Standard) */}
+      <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
+        <div className="max-w-[1240px] mx-auto w-full flex justify-between items-center gap-4">
           
-          {/* Brand Logo & Clean Time Display */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setActiveSection('overview')}>
-              <div className="w-6 h-6 rounded-md bg-white text-black flex items-center justify-center font-black text-[11px] shadow-sm group-hover:scale-105 transition-transform">
-                DF
-              </div>
-              <span className="text-xs font-bold tracking-tight text-white uppercase font-sans">
+          {/* Studio Avatar & Brand Mark */}
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveSection('overview')}>
+            <img 
+              src={profile.avatarUrl} 
+              alt="Deep Focus" 
+              className="w-8 h-8 rounded-full object-cover border border-[#1591DC] shadow-[0_0_12px_rgba(21,145,220,0.4)] group-hover:scale-105 transition-transform"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+              }}
+            />
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm tracking-tight text-white leading-none">
                 Deep Focus
               </span>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-zinc-400">
-              <span className="text-zinc-600">•</span>
-              <Clock className="w-3 h-3 text-zinc-500" />
-              <span>{currentTime}</span>
+              <span className="text-[10px] font-mono text-[#9496a1] leading-none mt-1">
+                {currentUser ? currentUser.name : profile.name}
+              </span>
             </div>
           </div>
 
-          {/* Center Command Palette Search Trigger */}
-          <div className="flex items-center">
-            <button
-              onClick={() => setIsCommandPaletteOpen(true)}
-              className="px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-zinc-300 hover:text-white transition-all rounded-full flex items-center gap-2.5 text-xs font-medium"
-              title="Search or Jump to Section (Ctrl + K)"
-            >
-              <Search className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="text-zinc-400 text-xs">Search actions...</span>
-              <kbd className="px-1.5 py-0.2 text-[9px] font-mono bg-white/10 text-zinc-300 rounded border border-white/10">⌘K</kbd>
-            </button>
-          </div>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-[#9496a1] tracking-tight">
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'todo-hub', label: 'Tasks' },
+              { id: 'habit-matrix', label: 'Habits' },
+              { id: 'daily-journal', label: 'Journal' },
+              { id: 'expense-ledger', label: 'Expenses' },
+              { id: 'scratchpad', label: 'Scratchpad' },
+              ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin' }] : [])
+            ].map(item => {
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`transition-colors relative py-1 ${
+                    isActive ? 'text-white font-semibold' : 'hover:text-white'
+                  }`}
+                >
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#1591DC] rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
 
-          {/* Right Controls: Theme Switcher, Cloud Sync, Sidebar Toggle, User & Settings */}
+          {/* Right Action Tools */}
           <div className="flex items-center gap-2.5">
             
+            {/* Quick Command Search */}
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 glass-button-true text-xs text-[#9496a1] hover:text-white"
+              title="Search (Ctrl + K)"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <kbd className="px-1.5 py-0.2 text-[9px] font-mono bg-white/10 rounded">⌘K</kbd>
+            </button>
+
             {/* 1-Click Theme Switcher (Light / Dark Mode) */}
             <button
               onClick={() => setIsLightMode(prev => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all rounded-full"
+              className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all"
               title={isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode"}
             >
               {isLightMode ? (
@@ -993,59 +1022,32 @@ export default function App() {
               )}
             </button>
 
-            {/* Cloud Sync Status Indicator */}
+            {/* Cloud Sync Status */}
             <button
               onClick={() => handleToggleLocalMode(!localOnlyMode)}
-              className="flex items-center gap-1.5 px-3 py-1.5 glass-pill-true text-xs font-mono text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 kuldeep-badge text-xs font-mono"
               title={localOnlyMode ? "Offline Mode (Click to enable Cloud Sync)" : "Cloud Sync Active (Click to switch to Offline Mode)"}
             >
-              <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-zinc-600'}`} />
+              <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
               <span className="text-[10px] uppercase font-bold tracking-wider">{!localOnlyMode ? 'Synced' : 'Local'}</span>
             </button>
 
-            <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
-
-            {/* Toggle Sidebar Navigation */}
-            <button
-              onClick={() => setIsSidebarOpen(prev => !prev)}
-              className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors hidden lg:block"
-              title={isSidebarOpen ? "Collapse Navigation Panel" : "Expand Navigation Panel"}
-            >
-              {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-            </button>
-
-            {/* User Avatar */}
+            {/* Profile Settings */}
             <button
               onClick={() => {
                 setTempProfile({ ...profile });
                 setIsProfileModalOpen(true);
               }}
-              className="flex items-center gap-2 px-2 py-1 hover:bg-white/[0.06] rounded-xl transition-colors text-left"
+              className="p-2 text-[#9496a1] hover:text-white hover:bg-white/10 rounded-full transition-colors"
               title="Edit Profile"
-            >
-              <img 
-                src={profile.avatarUrl} 
-                alt={profile.name} 
-                className="w-6 h-6 rounded-md border border-white/15 object-cover"
-              />
-              <span className="hidden sm:inline text-xs font-semibold text-zinc-200">
-                {currentUser ? currentUser.name : profile.name}
-              </span>
-            </button>
-
-            {/* Settings icon */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              title="Settings"
             >
               <Settings className="w-4 h-4" />
             </button>
 
-            {/* Logout icon */}
+            {/* Logout */}
             <button
               onClick={handleLogout}
-              className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+              className="p-2 text-[#9496a1] hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
@@ -1057,7 +1059,7 @@ export default function App() {
       </header>
 
       {/* 2. MAIN WORKSPACE PANELS */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 z-10 transition-all duration-300">
+      <main className="flex-1 w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 py-8 z-10 transition-all duration-300">
 
         {/* Mobile Horizontal Quick Navigation Tabs */}
         {!isLoading && (
