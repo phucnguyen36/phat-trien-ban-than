@@ -593,7 +593,10 @@ export function syncCollectionRealtime(collectionName: string, callback: (data: 
   return onSnapshot(collection(db, 'users', uid, collectionName), (snap) => {
     const list: any[] = [];
     snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-    callback(list);
+    // Critical: If remote collection is completely empty, do NOT overwrite local data with []!
+    if (list.length > 0) {
+      callback(list);
+    }
   }, (error) => {
     handleFirestoreError(error, OperationType.GET, `users/${uid}/` + collectionName);
   });

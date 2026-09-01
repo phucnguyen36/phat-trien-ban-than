@@ -207,14 +207,84 @@ export default function App() {
   const initialLocalData = useMemo(() => {
     const email = currentUser?.email;
     return loadFromLocalStorage(email);
-  }, []);
+  }, [currentUser]);
 
   // Core Data States
-  const [goals, setGoals] = useState<GoalTodo[]>(initialLocalData.goals);
-  const [habits, setHabits] = useState<HabitData[]>(initialLocalData.habits);
-  const [journalEntries, setJournalEntries] = useState<DailyJournal[]>(initialLocalData.journal);
-  const [expenses, setExpenses] = useState<PersonalExpense[]>(initialLocalData.expenses);
-  const [scratchpadText, setScratchpadText] = useState<string>(initialLocalData.scratchpad);
+  const [goals, setGoals] = useState<GoalTodo[]>(() => {
+    const saved = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    let email: string | undefined;
+    if (saved) {
+      try { email = JSON.parse(saved)?.email; } catch (e) {}
+    }
+    return loadFromLocalStorage(email).goals;
+  });
+
+  const [habits, setHabits] = useState<HabitData[]>(() => {
+    const saved = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    let email: string | undefined;
+    if (saved) {
+      try { email = JSON.parse(saved)?.email; } catch (e) {}
+    }
+    return loadFromLocalStorage(email).habits;
+  });
+
+  const [journalEntries, setJournalEntries] = useState<DailyJournal[]>(() => {
+    const saved = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    let email: string | undefined;
+    if (saved) {
+      try { email = JSON.parse(saved)?.email; } catch (e) {}
+    }
+    return loadFromLocalStorage(email).journal;
+  });
+
+  const [expenses, setExpenses] = useState<PersonalExpense[]>(() => {
+    const saved = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    let email: string | undefined;
+    if (saved) {
+      try { email = JSON.parse(saved)?.email; } catch (e) {}
+    }
+    return loadFromLocalStorage(email).expenses;
+  });
+
+  const [scratchpadText, setScratchpadText] = useState<string>(() => {
+    const saved = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');
+    let email: string | undefined;
+    if (saved) {
+      try { email = JSON.parse(saved)?.email; } catch (e) {}
+    }
+    return loadFromLocalStorage(email).scratchpad;
+  });
+
+  // CONTINUOUS ZERO-DELAY LOCALSTORAGE AUTO-SAVE
+  useEffect(() => {
+    const uid = resolveActiveUserId(currentUser?.email);
+    localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
+    localStorage.setItem('df_goals_todo', JSON.stringify(goals));
+  }, [goals, currentUser]);
+
+  useEffect(() => {
+    const uid = resolveActiveUserId(currentUser?.email);
+    localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
+    localStorage.setItem('df_habits_data', JSON.stringify(habits));
+  }, [habits, currentUser]);
+
+  useEffect(() => {
+    const uid = resolveActiveUserId(currentUser?.email);
+    localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journalEntries));
+    localStorage.setItem('df_daily_journal', JSON.stringify(journalEntries));
+  }, [journalEntries, currentUser]);
+
+  useEffect(() => {
+    const uid = resolveActiveUserId(currentUser?.email);
+    localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
+    localStorage.setItem('df_personal_expenses', JSON.stringify(expenses));
+  }, [expenses, currentUser]);
+
+  useEffect(() => {
+    const uid = resolveActiveUserId(currentUser?.email);
+    localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpadText);
+    localStorage.setItem('df_quick_scratchpad', scratchpadText);
+  }, [scratchpadText, currentUser]);
 
   // App settings state
   const [localOnlyMode, setLocalOnlyMode] = useState<boolean>(isLocalModeEnabled());
@@ -436,11 +506,11 @@ export default function App() {
     try {
       const activeEmail = currentUser?.email;
       const data = await loadWorkspaceData(activeEmail);
-      setGoals(data.goals);
-      setHabits(data.habits);
-      setJournalEntries(data.journal);
-      setExpenses(data.expenses);
-      setScratchpadText(data.scratchpad);
+      if (data.goals && data.goals.length > 0) setGoals(data.goals);
+      if (data.habits && data.habits.length > 0) setHabits(data.habits);
+      if (data.journal && data.journal.length > 0) setJournalEntries(data.journal);
+      if (data.expenses && data.expenses.length > 0) setExpenses(data.expenses);
+      if (data.scratchpad && data.scratchpad.length > 0) setScratchpadText(data.scratchpad);
     } catch (e) {
       console.error('Failed loading workspace data for active account', e);
     } finally {
@@ -495,19 +565,19 @@ export default function App() {
 
     try {
       const unsubGoals = syncCollectionRealtime('goals_todo', (data) => {
-        if (data) setGoals(data);
+        if (Array.isArray(data) && data.length > 0) setGoals(data);
       }, activeEmail);
       const unsubHabits = syncCollectionRealtime('habits_data', (data) => {
-        if (data) setHabits(data);
+        if (Array.isArray(data) && data.length > 0) setHabits(data);
       }, activeEmail);
       const unsubJournal = syncCollectionRealtime('daily_journal', (data) => {
-        if (data) setJournalEntries(data);
+        if (Array.isArray(data) && data.length > 0) setJournalEntries(data);
       }, activeEmail);
       const unsubExpenses = syncCollectionRealtime('personal_expenses', (data) => {
-        if (data) setExpenses(data);
+        if (Array.isArray(data) && data.length > 0) setExpenses(data);
       }, activeEmail);
       const unsubPad = syncScratchpadRealtime((text) => {
-        if (text !== undefined) setScratchpadText(text);
+        if (text !== undefined && text.length > 0) setScratchpadText(text);
       }, activeEmail);
 
       return () => {
