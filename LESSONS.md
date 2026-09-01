@@ -1,4 +1,4 @@
-﻿# 🛡️ DEEP FOCUS OS — LESSONS LEARNED & ENGINEERING STANDARDS
+# 🛡️ DEEP FOCUS OS — LESSONS LEARNED & ENGINEERING STANDARDS
 > **Mục đích**: Tài liệu này lưu trữ toàn bộ bài học kinh nghiệm, nguyên tắc thiết kế, quy chuẩn lưu trữ dữ liệu và kiểm thử chất lượng nhằm đảm bảo hệ thống phát triển liên tục, hoàn thiện vững chắc và **tuyệt đối không bao giờ lặp lại các sai lầm trong quá khứ**.
 
 ---
@@ -9,14 +9,17 @@
 1. **Lỗi loadFromLocalStorage không parse JSON**: Đọc chuỗi thô từ localStorage nhưng quên JSON.parse(), dẫn đến biến bị undefined, kích hoạt cơ chế fallback và reset trắng dữ liệu khi người dùng bấm F5.
 2. **Khởi tạo trạng thái bất đồng bộ chậm trễ**: Khởi tạo isAuthenticated = false và goals = [] rỗng theo mặc định. Khi F5, React nạp trang ở trạng thái 'chưa đăng nhập', gây ra độ trễ (flicker) và làm sai lệch luồng nạp dữ liệu.
 3. **Mất định danh tài khoản khi gọi hàm lưu**: Các hàm handleAddGoal, handleToggleGoal, handleAddHabit, handleAddExpense gọi saveGoal(item) mà không truyền kèm currentUser?.email, dẫn đến dữ liệu bị lưu vào khóa ẩn danh default_user thay vì tài khoản cá nhân.
+4. **Lỗi Firestore Realtime Snapshot trả về mảng rỗng `[]` đè trắng Local Data**: Khi người dùng F5, listener `onSnapshot` kết nối tới Firestore. Nếu collection trên Firestore chưa có dữ liệu hoặc đang rớt mạng, callback trả về `[]`. Code cũ kiểm tra `if (data)` (vốn luôn true vì `[]` là truthy) và gọi `setGoals([])`, khiến dữ liệu vừa nạp từ LocalStorage bị xóa sạch ngay lập tức.
 
 ### ✅ Quy tắc bắt buộc tuân thủ:
 - [x] **Khởi tạo đồng bộ tức thì (0ms Instant Load)**: Mọi state cốt lõi (currentUser, isAuthenticated, goals, habits, journal, expenses, scratchpad) **phải** được đọc đồng bộ từ localStorage qua hàm lazy initializer của useState ngay tại mili-giây đầu tiên.
+- [x] **Lưu trữ tự động liên tục (Continuous Zero-Delay Auto-Save)**: Thiết lập `useEffect` bám sát các state (`goals`, `habits`, `journalEntries`, `expenses`, `scratchpadText`) để ghi thẳng xuống `localStorage` ngay tức thì tại mỗi thay đổi state.
+- [x] **Bảo vệ chống đè mảng rỗng từ Firestore Snapshot**: Listener `onSnapshot` và `loadData` **tuyệt đối không được phép** gọi `setGoals([])` nếu dữ liệu trả về từ Firestore là mảng rỗng. Chỉ cập nhật state khi `Array.isArray(data) && data.length > 0`.
 - [x] **Kiến trúc lưu trữ 2 tầng (Dual-Tier Persistence)**:
   - **Tầng 1 (LocalStorage)**: Ghi tức thì vào localStorage theo khóa tài khoản (df_goals_todo_) và khóa dự phòng toàn cục (df_goals_todo).
   - **Tầng 2 (Cloud Firestore)**: Đồng bộ ngầm lên Firestore (users//...).
 - [x] **Phòng vệ rớt mạng / Timeout**: Luôn thiết lập giới hạn timeout (3-4s). Nếu Firestore phản hồi chậm hoặc lỗi mạng, hệ thống **luôn ưu tiên giữ 100% dữ liệu LocalStorage**, không được phép xóa trắng hoặc reset về ban đầu.
-- [x] **An toàn Parse JSON**: Luôn bọc JSON.parse() trong 	ry...catch và kiểm tra Array.isArray() trước khi gán vào state.
+- [x] **An toàn Parse JSON**: Luôn bọc JSON.parse() trong try...catch và kiểm tra Array.isArray() trước khi gán vào state.
 - [x] **Đồng bộ tham số người dùng**: Mọi hàm thêm/sửa/xóa đều phải truyền currentUser?.email vào các hàm save... và delete....
 
 ---
