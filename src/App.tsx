@@ -37,6 +37,7 @@ import {
   syncCollectionRealtime,
   syncScratchpadRealtime,
   loadFromLocalStorage,
+  resolveActiveUserId,
   purgeAllWorkspaceData
 } from './firebase';
 
