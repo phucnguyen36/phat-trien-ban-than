@@ -30,7 +30,6 @@ import {
   Zap,
   TrendingUp,
   CalendarDays,
-  Sparkles,
   BarChart3
 } from 'lucide-react';
 
@@ -206,10 +205,10 @@ export default function HabitTracker({
     };
   }, [filteredHabits, daysArray, totalDays]);
 
-  // Executive KPI 1: Best Active Streak across all habits
+  // Executive KPI 1: Best Active Streak
   const bestStreakMeta = useMemo(() => {
     let maxStreak = 0;
-    let habitName = 'No active streak';
+    let habitName = 'None';
     filteredHabits.forEach(h => {
       const s = calculateHabitStreak(h.completedDays, totalDays, todayDay, isCurrentMonthActive);
       if (s.current > maxStreak) {
@@ -220,7 +219,7 @@ export default function HabitTracker({
     return { maxStreak, habitName };
   }, [filteredHabits, totalDays, todayDay, isCurrentMonthActive]);
 
-  // Executive KPI 2: Today's execution rate
+  // Executive KPI 2: Today's execution
   const todayExecution = useMemo(() => {
     if (!isCurrentMonthActive) return { completed: 0, total: filteredHabits.length, rate: 0 };
     const completed = filteredHabits.filter(h => h.completedDays.includes(todayDay)).length;
@@ -238,7 +237,7 @@ export default function HabitTracker({
     return { name: top.habitName, days: top.completedDays.length, rate };
   }, [filteredHabits, totalDays]);
 
-  // Weekly Breakdown (Week 1 to Week 5)
+  // Weekly Breakdown
   const weeklyBreakdown = useMemo(() => {
     const weeks: { label: string; range: string; rate: number; completed: number; total: number }[] = [];
     const totalW = Math.ceil(totalDays / 7);
@@ -265,7 +264,7 @@ export default function HabitTracker({
     return weeks;
   }, [totalDays, filteredHabits]);
 
-  // Day of Week Heatmap
+  // Day of Week Stats
   const dayOfWeekStats = useMemo(() => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const parts = selectedMonthYear.split('-');
@@ -302,9 +301,10 @@ export default function HabitTracker({
         {
           label: 'Completed habits',
           data: stats.dailyCounts,
-          backgroundColor: 'rgba(21, 145, 220, 0.75)',
+          backgroundColor: '#1591DC',
           borderColor: '#1591DC',
-          borderWidth: 1,
+          borderRadius: 2,
+          borderWidth: 0,
           hoverBackgroundColor: '#38bdf8'
         }
       ]
@@ -327,11 +327,11 @@ export default function HabitTracker({
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 9 } }
+        ticks: { color: '#71717a', font: { family: 'Inter', size: 9 } }
       },
       y: {
-        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-        ticks: { color: '#a1a1aa', font: { family: 'Inter', size: 9 }, stepSize: 1 },
+        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        ticks: { color: '#71717a', font: { family: 'Inter', size: 9 }, stepSize: 1 },
         beginAtZero: true
       }
     }
@@ -343,9 +343,9 @@ export default function HabitTracker({
       datasets: [
         {
           data: [stats.consistency, Math.max(0, 100 - stats.consistency)],
-          backgroundColor: ['#1591DC', 'rgba(255, 255, 255, 0.08)'],
-          borderColor: ['rgba(21, 145, 220, 0.3)', 'rgba(255, 255, 255, 0.08)'],
-          borderWidth: 2,
+          backgroundColor: ['#1591DC', 'rgba(255, 255, 255, 0.06)'],
+          borderColor: ['rgba(21, 145, 220, 0.2)', 'rgba(255, 255, 255, 0.06)'],
+          borderWidth: 1,
         }
       ]
     };
@@ -354,7 +354,7 @@ export default function HabitTracker({
   const doughnutChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '75%',
+    cutout: '76%',
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -388,7 +388,7 @@ export default function HabitTracker({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/[0.08] pb-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
-            Habits & Consistency Matrix
+            Habits & Consistency
           </h2>
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
             <p className="text-xs text-[#9496a1]">
@@ -442,42 +442,37 @@ export default function HabitTracker({
         </form>
       </div>
 
-      {/* 🌟 1. EXECUTIVE KPI METRICS STRIP */}
+      {/* 🌟 1. MINIMALIST UNIFIED EXECUTIVE KPI STRIP */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Metric 1: Best Active Streak */}
-        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.15] transition-all">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-            <Flame className="w-5 h-5 text-amber-400" />
+        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
+          <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
+            <Flame className="w-4 h-4 text-[#1591DC]" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold font-mono text-white">
+              <span className="text-sm font-bold font-mono text-white">
                 {bestStreakMeta.maxStreak} {bestStreakMeta.maxStreak === 1 ? 'day' : 'days'}
               </span>
-              {bestStreakMeta.maxStreak > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500/20 text-amber-300 font-medium font-sans">
-                  Active
-                </span>
-              )}
             </div>
-            <p className="text-[11px] text-[#9496a1] truncate max-w-[140px]" title={bestStreakMeta.habitName}>
+            <p className="text-[11px] text-[#9496a1] truncate max-w-[130px]" title={bestStreakMeta.habitName}>
               {bestStreakMeta.habitName}
             </p>
           </div>
         </div>
 
         {/* Metric 2: Today's Execution */}
-        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.15] transition-all">
-          <div className="w-10 h-10 rounded-xl bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center shrink-0">
-            <Zap className="w-5 h-5 text-[#1591DC]" />
+        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
+          <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
+            <Zap className="w-4 h-4 text-[#1591DC]" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold font-mono text-white">
+              <span className="text-sm font-bold font-mono text-white">
                 {todayExecution.completed} / {todayExecution.total}
               </span>
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-[#1591DC]/20 text-[#1591DC] font-medium font-sans">
-                {todayExecution.rate}%
+              <span className="text-[10px] text-[#9496a1] font-mono">
+                ({todayExecution.rate}%)
               </span>
             </div>
             <p className="text-[11px] text-[#9496a1]">
@@ -487,93 +482,49 @@ export default function HabitTracker({
         </div>
 
         {/* Metric 3: Top Performer Habit */}
-        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.15] transition-all">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <Trophy className="w-5 h-5 text-emerald-400" />
+        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
+          <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
+            <Trophy className="w-4 h-4 text-[#1591DC]" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold font-mono text-white">
+              <span className="text-sm font-bold font-mono text-white">
                 {topPerformer ? `${topPerformer.rate}%` : '0%'}
               </span>
-              {topPerformer && (
-                <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-500/20 text-emerald-300 font-medium font-sans">
-                  {topPerformer.days}d done
-                </span>
-              )}
             </div>
-            <p className="text-[11px] text-[#9496a1] truncate max-w-[140px]" title={topPerformer?.name || 'No habits'}>
+            <p className="text-[11px] text-[#9496a1] truncate max-w-[130px]" title={topPerformer?.name || 'No habits'}>
               {topPerformer?.name || 'No habits added'}
             </p>
           </div>
         </div>
 
         {/* Metric 4: Monthly Consistency Index */}
-        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.15] transition-all">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5 h-5 text-purple-400" />
+        <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
+          <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
+            <TrendingUp className="w-4 h-4 text-[#1591DC]" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold font-mono text-white">
+              <span className="text-sm font-bold font-mono text-white">
                 {stats.consistency}%
-              </span>
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-purple-500/20 text-purple-300 font-medium font-sans">
-                Overall
               </span>
             </div>
             <p className="text-[11px] text-[#9496a1]">
-              {stats.totalCompletedCheckins}/{stats.totalPossibleCheckins} check-ins
+              {stats.totalCompletedCheckins}/{stats.totalPossibleCheckins} total
             </p>
           </div>
         </div>
       </div>
 
-      {/* 📅 2. WEEKLY CONSISTENCY BREAKDOWN STRIP */}
-      <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="w-3.5 h-3.5 text-[#1591DC]" />
-            <span className="text-xs font-semibold text-white">Weekly Discipline Progression</span>
-          </div>
-          <span className="text-[11px] text-[#9496a1]">4-Week Momentum</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
-          {weeklyBreakdown.map((wb, idx) => (
-            <div key={idx} className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] space-y-1.5">
-              <div className="flex justify-between items-baseline">
-                <span className="text-[11px] font-semibold text-white font-sans">{wb.label}</span>
-                <span className={`text-[11px] font-mono font-bold ${wb.rate >= 70 ? 'text-emerald-400' : wb.rate >= 40 ? 'text-sky-400' : 'text-[#9496a1]'}`}>
-                  {wb.rate}%
-                </span>
-              </div>
-              <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    wb.rate >= 70 ? 'bg-emerald-400' : wb.rate >= 40 ? 'bg-[#1591DC]' : 'bg-zinc-600'
-                  }`}
-                  style={{ width: `${wb.rate}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[10px] text-[#9496a1]">
-                <span>{wb.range}</span>
-                <span>{wb.completed}/{wb.total}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 📊 3. INTERACTIVE 31-DAY HABIT MATRIX */}
+      {/* 📊 2. INTERACTIVE 31-DAY HABIT MATRIX (CLEAN & MINIMALIST) */}
       <div className="glass-panel-true rounded-xl overflow-hidden border border-white/[0.08]">
         <div className="overflow-x-auto">
-          <div className="min-w-[1000px]">
+          <div className="min-w-[960px]">
             
             {/* Grid Headers */}
-            <div className="grid grid-cols-[320px_repeat(31,1fr)] border-b border-white/[0.08] bg-white/[0.02] py-2.5 text-center items-center font-sans">
-              <div className="text-left pl-4 text-xs font-semibold text-[#9496a1] flex items-center justify-between pr-4">
-                <span>Habit & Goal Link</span>
-                <span className="text-[10px] text-zinc-500 font-mono">Streak • Stage</span>
+            <div className="grid grid-cols-[280px_repeat(31,1fr)] border-b border-white/[0.08] bg-white/[0.02] py-2.5 text-center items-center font-sans">
+              <div className="text-left pl-4 text-xs font-semibold text-[#9496a1]">
+                Habit
               </div>
               {daysArray.map(day => {
                 const isItToday = isCurrentMonthActive && day === todayDay;
@@ -582,7 +533,7 @@ export default function HabitTracker({
                     key={day} 
                     className={`text-[10px] font-mono font-medium py-1 transition-all ${
                       isItToday 
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 rounded-full font-bold' 
+                        ? 'bg-[#1591DC]/20 text-white border border-[#1591DC]/40 rounded-full font-bold' 
                         : 'text-[#9496a1]'
                     }`}
                     title={isItToday ? 'Today' : undefined}
@@ -607,20 +558,13 @@ export default function HabitTracker({
               sortedFilteredHabits.map(h => {
                 const streak = calculateHabitStreak(h.completedDays, totalDays, todayDay, isCurrentMonthActive);
                 const habitPct = Math.round((h.completedDays.length / (totalDays || 1)) * 100);
-                
-                // Habit Formation Stage: Forming (0-21d), Building (22-66d), Automatic (66+d)
-                const habitStage = h.completedDays.length >= 66 
-                  ? { label: '💎 Automatic', color: 'text-purple-300 bg-purple-500/15' }
-                  : h.completedDays.length >= 21
-                    ? { label: '⚡ Building', color: 'text-sky-300 bg-sky-500/15' }
-                    : { label: '🌱 Forming', color: 'text-emerald-300 bg-emerald-500/15' };
 
                 return (
                   <div 
                     key={h.id} 
-                    className="grid grid-cols-[320px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
+                    className="grid grid-cols-[280px_repeat(31,1fr)] border-b border-white/5 py-3 items-center group/row hover:bg-white/[0.05] transition-colors"
                   >
-                    {/* Habit Label + Delete Button + Rich Subtext */}
+                    {/* Habit Label + Delete Button + Refined Secondary Subtext */}
                     <div className="flex flex-col pl-4 pr-3">
                       <div className="flex items-center justify-between">
                         {editingHabitId === h.id ? (
@@ -639,7 +583,7 @@ export default function HabitTracker({
                             <button
                               type="button"
                               onClick={() => handleSaveEditHabit(h.id)}
-                              className="p-1 text-emerald-400 hover:text-emerald-300"
+                              className="p-1 text-[#1591DC] hover:text-white"
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
@@ -653,23 +597,13 @@ export default function HabitTracker({
                           </div>
                         ) : (
                           <>
-                            <div className="flex items-center gap-2">
-                              <span 
-                                onDoubleClick={() => handleStartEditHabit(h)}
-                                className="text-xs font-semibold text-white tracking-normal pr-1 cursor-pointer hover:text-[#1591DC] transition-colors"
-                                title="Double-click to edit habit name"
-                              >
-                                {h.habitName}
-                              </span>
-
-                              {/* Streak Badge */}
-                              {streak.current > 0 && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                                  <Flame className="w-2.5 h-2.5 text-amber-400" />
-                                  {streak.current}d
-                                </span>
-                              )}
-                            </div>
+                            <span 
+                              onDoubleClick={() => handleStartEditHabit(h)}
+                              className="text-xs font-semibold text-white tracking-normal pr-2 cursor-pointer hover:text-[#1591DC] transition-colors"
+                              title="Double-click to edit habit name"
+                            >
+                              {h.habitName}
+                            </span>
 
                             <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity">
                               <button
@@ -691,44 +625,43 @@ export default function HabitTracker({
                         )}
                       </div>
                       
-                      {/* Refined Secondary Text: Consistency stats, mini progress, stage & sleek Goal Link */}
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-[#9496a1] font-sans">
+                      {/* Clean Swiss Secondary Line: Stats, Streak, Goal Link */}
+                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#9496a1] font-sans">
                         <span className="font-medium text-zinc-300 font-mono">
-                          {h.completedDays.length}/{totalDays}d ({habitPct}%)
+                          {h.completedDays.length}/{totalDays}d • {habitPct}%
                         </span>
 
-                        {/* Mini progress bar */}
-                        <div className="w-10 h-1 bg-white/[0.08] rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-[#1591DC] rounded-full"
-                            style={{ width: `${habitPct}%` }}
-                          />
-                        </div>
-
-                        {/* Habit Stage Badge */}
-                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-medium ${habitStage.color}`}>
-                          {habitStage.label}
-                        </span>
+                        {streak.current > 1 && (
+                          <>
+                            <span className="text-zinc-600">•</span>
+                            <span className="text-[#9496a1] font-mono">
+                              {streak.current}d streak
+                            </span>
+                          </>
+                        )}
 
                         {/* Goal Link Selector */}
-                        {goals.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Link2 className="w-2.5 h-2.5 text-[#1591DC] shrink-0" />
-                            <select
-                              value={habitGoalLinks[h.id] || ''}
-                              onChange={e => saveHabitGoalLink(h.id, e.target.value)}
-                              className="bg-transparent text-[10px] text-[#9496a1] hover:text-white focus:outline-none cursor-pointer appearance-none"
-                              title="Link habit to a Goal"
-                            >
-                              <option value="" className="bg-[#12141a] text-[#9496a1]">Link goal</option>
-                              {goals.filter(g => !g.completed).map(g => (
-                                <option key={g.id} value={g.id} className="bg-[#12141a] text-white">
-                                  {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 30)}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                        {goals.length > 0 ? (
+                          <>
+                            <span className="text-zinc-600">•</span>
+                            <div className="flex items-center gap-1">
+                              <Link2 className="w-2.5 h-2.5 text-[#1591DC] shrink-0" />
+                              <select
+                                value={habitGoalLinks[h.id] || ''}
+                                onChange={e => saveHabitGoalLink(h.id, e.target.value)}
+                                className="bg-transparent text-[10px] text-[#9496a1] hover:text-white focus:outline-none cursor-pointer appearance-none"
+                                title="Link habit to a Goal"
+                              >
+                                <option value="" className="bg-[#12141a] text-[#9496a1]">Link goal</option>
+                                {goals.filter(g => !g.completed).map(g => (
+                                  <option key={g.id} value={g.id} className="bg-[#12141a] text-white">
+                                    {g.text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').slice(0, 30)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </>
+                        ) : null}
                       </div>
                     </div>
 
@@ -743,10 +676,10 @@ export default function HabitTracker({
                             onClick={() => onToggleHabitDay(h.id, day)}
                             className={`w-5 h-5 border transition-all duration-200 flex items-center justify-center rounded focus:outline-none ${
                               isCompleted 
-                                ? 'bg-[#1591DC] border-[#1591DC] text-white font-bold shadow-[0_0_12px_rgba(21,145,220,0.4)]' 
+                                ? 'bg-[#1591DC] border-[#1591DC] text-white font-bold' 
                                 : isItToday
-                                  ? 'border-[#1591DC]/50 bg-[#1591DC]/15 hover:border-[#1591DC]'
-                                  : 'border-white/[0.12] bg-white/[0.02] hover:border-white/30'
+                                  ? 'border-[#1591DC]/40 bg-[#1591DC]/10 hover:border-[#1591DC]'
+                                  : 'border-white/[0.10] bg-white/[0.02] hover:border-white/30'
                             }`}
                           >
                             {isCompleted && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
@@ -767,7 +700,40 @@ export default function HabitTracker({
         </div>
       </div>
 
-      {/* 📈 4. VISUAL ANALYTICS & DAY-OF-WEEK INSIGHTS */}
+      {/* 📅 3. CLEAN 4-WEEK PROGRESSION STRIP */}
+      <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-3.5 h-3.5 text-[#1591DC]" />
+            <span className="text-xs font-semibold text-white">Weekly Discipline Progression</span>
+          </div>
+          <span className="text-[11px] text-[#9496a1]">Monthly Rhythm</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+          {weeklyBreakdown.map((wb, idx) => (
+            <div key={idx} className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] space-y-1.5">
+              <div className="flex justify-between items-baseline">
+                <span className="text-[11px] font-semibold text-white font-sans">{wb.label}</span>
+                <span className="text-[11px] font-mono font-bold text-white">
+                  {wb.rate}%
+                </span>
+              </div>
+              <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-[#1591DC]"
+                  style={{ width: `${wb.rate}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-[#9496a1]">
+                <span>{wb.range}</span>
+                <span>{wb.completed}/{wb.total}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 📈 4. CHARTS SECTION (CLEAN SWISS MONOCHROME & CYAN) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 border-t border-white/[0.08] pt-6">
         
         {/* Left Column (2 Cols): Daily completion volume bar chart */}
@@ -779,26 +745,26 @@ export default function HabitTracker({
             </h4>
             <span className="text-[10px] text-[#9496a1] font-mono">30-Day Activity Curve</span>
           </div>
-          <div className="h-[200px] relative">
+          <div className="h-[180px] relative">
             <Bar data={barChartData} options={barChartOptions} />
           </div>
 
-          {/* Day of Week Performance Meter */}
+          {/* Day of Week Performance Meter (Clean Monochrome) */}
           <div className="pt-3 border-t border-white/[0.06] space-y-2">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-semibold text-white">Day of Week Performance</span>
-              <span className="text-[#9496a1]">Discipline Distribution</span>
+              <span className="text-[#9496a1]">Consistency Distribution</span>
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {dayOfWeekStats.map((dow, idx) => (
                 <div key={idx} className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04] text-center space-y-1">
                   <span className="text-[10px] font-medium text-[#9496a1] block">{dow.name}</span>
-                  <span className={`text-[11px] font-bold font-mono ${dow.rate >= 60 ? 'text-emerald-400' : 'text-zinc-300'}`}>
+                  <span className="text-[11px] font-bold font-mono text-white">
                     {dow.rate}%
                   </span>
                   <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
                     <div 
-                      className={`h-full rounded-full ${dow.rate >= 60 ? 'bg-emerald-400' : 'bg-[#1591DC]'}`}
+                      className="h-full rounded-full bg-[#1591DC]"
                       style={{ width: `${dow.rate}%` }}
                     />
                   </div>
@@ -808,16 +774,15 @@ export default function HabitTracker({
           </div>
         </div>
 
-        {/* Right Column (1 Col): Monthly Doughnut + Consistency Summary */}
+        {/* Right Column (1 Col): Monthly Doughnut */}
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="w-full text-left">
-            <h4 className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#1591DC]" />
+            <h4 className="text-xs font-semibold text-white">
               Monthly Consistency Rate
             </h4>
           </div>
           
-          <div className="relative w-44 h-44 flex items-center justify-center">
+          <div className="relative w-40 h-40 flex items-center justify-center">
             <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
             <div className="absolute text-center">
               <span className="text-3xl font-bold font-mono text-[#1591DC] tracking-tight">
@@ -835,12 +800,8 @@ export default function HabitTracker({
               <span className="font-mono font-semibold text-white">{stats.totalCompletedCheckins}</span>
             </div>
             <div className="flex justify-between text-[#9496a1]">
-              <span>Potential Max:</span>
-              <span className="font-mono text-zinc-400">{stats.totalPossibleCheckins}</span>
-            </div>
-            <div className="flex justify-between text-[#9496a1]">
               <span>Tracking Habits:</span>
-              <span className="font-mono font-semibold text-[#1591DC]">{filteredHabits.length} habits</span>
+              <span className="font-mono font-semibold text-white">{filteredHabits.length} habits</span>
             </div>
           </div>
         </div>
