@@ -1421,9 +1421,9 @@ export default function TodoHub({
                   <div key={s.label} className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-1.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-[#9496a1]">{s.label}</span>
-                      <span className="text-xs font-mono font-bold text-white">{pct}%</span>
+                      <span className="text-xs tabular-nums font-bold text-white">{pct}%</span>
                     </div>
-                    <div className="text-xl font-bold font-mono text-white tracking-tight">
+                    <div className="text-xl font-bold tabular-nums text-white tracking-tight">
                       {s.done} <span className="text-xs font-normal text-[#9496a1]">/ {s.total} completed</span>
                     </div>
                     <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">

@@ -91,8 +91,8 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
     const converted = Math.abs(vndAmount) / meta.rate;
     const isZeroDecimal = code === 'VND' || code === 'JPY';
     const formattedNum = isZeroDecimal 
-      ? Math.round(converted).toLocaleString() 
-      : converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      ? Math.round(converted).toLocaleString('en-US') 
+      : converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     if (meta.prefix) return `${meta.prefix}${formattedNum}`;
     return `${formattedNum} ${meta.suffix || meta.symbol}`;
@@ -422,7 +422,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-2xl font-bold tabular-nums text-white">
             {formatMoney(totalBurnVnd)}
           </div>
           <div className="text-[11px] text-[#9496a1]">
@@ -438,7 +438,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
               <Activity className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-2xl font-bold tabular-nums text-white">
             {formatMoney(totalBurnVnd / (timelineData.labels.length || 1))}
           </div>
           <div className="text-[11px] text-[#9496a1]">
@@ -454,7 +454,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white truncate">
+          <div className="text-2xl font-bold tabular-nums text-white truncate">
             {highestTransaction ? formatMoney(Math.abs(highestTransaction.amount)) : '—'}
           </div>
           <div className="text-[11px] text-[#9496a1] truncate">
@@ -493,7 +493,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono text-[#9496a1]">
+          <div className="flex items-center gap-2 text-xs text-[#9496a1]">
             <span className="w-2.5 h-2.5 rounded-full bg-[#1591DC]" />
             <span>Daily Outflow ({currency})</span>
           </div>
@@ -563,7 +563,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                 type="date"
                 value={dateInput}
                 onChange={(e) => setDateInput(e.target.value)}
-                className="w-full glass-input-true p-2.5 text-xs text-white font-mono cursor-pointer font-medium rounded-xl focus:outline-none"
+                className="w-full glass-input-true p-2.5 text-xs text-white tabular-nums cursor-pointer font-medium rounded-xl focus:outline-none"
               />
             </div>
 
@@ -603,7 +603,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
               <Doughnut data={categoryChartData} options={categoryChartOptions} />
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-[10px] text-[#9496a1]">Total</span>
-                <span className="text-xs font-mono font-bold text-white">
+                <span className="text-xs tabular-nums font-bold text-white">
                   {formatMoney(totalBurnVnd)}
                 </span>
               </div>
@@ -624,8 +624,8 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                         <span className="text-white font-medium">{cat}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[#9496a1] font-mono text-[11px]">{formatMoney(amt)}</span>
-                        <span className="text-zinc-400 font-mono text-[10px] w-8 text-right">{pct}%</span>
+                        <span className="text-[#9496a1] tabular-nums text-[11px]">{formatMoney(amt)}</span>
+                        <span className="text-zinc-400 tabular-nums text-[10px] w-8 text-right">{pct}%</span>
                       </div>
                     </div>
                     <div className="w-full bg-white/[0.05] h-1.5 rounded-full overflow-hidden">
@@ -678,7 +678,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                   const colors = CATEGORY_COLORS[item.category] || CATEGORY_COLORS.Others;
                   return (
                     <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
-                      <td className="py-3 px-3 font-mono text-zinc-400 whitespace-nowrap">
+                      <td className="py-3 px-3 tabular-nums text-zinc-400 whitespace-nowrap">
                         {item.date}
                       </td>
                       <td className="py-3 px-3 whitespace-nowrap">
@@ -689,7 +689,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                       <td className="py-3 px-3 text-white truncate max-w-xs">
                         {item.note || '—'}
                       </td>
-                      <td className="py-3 px-3 font-mono font-bold text-rose-300 text-right whitespace-nowrap">
+                      <td className="py-3 px-3 tabular-nums font-bold text-rose-300 text-right whitespace-nowrap">
                         -{formatMoney(Math.abs(item.amount))}
                       </td>
                       <td className="py-3 px-3 text-center">

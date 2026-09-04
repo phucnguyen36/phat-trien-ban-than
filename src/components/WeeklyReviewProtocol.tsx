@@ -215,7 +215,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
             <span className="text-xs text-[#9496a1] block mb-1">Period Targets</span>
-            <span className="text-2xl font-bold font-mono text-white">{stats.total}</span>
+            <span className="text-2xl font-bold tabular-nums text-white">{stats.total}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#9496a1]">
             <Target className="w-5 h-5" />
@@ -225,7 +225,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
             <span className="text-xs text-[#9496a1] block mb-1">Completed</span>
-            <span className="text-2xl font-bold font-mono text-emerald-400">{stats.completed}</span>
+            <span className="text-2xl font-bold tabular-nums text-emerald-400">{stats.completed}</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
             <CheckCircle2 className="w-5 h-5" />
@@ -235,7 +235,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
             <span className="text-xs text-[#9496a1] block mb-1">Win Rate</span>
-            <span className="text-2xl font-bold font-mono text-[#1591DC]">{stats.rate}%</span>
+            <span className="text-2xl font-bold tabular-nums text-[#1591DC]">{stats.rate}%</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
             <TrendingUp className="w-5 h-5" />

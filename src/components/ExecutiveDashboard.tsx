@@ -195,11 +195,11 @@ export default function ExecutiveDashboard({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2 border-b border-white/[0.08] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-mono tracking-wider uppercase text-[#1591DC] font-semibold">
+            <span className="text-[11px] tracking-wider uppercase text-[#1591DC] font-semibold">
               DAILY EXECUTIVE BRIEFING
             </span>
             <span className="text-zinc-600">•</span>
-            <span className="text-[11px] text-[#9496a1] font-mono">
+            <span className="text-[11px] text-[#9496a1]">
               {todayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
@@ -239,12 +239,12 @@ export default function ExecutiveDashboard({
             <span className="text-xs font-medium text-[#9496a1]">Today's Execution</span>
             <Clock className="w-4 h-4 text-[#1591DC]" />
           </div>
-          <div className="text-2xl md:text-3xl font-bold text-white font-mono tracking-tight">
+          <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
             {todayDone} <span className="text-sm font-normal text-[#9496a1]">/ {todayTotal} tasks</span>
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
             <span>{todayPending === 0 && todayTotal > 0 ? 'All finished today' : `${todayPending} pending for today`}</span>
-            <span className="font-mono font-semibold text-white">{todayProgressPercent}%</span>
+            <span className="tabular-nums font-semibold text-white">{todayProgressPercent}%</span>
           </div>
           <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
             <div className="h-full bg-[#1591DC] rounded-full transition-all duration-500" style={{ width: `${todayProgressPercent}%` }} />
@@ -257,12 +257,12 @@ export default function ExecutiveDashboard({
             <span className="text-xs font-medium text-[#9496a1]">Habit Discipline</span>
             <Activity className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl md:text-3xl font-bold text-white font-mono tracking-tight">
+          <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
             {todayHabitsDoneCount} <span className="text-sm font-normal text-[#9496a1]">/ {habits.length} check-ins</span>
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
             <span>{habits.length - todayHabitsDoneCount} rituals remaining</span>
-            <span className="font-mono font-semibold text-white">{habitCompletionPercent}%</span>
+            <span className="tabular-nums font-semibold text-white">{habitCompletionPercent}%</span>
           </div>
           <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
             <div className="h-full bg-emerald-400 rounded-full transition-all duration-500" style={{ width: `${habitCompletionPercent}%` }} />
@@ -275,8 +275,8 @@ export default function ExecutiveDashboard({
             <span className="text-xs font-medium text-[#9496a1]">Monthly Outflow</span>
             <CreditCard className="w-4 h-4 text-sky-400" />
           </div>
-          <div className="text-2xl md:text-3xl font-bold text-white font-mono tracking-tight">
-            {monthlyTotalSpent > 0 ? `${monthlyTotalSpent.toLocaleString('vi-VN')} đ` : '0 đ'}
+          <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
+            {monthlyTotalSpent > 0 ? `${monthlyTotalSpent.toLocaleString('en-US')} ₫` : '0 ₫'}
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
             <span>{monthlyExpenses.length} transactions recorded</span>
@@ -382,7 +382,7 @@ export default function ExecutiveDashboard({
                     key={est}
                     type="button"
                     onClick={() => setQuickEstimate(quickEstimate === est ? '' : est)}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-mono transition-colors cursor-pointer ${
+                    className={`px-2 py-0.5 rounded-full text-[10px] tabular-nums transition-colors cursor-pointer ${
                       quickEstimate === est
                         ? 'bg-[#1591DC] text-white font-bold'
                         : 'bg-white/[0.03] text-[#9496a1] hover:text-white border border-white/[0.06]'
@@ -432,7 +432,7 @@ export default function ExecutiveDashboard({
                   
                   <div className="flex items-center gap-1.5 shrink-0">
                     {task.timeEstimate && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/[0.04] border border-white/[0.08] text-[#9496a1] font-mono">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/[0.04] border border-white/[0.08] text-[#9496a1] tabular-nums">
                         {task.timeEstimate === 'half-day' ? '4h' : task.timeEstimate}
                       </span>
                     )}
@@ -516,7 +516,7 @@ export default function ExecutiveDashboard({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded-full border ${
+                      <span className={`text-[9px] uppercase px-2 py-0.5 rounded-full border ${
                         goal.timeframe === 'weekly' 
                           ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
                           : goal.timeframe === 'monthly'
@@ -585,9 +585,9 @@ export default function ExecutiveDashboard({
                           <span className="text-xs font-semibold block truncate text-white">
                             {habit.habitName}
                           </span>
-                          <span className="text-[10px] text-[#9496a1] font-mono flex items-center gap-1 mt-0.5">
+                          <span className="text-[10px] text-[#9496a1] flex items-center gap-1 mt-0.5">
                             <Flame className={`w-3 h-3 ${isDoneToday ? 'text-emerald-400' : 'text-zinc-500'}`} />
-                            <span>{streakCount} days completed this month</span>
+                            <span className="tabular-nums">{streakCount} days completed this month</span>
                           </span>
                         </div>
                       </div>
