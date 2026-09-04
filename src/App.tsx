@@ -1346,6 +1346,8 @@ export default function App() {
                       }}
                       onToggleGoal={handleToggleGoal}
                       onToggleHabitDay={handleToggleHabitDay}
+                      onAddGoal={handleAddGoal}
+                      onDeleteGoal={handleDeleteGoal}
                       activeTheme={activeTheme}
                     />
                   </section>
