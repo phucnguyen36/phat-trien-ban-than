@@ -76,6 +76,7 @@ pm run build)**: Đảm bảo 0 lỗi biên dịch.
 | **v5.0** | Pomodoro Deep Work Timer, Review Protocol tuần/tháng, Financial Timeline Chart | Phân lập rành mạch các view mode (calendar vs eview), mở rộng biểu đồ tài chính 320px. |
 | **v5.1** | Khắc phục vỡ layout EST: & căn chỉnh Typography Thụy Sĩ | Điều chỉnh letter-spacing riêng cho uppercase và sử dụng pill co giãn. |
 | **v5.2** | Vá triệt để lỗi mất dữ liệu khi bấm F5 (Zero Data Loss Architecture) | Khởi tạo state đồng bộ từ LocalStorage, cấu hình lưu kép 2 tầng với Cloud Firestore. |
+| **v5.3** | Khắc phục lỗi mở Dashboard trong Task, đồng bộ điều hướng & Database filter | Định nghĩa an toàn các hàm toggle/delete, bổ sung nút mở rộng Sidebar và phím tắt Executive Dashboard ngay trong Tasks. |
 
 ---
 *Tài liệu này là cẩm nang bất biến cho mọi cập nhật tiếp theo của dự án Deep Focus OS.*
