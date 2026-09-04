@@ -48,6 +48,8 @@ import {
   Maximize2,
   CheckCircle2,
   ChevronRight,
+  ChevronLeft,
+  GripVertical,
   Trophy,
   LayoutDashboard,
   SlidersHorizontal
@@ -385,6 +387,7 @@ export default function TodoHub({
 
     const totalDays = new Date(y, m, 0).getDate();
     const startDayOfWeek = new Date(y, m - 1, 1).getDay();
+    const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
 
     const daysArray = Array.from({ length: totalDays }, (_, i) => {
       const dayNum = i + 1;
@@ -394,7 +397,7 @@ export default function TodoHub({
       const dayGoals = goals.filter(g => {
         if (g.timeframe !== 'daily') return false;
         if (g.text.startsWith(`[D:${ctxKey}]`)) return true;
-        if (!g.text.startsWith('[D:') && ctxKey === '2026-07-16') return true;
+        if (!g.text.startsWith('[D:') && ctxKey === todayCtxKey) return true;
         return false;
       });
 
@@ -415,6 +418,87 @@ export default function TodoHub({
 
     return { totalDays, startDayOfWeek, daysArray };
   }, [selectedYear, selectedMonth, goals, todayDayStr, todayMonthStr, todayYearStr, selectedDay]);
+
+  // Calendar Drag and Drop State (Notion Style)
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
+
+  // Quick inline add state per day cell
+  const [quickAddDayKey, setQuickAddDayKey] = useState<string | null>(null);
+  const [quickAddText, setQuickAddText] = useState('');
+
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    e.dataTransfer.setData('text/plain', taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggedTaskId(taskId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, dateKey: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverDateKey !== dateKey) {
+      setDragOverDateKey(dateKey);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent, dateKey: string) => {
+    if (dragOverDateKey === dateKey) {
+      setDragOverDateKey(null);
+    }
+  };
+
+  const handleDropOnDay = (e: React.DragEvent, targetDateKey: string) => {
+    e.preventDefault();
+    setDragOverDateKey(null);
+    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+    setDraggedTaskId(null);
+    if (!taskId) return;
+
+    const targetGoal = goals.find(g => g.id === taskId);
+    if (!targetGoal) return;
+
+    const cleanText = getDisplayGoalText(targetGoal.text);
+    const updatedText = `[D:${targetDateKey}] ${cleanText}`;
+
+    if (onUpdateGoal) {
+      onUpdateGoal({
+        ...targetGoal,
+        text: updatedText,
+        timeframe: 'daily'
+      });
+    } else if (onEditGoal) {
+      onEditGoal(targetGoal.id, updatedText);
+    }
+  };
+
+  const handlePrevMonth = () => {
+    let m = parseInt(selectedMonth) - 1;
+    let y = parseInt(selectedYear);
+    if (m < 1) {
+      m = 12;
+      y -= 1;
+    }
+    setSelectedMonth(String(m).padStart(2, '0'));
+    setSelectedYear(String(y));
+  };
+
+  const handleNextMonth = () => {
+    let m = parseInt(selectedMonth) + 1;
+    let y = parseInt(selectedYear);
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+    setSelectedMonth(String(m).padStart(2, '0'));
+    setSelectedYear(String(y));
+  };
+
+  const handleGoToToday = () => {
+    setSelectedYear(todayYearStr);
+    setSelectedMonth(todayMonthStr);
+    setSelectedDay(todayDayStr);
+    setSelectedWeek(todayWeekStr);
+  };
 
   const renderColumn = (
     timeframe: TimeframeType, 
@@ -1063,26 +1147,54 @@ export default function TodoHub({
           </table>
         </div>
       ) : viewMode === 'calendar' ? (
-        /* Minimal Sleek Calendar View Mode */
-        <div className="space-y-6 animate-fadeIn font-sans">
-          {/* Calendar Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 glass-card-true rounded-2xl">
-            <div>
-              <span className="text-sm font-semibold text-white block">
-                {monthNameStr} {selectedYear}
-              </span>
-              <span className="text-xs text-[#9496a1]">
-                Click on any date to inspect and manage daily tasks
+        /* Notion-Style Drag-and-Drop Calendar View Mode */
+        <div className="space-y-4 animate-fadeIn font-sans">
+          {/* Calendar Navigation & Quick Add Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 glass-card-true rounded-2xl border border-white/[0.08]">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.06]">
+                <button
+                  type="button"
+                  onClick={handlePrevMonth}
+                  className="p-1.5 rounded-lg text-[#9496a1] hover:text-white hover:bg-white/[0.08] transition-colors"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-bold text-white px-2 min-w-[140px] text-center font-sans">
+                  {monthNameStr} {selectedYear}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleNextMonth}
+                  className="p-1.5 rounded-lg text-[#9496a1] hover:text-white hover:bg-white/[0.08] transition-colors"
+                  title="Next Month"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoToToday}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/[0.05] hover:bg-white/[0.1] text-[#ededf3] border border-white/[0.08] hover:border-white/20 transition-all shadow-sm"
+              >
+                Today
+              </button>
+
+              <span className="hidden lg:inline-flex text-[11px] text-[#9496a1] items-center gap-1">
+                <span>Drag tasks between days to reschedule</span>
               </span>
             </div>
 
-            <form onSubmit={handleCalendarAdd} className="flex gap-2 w-full sm:w-auto">
+            {/* Quick Add Bar */}
+            <form onSubmit={handleCalendarAdd} className="flex gap-2 w-full md:w-auto">
               <input
                 type="text"
                 value={calendarInputText}
                 onChange={(e) => setCalendarInputText(e.target.value)}
-                placeholder={`New task for ${monthNameStr} ${selectedDay}...`}
-                className="w-full sm:w-64 glass-input-true px-3 py-2 text-xs text-white rounded-xl focus:outline-none"
+                placeholder={`Add task for ${monthNameStr} ${selectedDay}...`}
+                className="w-full md:w-64 glass-input-true px-3 py-2 text-xs text-white rounded-xl focus:outline-none placeholder:text-zinc-500"
               />
               <button
                 type="submit"
@@ -1094,143 +1206,195 @@ export default function TodoHub({
             </form>
           </div>
 
-          {/* Compact 7-Day Header */}
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-semibold text-[#9496a1]">
+          {/* 7-Day Header */}
+          <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-semibold text-[#9496a1] tracking-wider">
             {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-              <div key={d} className="py-1.5 tracking-wider">{d}</div>
+              <div key={d} className="py-1">{d}</div>
             ))}
           </div>
 
-          {/* Minimal Day Cells Grid */}
-          <div className="grid grid-cols-7 gap-1.5">
+          {/* Notion-Style Grid with Vertically Stacked Cards */}
+          <div className="grid grid-cols-7 gap-2">
             {Array.from({ length: calendarDays.startDayOfWeek }).map((_, idx) => (
-              <div key={`empty-${idx}`} className="h-14 sm:h-16 rounded-xl bg-white/[0.01] border border-white/[0.02]" />
+              <div
+                key={`empty-${idx}`}
+                className="min-h-[140px] md:min-h-[160px] rounded-2xl bg-white/[0.01] border border-white/[0.03]"
+              />
             ))}
 
-            {calendarDays.daysArray.map(day => (
-              <button
-                key={day.dayStr}
-                type="button"
-                onClick={() => setSelectedDay(day.dayStr)}
-                className={`h-14 sm:h-16 p-2 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
-                  day.isSelected 
-                    ? 'bg-[#1591DC]/15 border-[#1591DC] shadow-[0_0_15px_rgba(21,145,220,0.2)]' 
-                    : day.isToday 
-                      ? 'bg-white/[0.06] border-white/30 text-white' 
-                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] text-[#9496a1]'
-                }`}
-              >
-                <div className="flex justify-between items-center w-full">
-                  <span className={`text-xs font-mono font-bold ${
-                    day.isSelected ? 'text-[#38bdf8]' : day.isToday ? 'text-white font-extrabold' : 'text-zinc-400'
-                  }`}>
-                    {day.dayNum}
-                  </span>
-                  {day.total > 0 && (
-                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-medium ${
-                      day.completed === day.total 
-                        ? 'bg-emerald-500/20 text-emerald-300' 
-                        : 'bg-[#1591DC]/20 text-[#38bdf8]'
-                    }`}>
-                      {day.completed}/{day.total}
-                    </span>
-                  )}
-                </div>
+            {calendarDays.daysArray.map(day => {
+              const isDragTarget = dragOverDateKey === day.ctxKey;
+              const isCurrentSelected = day.dayStr === selectedDay;
 
-                {/* Minimal Task Dots Indicator */}
-                <div className="flex items-center gap-1 overflow-hidden">
-                  {day.dayGoals.slice(0, 4).map((g) => (
-                    <span 
-                      key={g.id} 
-                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        g.completed ? 'bg-emerald-400' : 'bg-[#1591DC]'
-                      }`} 
-                    />
-                  ))}
-                  {day.dayGoals.length > 4 && (
-                    <span className="text-[9px] font-mono text-[#9496a1]">
-                      +{day.dayGoals.length - 4}
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+              return (
+                <div
+                  key={day.dayStr}
+                  onDragOver={(e) => handleDragOver(e, day.ctxKey)}
+                  onDragLeave={(e) => handleDragLeave(e, day.ctxKey)}
+                  onDrop={(e) => handleDropOnDay(e, day.ctxKey)}
+                  onClick={() => setSelectedDay(day.dayStr)}
+                  className={`min-h-[140px] md:min-h-[160px] p-2 md:p-2.5 rounded-2xl border transition-all flex flex-col justify-between group/day relative ${
+                    isDragTarget
+                      ? 'bg-[#1591DC]/15 border-[#1591DC] ring-2 ring-[#1591DC]/50 shadow-[0_0_20px_rgba(21,145,220,0.25)]'
+                      : day.isToday
+                        ? 'bg-[#10141f] border-[#1591DC]/40 shadow-sm'
+                        : isCurrentSelected
+                          ? 'bg-white/[0.04] border-white/20'
+                          : 'bg-[#0c0e14]/90 border-white/[0.06] hover:border-white/[0.14]'
+                  }`}
+                >
+                  {/* Day Header Inside Cell */}
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className="flex items-center gap-1.5">
+                      {day.isToday ? (
+                        <span className="w-6 h-6 rounded-full bg-[#1591DC] text-white flex items-center justify-center font-mono font-bold text-xs shadow-md">
+                          {day.dayNum}
+                        </span>
+                      ) : (
+                        <span className={`font-mono text-xs font-semibold transition-colors ${
+                          isCurrentSelected ? 'text-[#38bdf8]' : 'text-zinc-400 group-hover/day:text-white'
+                        }`}>
+                          {day.dayNum}
+                        </span>
+                      )}
 
-          {/* Focused Day Task Detail Inspector */}
-          {(() => {
-            const selectedDateGoals = goals.filter(g => 
-              g.timeframe === 'daily' && g.dateContext === `${selectedYear}-${selectedMonth}-${selectedDay}`
-            );
+                      {day.total > 0 && (
+                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-medium ${
+                          day.completed === day.total
+                            ? 'bg-emerald-500/20 text-emerald-300'
+                            : 'bg-white/[0.06] text-[#9496a1]'
+                        }`}>
+                          {day.completed}/{day.total}
+                        </span>
+                      )}
+                    </div>
 
-            return (
-              <div className="glass-card-true p-5 rounded-2xl space-y-4 border border-white/[0.08]">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-white/[0.08] pb-3">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-[#1591DC]" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      Tasks for {monthNameStr} {selectedDay}, {selectedYear}
-                    </span>
-                    <span className="text-xs text-[#9496a1]">
-                      ({selectedDateGoals.length} scheduled)
-                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQuickAddDayKey(quickAddDayKey === day.ctxKey ? null : day.ctxKey);
+                        setQuickAddText('');
+                      }}
+                      className="opacity-0 group-hover/day:opacity-100 p-1 rounded hover:bg-white/[0.08] text-[#9496a1] hover:text-white transition-all"
+                      title="Add task to this day"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  
-                  <span className="text-[11px] text-[#9496a1]">
-                    {selectedDateGoals.filter(g => g.completed).length} completed
-                  </span>
-                </div>
 
-                {selectedDateGoals.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-[#9496a1]">
-                    No tasks scheduled for this day. Use the input above to schedule a task.
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedDateGoals.map(g => (
-                      <div 
-                        key={g.id} 
-                        className="flex items-center justify-between p-3 rounded-xl glass-panel-true group hover:border-white/20 transition-all"
+                  {/* Vertically Stacked Cards Inside Cell */}
+                  <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto max-h-[160px] pr-0.5 custom-scrollbar">
+                    {/* Inline Quick Add Input */}
+                    {quickAddDayKey === day.ctxKey && (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (quickAddText.trim()) {
+                            onAddGoal(`[D:${day.ctxKey}] ${quickAddText.trim()}`, 'daily');
+                            setQuickAddText('');
+                            setQuickAddDayKey(null);
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="mb-1"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <button
-                            type="button"
-                            onClick={() => onToggleGoal(g.id, !g.completed)}
-                            className="shrink-0 text-[#9496a1] hover:text-[#1591DC] transition-colors"
-                          >
-                            {g.completed ? (
-                              <CheckSquare className="w-4 h-4 text-emerald-400" />
-                            ) : (
-                              <Square className="w-4 h-4" />
-                            )}
-                          </button>
-                          <span className={`text-xs text-white truncate ${g.completed ? 'line-through text-[#9496a1]' : ''}`}>
-                            {getDisplayGoalText(g.text)}
-                          </span>
-                        </div>
+                        <input
+                          autoFocus
+                          type="text"
+                          value={quickAddText}
+                          onChange={(e) => setQuickAddText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') setQuickAddDayKey(null);
+                          }}
+                          placeholder="Task title..."
+                          className="w-full text-[11px] px-2 py-1 rounded-lg bg-black/60 border border-[#1591DC] text-white focus:outline-none placeholder:text-zinc-500"
+                          onBlur={() => {
+                            if (!quickAddText.trim()) setQuickAddDayKey(null);
+                          }}
+                        />
+                      </form>
+                    )}
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          {g.timeEstimate && (
-                            <span className="text-[10px] text-[#9496a1] font-mono bg-white/[0.04] px-2 py-0.5 rounded-full">
-                              {g.timeEstimate}
+                    {/* Draggable Task Cards */}
+                    {day.dayGoals.map((g) => {
+                      const isDragged = draggedTaskId === g.id;
+
+                      return (
+                        <div
+                          key={g.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, g.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActivePanelGoalId(g.id);
+                          }}
+                          className={`group/card p-1.5 rounded-lg border text-left cursor-grab active:cursor-grabbing transition-all select-none flex flex-col gap-1 ${
+                            isDragged
+                              ? 'opacity-40 border-[#1591DC] bg-[#1591DC]/10 scale-95'
+                              : g.completed
+                                ? 'bg-emerald-500/[0.04] border-emerald-500/20 opacity-70 hover:opacity-100 hover:bg-emerald-500/[0.08]'
+                                : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.06] hover:border-white/20 shadow-sm'
+                          }`}
+                          title="Click to view details, drag to move to another day"
+                        >
+                          <div className="flex items-start gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleGoal(g.id, !g.completed);
+                              }}
+                              className="mt-0.5 text-[#9496a1] hover:text-white transition-colors shrink-0"
+                            >
+                              {g.completed ? (
+                                <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+                              ) : (
+                                <Square className="w-3.5 h-3.5 group-hover/card:text-white" />
+                              )}
+                            </button>
+
+                            <span
+                              className={`text-[11px] font-medium leading-snug line-clamp-2 flex-1 ${
+                                g.completed ? 'line-through text-[#9496a1]' : 'text-zinc-200'
+                              }`}
+                            >
+                              {getDisplayGoalText(g.text)}
                             </span>
+
+                            <GripVertical className="w-3 h-3 text-[#9496a1]/40 group-hover/card:text-[#9496a1] shrink-0 opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                          </div>
+
+                          {/* Extra badges: Estimate & Subtasks */}
+                          {(g.timeEstimate || (g.subTasks && g.subTasks.length > 0)) && (
+                            <div className="flex items-center gap-1.5 pl-5">
+                              {g.timeEstimate && (
+                                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/[0.05] text-[#9496a1]">
+                                  {g.timeEstimate}
+                                </span>
+                              )}
+                              {g.subTasks && g.subTasks.length > 0 && (
+                                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 flex items-center gap-0.5">
+                                  <ListChecks className="w-2.5 h-2.5" />
+                                  {g.subTasks.filter(s => s.completed).length}/{g.subTasks.length}
+                                </span>
+                              )}
+                            </div>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(g.id)}
-                            className="text-[#9496a1] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
                         </div>
+                      );
+                    })}
+
+                    {day.dayGoals.length === 0 && quickAddDayKey !== day.ctxKey && (
+                      <div className="flex-1 flex items-center justify-center min-h-[50px] opacity-0 group-hover/day:opacity-40 transition-opacity">
+                        <span className="text-[10px] text-zinc-500 italic">Drop task here</span>
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })()}
+                </div>
+              );
+            })}
+          </div>
         </div>
       ) : viewMode === 'review' ? (
         /* Weekly & Monthly Review Protocol View Mode */

@@ -78,6 +78,8 @@ pm run build)**: Đảm bảo 0 lỗi biên dịch.
 | **v5.2** | Vá triệt để lỗi mất dữ liệu khi bấm F5 (Zero Data Loss Architecture) | Khởi tạo state đồng bộ từ LocalStorage, cấu hình lưu kép 2 tầng với Cloud Firestore. |
 | **v5.3** | Khắc phục lỗi mở Dashboard trong Task, đồng bộ điều hướng & Database filter | Định nghĩa an toàn các hàm toggle/delete, bổ sung nút mở rộng Sidebar và phím tắt Executive Dashboard ngay trong Tasks. |
 | **v5.4** | Sửa crash tab Database (nhập thiếu SlidersHorizontal) & Thanh lọc AI Slop Dashboard | Loại bỏ hoàn toàn câu khẩu hiệu robot, quote tạo động lực sáo rỗng, chuẩn hóa Swiss Daily Briefing chân thực 100%. |
+| **v5.5** | Tái thiết bảng Calendar chuẩn Notion: Card dọc xếp chồng, kéo thả Drag & Drop đổi ngày | Thay thế thiết kế ô chấm dot + hộp soi đáy rời rạc bằng lưới Notion Card trực tiếp trong từng ô ngày; hỗ trợ kéo thả native HTML5 cập nhật `[D:YYYY-MM-DD]`, chuyển tháng và thêm việc nhanh tại chỗ. |
 
 ---
 *Tài liệu này là cẩm nang bất biến cho mọi cập nhật tiếp theo của dự án Deep Focus OS.*
+
