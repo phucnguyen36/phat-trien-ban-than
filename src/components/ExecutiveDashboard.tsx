@@ -1,18 +1,16 @@
 import React, { useMemo } from 'react';
 import { GoalTodo, HabitData, DailyJournal, PersonalExpense } from '../types';
-import { calculateGamification, DAILY_QUOTES } from '../gamification';
+import { calculateGamification } from '../gamification';
 import { UITheme } from '../App';
 import { 
   CheckCircle2, 
   Circle, 
   ArrowRight, 
-  BookOpen, 
-  DollarSign, 
   CheckSquare, 
   Activity, 
-  Clock, 
-  Zap, 
-  Quote
+  Clock,
+  TrendingUp,
+  CreditCard
 } from 'lucide-react';
 
 interface ExecutiveDashboardProps {
@@ -23,7 +21,7 @@ interface ExecutiveDashboardProps {
   onNavigate: (section: string) => void;
   onToggleGoal: (id: string, completed: boolean) => void;
   onToggleHabitDay: (id: string, day: number) => void;
-  activeTheme: UITheme;
+  activeTheme?: UITheme;
 }
 
 export default function ExecutiveDashboard({
@@ -82,60 +80,110 @@ export default function ExecutiveDashboard({
       .reduce((sum, e) => sum + Math.abs(e.amount), 0);
   }, [expenses, currentMonth, currentYear]);
 
-  // Daily Quote selection based on day of month
-  const dailyQuoteIndex = todayDay % DAILY_QUOTES.length;
-  const quoteObj = DAILY_QUOTES[dailyQuoteIndex];
-
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-8 animate-fadeIn font-sans">
       
-      {/* 1. HERO SECTION (THOMAS NGUYEN / SWISS STUDIO STANDARD) */}
-      <div className="space-y-4 pt-2">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#12141a] border border-white/[0.08] text-xs text-[#c3c3cc]">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Active Focus Mode • All Systems Nominal</span>
+      {/* 1. CLEAN EXECUTIVE BRIEFING HEADER (ZERO AI SLOP) */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2 border-b border-white/[0.08] pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[11px] font-mono tracking-wider uppercase text-[#1591DC] font-semibold">
+              DAILY EXECUTIVE BRIEFING
+            </span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-[11px] text-[#9496a1]">
+              {todayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+            Command Center Overview
+          </h1>
+          <p className="text-xs text-[#9496a1] mt-1 font-normal">
+            Real-time execution across tasks, habit discipline, and capital flow.
+          </p>
         </div>
 
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-[1.15]">
-          Every Great System Deserves Deep Focus.
-        </h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onNavigate('todo-hub')}
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#1591DC] hover:bg-[#1591DC]/90 text-white transition-all shadow-md active:scale-95 flex items-center gap-1.5"
+          >
+            <CheckSquare className="w-3.5 h-3.5" />
+            <span>Manage Tasks</span>
+          </button>
+          <button
+            onClick={() => onNavigate('habits')}
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white transition-all flex items-center gap-1.5"
+          >
+            <Activity className="w-3.5 h-3.5 text-[#1591DC]" />
+            <span>Habit Matrix</span>
+          </button>
+        </div>
+      </div>
 
-        <p className="text-sm md:text-base text-[#9496a1] max-w-2xl font-normal leading-relaxed">
-          Clear roadmaps, daily habit consistency, and disciplined cash flow tracking.
-        </p>
-
-        {/* 3 Metric Pillars (Thomas Nguyen Standard) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-          <div className="kuldeep-card p-5 space-y-1">
-            <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-              {completedGoalsCount}+
-            </div>
-            <div className="text-xs text-[#9496a1] font-medium">
-              Objectives Completed ({overallProgressPercent}% velocity)
-            </div>
+      {/* 2. 3 METRIC PILLARS (CLEAN & OBJECTIVE DATA) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Metric 1: Tasks */}
+        <div className="kuldeep-card p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#9496a1]">Tasks Executed</span>
+            <CheckSquare className="w-4 h-4 text-[#1591DC]" />
           </div>
-
-          <div className="kuldeep-card p-5 space-y-1">
-            <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-              {habitCompletionPercent}%
-            </div>
-            <div className="text-xs text-[#9496a1] font-medium">
-              Daily Habits Recorded ({todayHabitsDoneCount}/{habits.length})
-            </div>
+          <div className="text-2xl md:text-3xl font-bold text-white font-mono tracking-tight">
+            {completedGoalsCount} <span className="text-sm font-normal text-[#9496a1]">/ {totalGoalsCount}</span>
           </div>
+          <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
+            <span>Completion rate</span>
+            <span className="font-mono font-semibold text-white">{overallProgressPercent}%</span>
+          </div>
+          <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+            <div className="h-full bg-[#1591DC] rounded-full" style={{ width: `${overallProgressPercent}%` }} />
+          </div>
+        </div>
 
-          <div className="kuldeep-card p-5 space-y-1">
-            <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-              ${monthlyTotalSpent.toLocaleString('en-US')}
-            </div>
-            <div className="text-xs text-[#9496a1] font-medium">
-              Monthly Cash Flow Managed
-            </div>
+        {/* Metric 2: Habits */}
+        <div className="kuldeep-card p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#9496a1]">Today's Habits</span>
+            <Activity className="w-4 h-4 text-[#1591DC]" />
+          </div>
+          <div className="text-2xl md:text-3xl font-bold text-white font-mono tracking-tight">
+            {todayHabitsDoneCount} <span className="text-sm font-normal text-[#9496a1]">/ {habits.length}</span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
+            <span>Discipline rate</span>
+            <span className="font-mono font-semibold text-white">{habitCompletionPercent}%</span>
+          </div>
+          <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+            <div className="h-full bg-[#1591DC] rounded-full" style={{ width: `${habitCompletionPercent}%` }} />
+          </div>
+        </div>
+
+        {/* Metric 3: Expenses */}
+        <div className="kuldeep-card p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#9496a1]">Monthly Outflow</span>
+            <CreditCard className="w-4 h-4 text-[#1591DC]" />
+          </div>
+          <div className="text-2xl md:text-3xl font-bold text-white font-mono tracking-tight">
+            ${monthlyTotalSpent.toLocaleString('en-US')}
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
+            <span>Expenses recorded</span>
+            <span className="font-mono font-semibold text-white">
+              {expenses.filter(e => {
+                const d = new Date(e.date);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear && e.amount < 0;
+              }).length} items
+            </span>
+          </div>
+          <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+            <div className="h-full bg-white/20 rounded-full" style={{ width: '100%' }} />
           </div>
         </div>
       </div>
 
-      {/* 2. CORE WORKSPACE GRID */}
+      {/* 3. CORE WORKSPACE GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Left Column (5 Cols): Today's Real Daily Tasks */}
@@ -164,7 +212,7 @@ export default function ExecutiveDashboard({
               </button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
               {todayDailyTasks.map((task) => (
                 <div 
                   key={task.id}
@@ -174,7 +222,7 @@ export default function ExecutiveDashboard({
                       : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15] text-[#ededf3]'
                   }`}
                 >
-                  <div className="flex items-center gap-3 pr-2">
+                  <div className="flex items-center gap-3 pr-2 min-w-0">
                     <button
                       type="button"
                       onClick={() => onToggleGoal(task.id, !task.completed)}
@@ -184,8 +232,8 @@ export default function ExecutiveDashboard({
                     >
                       {task.completed ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                     </button>
-                    <div>
-                      <span className={`text-xs font-medium block ${task.completed ? 'line-through opacity-60' : 'text-white'}`}>
+                    <div className="min-w-0">
+                      <span className={`text-xs font-medium block truncate ${task.completed ? 'line-through opacity-60' : 'text-white'}`}>
                         {task.text.replace(/^\[D:[^\]]+\]\s*/, '')}
                       </span>
                     </div>
@@ -200,19 +248,6 @@ export default function ExecutiveDashboard({
               ))}
             </div>
           )}
-
-          {/* Daily Quote Card */}
-          <div className="p-3.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-start gap-3 mt-3">
-            <Quote className="w-4 h-4 text-[#9496a1] shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-xs text-[#ededf3] italic leading-relaxed">
-                "{quoteObj.quote}"
-              </p>
-              <span className="text-[10px] text-[#9496a1] font-medium block">
-                — {quoteObj.author}
-              </span>
-            </div>
-          </div>
         </div>
 
         {/* Right Column (7 Cols): Strategic Objectives & Habit Check-in */}
@@ -247,15 +282,15 @@ export default function ExecutiveDashboard({
                     key={goal.id}
                     className="flex items-center justify-between p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] transition-all group hover:border-white/[0.15]"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <button
                         onClick={() => onToggleGoal(goal.id, !goal.completed)}
                         className="text-[#9496a1] hover:text-white transition-colors shrink-0"
                       >
                         <Circle className="w-4 h-4" />
                       </button>
-                      <div>
-                        <span className="text-xs font-medium text-[#ededf3] block group-hover:text-white transition-colors">
+                      <div className="min-w-0">
+                        <span className="text-xs font-medium text-[#ededf3] block truncate group-hover:text-white transition-colors">
                           {goal.text.replace(/^\[(W|M|Y):[^\]]+\]\s*/, '')}
                         </span>
                         <span className="text-[10px] text-[#9496a1] font-sans uppercase">
@@ -279,7 +314,7 @@ export default function ExecutiveDashboard({
           <div className="kuldeep-card p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-400" />
+                <Activity className="w-4 h-4 text-[#1591DC]" />
                 <h3 className="text-sm font-semibold text-white">
                   Today's Habit Check-in (Day {todayDay})
                 </h3>

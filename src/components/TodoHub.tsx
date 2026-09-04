@@ -49,7 +49,8 @@ import {
   CheckCircle2,
   ChevronRight,
   Trophy,
-  LayoutDashboard
+  LayoutDashboard,
+  SlidersHorizontal
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 
@@ -782,8 +783,8 @@ export default function TodoHub({
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
-              <LayoutDashboard className="w-3.5 h-3.5 text-[#1591DC]" />
-              <span>Dashboard & Review</span>
+              <Trophy className="w-3.5 h-3.5 text-[#1591DC]" />
+              <span>Review Protocol</span>
             </button>
           </div>
 
@@ -1232,10 +1233,10 @@ export default function TodoHub({
           })()}
         </div>
       ) : viewMode === 'review' ? (
-        /* Task Performance Dashboard & Review Protocol View Mode */
-        <div className="space-y-8 animate-fadeIn">
-          {/* Top Performance Analytics Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        /* Weekly & Monthly Review Protocol View Mode */
+        <div className="space-y-6 animate-fadeIn font-sans">
+          {/* Real Execution Progress Strip */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             {(() => {
               const dailyCount = goals.filter(g => g.timeframe === 'daily').length;
               const dailyDone = goals.filter(g => g.timeframe === 'daily' && g.completed).length;
@@ -1243,86 +1244,35 @@ export default function TodoHub({
               const weeklyDone = goals.filter(g => g.timeframe === 'weekly' && g.completed).length;
               const monthlyCount = goals.filter(g => g.timeframe === 'monthly').length;
               const monthlyDone = goals.filter(g => g.timeframe === 'monthly' && g.completed).length;
-              const totalCount = goals.length;
-              const totalDone = goals.filter(g => g.completed).length;
 
               const metrics = [
-                { label: 'Daily Win Rate', done: dailyDone, total: dailyCount },
-                { label: 'Weekly Execution', done: weeklyDone, total: weeklyCount },
-                { label: 'Monthly Targets', done: monthlyDone, total: monthlyCount },
-                { label: 'Overall Velocity', done: totalDone, total: totalCount },
+                { label: 'Daily Tasks', done: dailyDone, total: dailyCount },
+                { label: 'Weekly Goals', done: weeklyDone, total: weeklyCount },
+                { label: 'Monthly Objectives', done: monthlyDone, total: monthlyCount },
               ];
 
               return metrics.map(s => {
                 const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 return (
-                  <div key={s.label} className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-1">
-                    <div className="text-2xl font-bold font-mono text-white tracking-tight">{pct}%</div>
-                    <div className="text-xs font-semibold text-white">{s.label}</div>
-                    <div className="text-[11px] text-[#9496a1] font-mono">{s.done} completed / {s.total} total</div>
+                  <div key={s.label} className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-[#9496a1]">{s.label}</span>
+                      <span className="text-xs font-mono font-bold text-white">{pct}%</span>
+                    </div>
+                    <div className="text-xl font-bold font-mono text-white tracking-tight">
+                      {s.done} <span className="text-xs font-normal text-[#9496a1]">/ {s.total} completed</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#1591DC] rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
                   </div>
                 );
               });
             })()}
           </div>
 
-          {/* Bar Chart: Target Completion Velocity by Timeframe */}
-          <div className="p-5 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold text-white flex items-center gap-2">
-                <BarChart3 className="w-3.5 h-3.5 text-[#1591DC]" />
-                <span>Completion Velocity by Timeframe</span>
-              </h4>
-              <span className="text-[10px] text-[#9496a1] font-mono">Real-time task metrics</span>
-            </div>
-            <div className="h-56 relative">
-              <Bar 
-                data={{
-                  labels: ['Daily Tasks', 'Weekly Goals', 'Monthly Objectives', 'Yearly Vision'],
-                  datasets: [
-                    {
-                      label: 'Completed',
-                      data: [
-                        goals.filter(g => g.timeframe === 'daily' && g.completed).length,
-                        goals.filter(g => g.timeframe === 'weekly' && g.completed).length,
-                        goals.filter(g => g.timeframe === 'monthly' && g.completed).length,
-                        goals.filter(g => g.timeframe === 'yearly' && g.completed).length,
-                      ],
-                      backgroundColor: '#1591DC',
-                      borderRadius: 4,
-                      borderWidth: 0,
-                    },
-                    {
-                      label: 'Pending',
-                      data: [
-                        goals.filter(g => g.timeframe === 'daily' && !g.completed).length,
-                        goals.filter(g => g.timeframe === 'weekly' && !g.completed).length,
-                        goals.filter(g => g.timeframe === 'monthly' && !g.completed).length,
-                        goals.filter(g => g.timeframe === 'yearly' && !g.completed).length,
-                      ],
-                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                      borderRadius: 4,
-                      borderWidth: 0,
-                    }
-                  ]
-                }} 
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { labels: { color: '#9496a1', font: { family: 'Inter', size: 10 } } }
-                  },
-                  scales: {
-                    x: { ticks: { color: '#9496a1', font: { family: 'Inter', size: 10 } }, grid: { display: false } },
-                    y: { ticks: { color: '#9496a1', font: { family: 'Inter', size: 10 }, stepSize: 1 }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
-                  }
-                }} 
-              />
-            </div>
-          </div>
-
           {/* Interactive Weekly & Monthly Review Protocol */}
-          <div className="border-t border-white/[0.08] pt-6">
+          <div className="p-6 rounded-2xl bg-[#0e1015] border border-white/[0.06]">
             <WeeklyReviewProtocol
               goals={goals}
               onAddGoal={onAddGoal}
