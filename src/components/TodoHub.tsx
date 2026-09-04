@@ -48,7 +48,8 @@ import {
   Maximize2,
   CheckCircle2,
   ChevronRight,
-  Trophy
+  Trophy,
+  LayoutDashboard
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 
@@ -61,6 +62,7 @@ interface TodoHubProps {
   onDeleteGoal: (id: string) => void;
   onEditGoal?: (id: string, newText: string) => void;
   onUpdateGoal?: (updatedGoal: GoalTodo) => void;
+  onNavigate?: (section: string) => void;
   isLightMode?: boolean;
 }
 
@@ -71,10 +73,28 @@ export default function TodoHub({
   onDeleteGoal,
   onEditGoal,
   onUpdateGoal,
+  onNavigate,
   isLightMode
 }: TodoHubProps) {
+  // Safe helper handlers
+  const handleToggle = (id: string, completed: boolean) => {
+    onToggleGoal(id, completed);
+  };
+
+  const handleDelete = (id: string) => {
+    onDeleteGoal(id);
+  };
+
   // View mode toggle: Multi-column view vs Notion Table View vs Calendar Grid view vs Weekly/Monthly Review Dashboard
   const [viewMode, setViewMode] = useState<'columns' | 'table' | 'calendar' | 'review'>('columns');
+
+  // Database Table View Filter State
+  const [tableTimeframeFilter, setTableTimeframeFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
+
+  const databaseGoals = useMemo(() => {
+    if (tableTimeframeFilter === 'all') return goals;
+    return goals.filter(g => g.timeframe === tableTimeframeFilter);
+  }, [goals, tableTimeframeFilter]);
 
   // Notion Side Panel State
   const [activePanelGoalId, setActivePanelGoalId] = useState<string | null>(null);
@@ -695,9 +715,22 @@ export default function TodoHub({
       {/* Module Title & Mode Switcher Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/[0.08] pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
-            Tasks & Roadmap
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
+              Tasks & Roadmap
+            </h2>
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={() => onNavigate('overview')}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-[#1591DC]/40 transition-all cursor-pointer"
+                title="Open Executive Dashboard Overview"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-[#1591DC]" />
+                <span>Executive Dashboard</span>
+              </button>
+            )}
+          </div>
           <p className="text-xs text-[#9496a1] mt-0.5">
             Scope: Daily • Weekly • Monthly • Yearly
           </p>
@@ -749,8 +782,8 @@ export default function TodoHub({
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
-              <Trophy className="w-3.5 h-3.5 text-[#1591DC]" />
-              <span>Review Protocol</span>
+              <LayoutDashboard className="w-3.5 h-3.5 text-[#1591DC]" />
+              <span>Dashboard & Review</span>
             </button>
           </div>
 
@@ -880,11 +913,32 @@ export default function TodoHub({
             <div className="flex items-center gap-2">
               <Table className="w-4 h-4 text-[#1591DC]" />
               <span className="text-sm font-semibold text-white">
-                Tasks Database ({filteredGoals.length})
+                Tasks Database ({databaseGoals.length})
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-[#9496a1]">
-              <span>Click any row to open task details and sub-tasks</span>
+            
+            {/* Timeframe Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
+              {[
+                { id: 'all', label: `All (${goals.length})` },
+                { id: 'daily', label: `Daily (${goals.filter(g => g.timeframe === 'daily').length})` },
+                { id: 'weekly', label: `Weekly (${goals.filter(g => g.timeframe === 'weekly').length})` },
+                { id: 'monthly', label: `Monthly (${goals.filter(g => g.timeframe === 'monthly').length})` },
+                { id: 'yearly', label: `Yearly (${goals.filter(g => g.timeframe === 'yearly').length})` }
+              ].map(f => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setTableTimeframeFilter(f.id as any)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                    tableTimeframeFilter === f.id
+                      ? 'bg-white text-black font-semibold shadow-sm'
+                      : 'text-[#9496a1] hover:text-white'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -902,14 +956,14 @@ export default function TodoHub({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04] text-xs text-[#ededf3]">
-              {filteredGoals.length === 0 ? (
+              {databaseGoals.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-10 text-[#9496a1] text-xs">
                     No tasks in active view. Add a new task above.
                   </td>
                 </tr>
               ) : (
-                filteredGoals.map(g => {
+                databaseGoals.map(g => {
                   const subCount = g.subTasks ? g.subTasks.length : 0;
                   const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
                   const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
@@ -1178,13 +1232,103 @@ export default function TodoHub({
           })()}
         </div>
       ) : viewMode === 'review' ? (
-        /* Review Protocol View Mode */
-        <div className="animate-fadeIn">
-          <WeeklyReviewProtocol
-            goals={goals}
-            onAddGoal={onAddGoal}
-            isLightMode={isLightMode}
-          />
+        /* Task Performance Dashboard & Review Protocol View Mode */
+        <div className="space-y-8 animate-fadeIn">
+          {/* Top Performance Analytics Strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {(() => {
+              const dailyCount = goals.filter(g => g.timeframe === 'daily').length;
+              const dailyDone = goals.filter(g => g.timeframe === 'daily' && g.completed).length;
+              const weeklyCount = goals.filter(g => g.timeframe === 'weekly').length;
+              const weeklyDone = goals.filter(g => g.timeframe === 'weekly' && g.completed).length;
+              const monthlyCount = goals.filter(g => g.timeframe === 'monthly').length;
+              const monthlyDone = goals.filter(g => g.timeframe === 'monthly' && g.completed).length;
+              const totalCount = goals.length;
+              const totalDone = goals.filter(g => g.completed).length;
+
+              const metrics = [
+                { label: 'Daily Win Rate', done: dailyDone, total: dailyCount },
+                { label: 'Weekly Execution', done: weeklyDone, total: weeklyCount },
+                { label: 'Monthly Targets', done: monthlyDone, total: monthlyCount },
+                { label: 'Overall Velocity', done: totalDone, total: totalCount },
+              ];
+
+              return metrics.map(s => {
+                const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+                return (
+                  <div key={s.label} className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-1">
+                    <div className="text-2xl font-bold font-mono text-white tracking-tight">{pct}%</div>
+                    <div className="text-xs font-semibold text-white">{s.label}</div>
+                    <div className="text-[11px] text-[#9496a1] font-mono">{s.done} completed / {s.total} total</div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          {/* Bar Chart: Target Completion Velocity by Timeframe */}
+          <div className="p-5 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-white flex items-center gap-2">
+                <BarChart3 className="w-3.5 h-3.5 text-[#1591DC]" />
+                <span>Completion Velocity by Timeframe</span>
+              </h4>
+              <span className="text-[10px] text-[#9496a1] font-mono">Real-time task metrics</span>
+            </div>
+            <div className="h-56 relative">
+              <Bar 
+                data={{
+                  labels: ['Daily Tasks', 'Weekly Goals', 'Monthly Objectives', 'Yearly Vision'],
+                  datasets: [
+                    {
+                      label: 'Completed',
+                      data: [
+                        goals.filter(g => g.timeframe === 'daily' && g.completed).length,
+                        goals.filter(g => g.timeframe === 'weekly' && g.completed).length,
+                        goals.filter(g => g.timeframe === 'monthly' && g.completed).length,
+                        goals.filter(g => g.timeframe === 'yearly' && g.completed).length,
+                      ],
+                      backgroundColor: '#1591DC',
+                      borderRadius: 4,
+                      borderWidth: 0,
+                    },
+                    {
+                      label: 'Pending',
+                      data: [
+                        goals.filter(g => g.timeframe === 'daily' && !g.completed).length,
+                        goals.filter(g => g.timeframe === 'weekly' && !g.completed).length,
+                        goals.filter(g => g.timeframe === 'monthly' && !g.completed).length,
+                        goals.filter(g => g.timeframe === 'yearly' && !g.completed).length,
+                      ],
+                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                      borderRadius: 4,
+                      borderWidth: 0,
+                    }
+                  ]
+                }} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { labels: { color: '#9496a1', font: { family: 'Inter', size: 10 } } }
+                  },
+                  scales: {
+                    x: { ticks: { color: '#9496a1', font: { family: 'Inter', size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: '#9496a1', font: { family: 'Inter', size: 10 }, stepSize: 1 }, grid: { color: 'rgba(255, 255, 255, 0.05)' } }
+                  }
+                }} 
+              />
+            </div>
+          </div>
+
+          {/* Interactive Weekly & Monthly Review Protocol */}
+          <div className="border-t border-white/[0.08] pt-6">
+            <WeeklyReviewProtocol
+              goals={goals}
+              onAddGoal={onAddGoal}
+              isLightMode={isLightMode}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -1423,7 +1567,9 @@ export default function TodoHub({
             </div>
 
             <div className="pt-4 border-t border-white/[0.08] flex justify-between items-center text-xs">
-              <span className="text-[10px] text-[#9496a1]">Created: {new Date(activePanelGoal.createdAt).toLocaleDateString()}</span>
+              <span className="text-[10px] text-[#9496a1]">
+                Created: {activePanelGoal.createdAt && !isNaN(new Date(activePanelGoal.createdAt).getTime()) ? new Date(activePanelGoal.createdAt).toLocaleDateString() : 'Active'}
+              </span>
               <button
                 type="button"
                 onClick={() => {

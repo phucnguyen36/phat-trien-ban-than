@@ -1201,6 +1201,20 @@ export default function App() {
 
         <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
           
+          {/* Re-open Sidebar Button for Desktop when collapsed */}
+          {!isLoading && !isSidebarOpen && (
+            <div className="hidden lg:flex flex-col shrink-0 sticky top-28 z-20">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-3 glass-panel-true border border-white/[0.08] hover:border-[#1591DC]/40 text-[#9496a1] hover:text-white rounded-2xl transition-all shadow-xl flex items-center gap-2.5 cursor-pointer group"
+                title="Expand Navigation (Dashboard, Tasks...)"
+              >
+                <PanelLeftOpen className="w-4 h-4 text-[#1591DC] group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-semibold text-white">Menu</span>
+              </button>
+            </div>
+          )}
+
           {/* Left Sticky Navigation Panel for Desktop */}
           {!isLoading && isSidebarOpen && (
             <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-28 space-y-3 glass-panel-true p-5 transition-all duration-300">
@@ -1347,6 +1361,12 @@ export default function App() {
                       onDeleteGoal={handleDeleteGoal}
                       onEditGoal={handleEditGoal}
                       onUpdateGoal={handleUpdateGoal}
+                      onNavigate={(sec) => {
+                        if (sec === 'habits') setActiveSection('habit-matrix');
+                        else if (sec === 'journal') setActiveSection('daily-journal');
+                        else if (sec === 'expenses') setActiveSection('expense-ledger');
+                        else setActiveSection(sec);
+                      }}
                       isLightMode={isLightMode}
                     />
                   </section>
