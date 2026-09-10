@@ -85,6 +85,7 @@ Mỗi khi hoàn thành bất kỳ thay đổi nào, bắt buộc thực hiện �
 | **v5.5** | Tái thiết bảng Calendar chuẩn Notion: Card dọc xếp chồng, kéo thả Drag & Drop đổi ngày | Thay thế thiết kế ô chấm dot + hộp soi đáy rời rạc bằng lưới Notion Card trực tiếp trong từng ô ngày; hỗ trợ kéo thả native HTML5 cập nhật `[D:YYYY-MM-DD]`, chuyển tháng và thêm việc nhanh tại chỗ. |
 | **v5.6** | Tối ưu màn hình Overview: Loại bỏ triệt để 'Task Ảo', lọc chuẩn ngày hôm nay, loại bỏ AI Slop | Khắc phục lỗi lấy toàn bộ task daily trong lịch sử vào ngày hôm nay; đưa việc chưa làm lên đầu, bổ sung Quick-Add + Rollover overdue, chuẩn hóa số liệu tiến độ chân thực và bỏ nút trùng lặp ở danh sách thói quen. |
 | **v5.7** | Đồng bộ Typography chuẩn Swiss toàn diện & Diệt sạch AI Slop font chữ | Nạp trực tiếp Google Fonts `Plus Jakarta Sans`, chuyển đổi toàn bộ số liệu KPI từ `font-mono` thô sang `tabular-nums`, thống nhất format tiền tệ `1,618,000 ₫`, mở rộng cột thói quen `320px` với `whitespace-nowrap` chống bể dòng. |
+| **v5.8** | Tái thiết tab Database thành Board 4 cột trực quan: Today, This Week, This Month, This Year | Chuyển đổi tab Database từ dạng bảng spreadsheet đơn điệu thành giao diện Kanban Board 4 cột trực quan; tích hợp kéo thả di chuyển task giữa các khung thời gian (tự động cập nhật date tag), form thêm nhanh tại chỗ cho từng cột, bộ lọc trạng thái / độ ưu tiên, tìm kiếm tức thì và nút gạt xem dạng bảng linh hoạt. |
 
 ---
 *Tài liệu này là cẩm nang bất biến cho mọi cập nhật tiếp theo của dự án Deep Focus OS.*

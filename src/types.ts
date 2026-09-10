@@ -13,6 +13,8 @@ export interface SubTask {
   completed: boolean;
 }
 
+export type PriorityLevel = 'The One Thing' | 'High' | 'Medium' | 'Low' | 'As and When';
+
 export interface GoalTodo {
   id: string;
   text: string;
@@ -26,7 +28,7 @@ export interface GoalTodo {
   elapsedSeconds?: number;      // B2 — Time tracker spent seconds
   notes?: string;               // Notion-style rich task notes
   subTasks?: SubTask[];         // Sub-tasks checklist
-  priority?: 'The One Thing' | 'High' | 'Medium' | 'Low' | 'As and When';
+  priority?: PriorityLevel;
   contextTag?: string;          // Context tags e.g. "Productivity", "Editing"
   deadline?: string;            // Target deadline YYYY-MM-DD
 }

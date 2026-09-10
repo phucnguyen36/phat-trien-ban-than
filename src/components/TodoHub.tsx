@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { GoalTodo, TimeframeType, TimeEstimate } from '../types';
+import { GoalTodo, TimeframeType, TimeEstimate, PriorityLevel } from '../types';
 import { Bar } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -52,7 +52,10 @@ import {
   GripVertical,
   Trophy,
   LayoutDashboard,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Sun,
+  Kanban,
+  Search
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 
@@ -91,13 +94,59 @@ export default function TodoHub({
   // View mode toggle: Multi-column view vs Notion Table View vs Calendar Grid view vs Weekly/Monthly Review Dashboard
   const [viewMode, setViewMode] = useState<'columns' | 'table' | 'calendar' | 'review'>('columns');
 
-  // Database Table View Filter State
+  // Database View State: Board (Columns) vs Table View
+  const [databaseSubView, setDatabaseSubView] = useState<'board' | 'table'>('board');
+  const [databaseSearchQuery, setDatabaseSearchQuery] = useState('');
+  const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [databasePriorityFilter, setDatabasePriorityFilter] = useState<'all' | PriorityLevel>('all');
   const [tableTimeframeFilter, setTableTimeframeFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
 
-  const databaseGoals = useMemo(() => {
-    if (tableTimeframeFilter === 'all') return goals;
-    return goals.filter(g => g.timeframe === tableTimeframeFilter);
-  }, [goals, tableTimeframeFilter]);
+  // Database Drag & Drop State
+  const [dbDraggedGoalId, setDbDraggedGoalId] = useState<string | null>(null);
+  const [dbDragOverColumn, setDbDragOverColumn] = useState<TimeframeType | null>(null);
+
+  // Database Inline Quick Add per column
+  const [dbQuickAddInputs, setDbQuickAddInputs] = useState<Record<TimeframeType, string>>({
+    daily: '',
+    weekly: '',
+    monthly: '',
+    yearly: ''
+  });
+  const [dbQuickAddEstimates, setDbQuickAddEstimates] = useState<Record<TimeframeType, string>>({
+    daily: '',
+    weekly: '',
+    monthly: '',
+    yearly: ''
+  });
+
+  const filteredDatabaseGoals = useMemo(() => {
+    return goals.filter(g => {
+      // Search text query
+      if (databaseSearchQuery.trim()) {
+        const query = databaseSearchQuery.toLowerCase();
+        const textMatch = g.text.toLowerCase().includes(query);
+        const notesMatch = (g.notes || '').toLowerCase().includes(query);
+        const tagMatch = (g.contextTag || '').toLowerCase().includes(query);
+        if (!textMatch && !notesMatch && !tagMatch) return false;
+      }
+
+      // Status filter
+      if (databaseStatusFilter === 'active' && g.completed) return false;
+      if (databaseStatusFilter === 'completed' && !g.completed) return false;
+
+      // Priority filter
+      if (databasePriorityFilter !== 'all' && (g.priority || 'Medium') !== databasePriorityFilter) return false;
+
+      // Table timeframe filter (only active in table mode)
+      if (databaseSubView === 'table' && tableTimeframeFilter !== 'all' && g.timeframe !== tableTimeframeFilter) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [goals, databaseSearchQuery, databaseStatusFilter, databasePriorityFilter, databaseSubView, tableTimeframeFilter]);
+
+  const databaseGoals = filteredDatabaseGoals;
 
   // Notion Side Panel State
   const [activePanelGoalId, setActivePanelGoalId] = useState<string | null>(null);
@@ -500,6 +549,127 @@ export default function TodoHub({
     setSelectedWeek(todayWeekStr);
   };
 
+  // Database Columns Definition (Today, This Week, This Month, This Year)
+  const DATABASE_COLUMNS: Array<{
+    id: TimeframeType;
+    label: string;
+    sublabel: string;
+    icon: any;
+    color: string;
+    bgAccent: string;
+    borderAccent: string;
+    progressBar: string;
+  }> = [
+    {
+      id: 'daily',
+      label: 'Today',
+      sublabel: 'Daily Priorities',
+      icon: Sun,
+      color: 'text-emerald-400',
+      bgAccent: 'bg-emerald-500/10',
+      borderAccent: 'border-emerald-500/30',
+      progressBar: 'bg-emerald-400'
+    },
+    {
+      id: 'weekly',
+      label: 'This Week',
+      sublabel: 'Weekly Sprint',
+      icon: Calendar,
+      color: 'text-sky-400',
+      bgAccent: 'bg-sky-500/10',
+      borderAccent: 'border-sky-500/30',
+      progressBar: 'bg-sky-400'
+    },
+    {
+      id: 'monthly',
+      label: 'This Month',
+      sublabel: 'Monthly Objectives',
+      icon: Target,
+      color: 'text-purple-400',
+      bgAccent: 'bg-purple-500/10',
+      borderAccent: 'border-purple-500/30',
+      progressBar: 'bg-purple-400'
+    },
+    {
+      id: 'yearly',
+      label: 'This Year',
+      sublabel: 'Annual Vision',
+      icon: Trophy,
+      color: 'text-amber-400',
+      bgAccent: 'bg-amber-500/10',
+      borderAccent: 'border-amber-500/30',
+      progressBar: 'bg-amber-400'
+    }
+  ];
+
+  const handleDbDragStart = (e: React.DragEvent, goalId: string) => {
+    e.dataTransfer.setData('text/plain', goalId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDbDraggedGoalId(goalId);
+  };
+
+  const handleDbDragOver = (e: React.DragEvent, colId: TimeframeType) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dbDragOverColumn !== colId) {
+      setDbDragOverColumn(colId);
+    }
+  };
+
+  const handleDbDragLeave = (e: React.DragEvent, colId: TimeframeType) => {
+    if (dbDragOverColumn === colId) {
+      setDbDragOverColumn(null);
+    }
+  };
+
+  const handleDbDropOnColumn = (e: React.DragEvent, targetTimeframe: TimeframeType) => {
+    e.preventDefault();
+    setDbDragOverColumn(null);
+    const goalId = e.dataTransfer.getData('text/plain') || dbDraggedGoalId;
+    setDbDraggedGoalId(null);
+    if (!goalId) return;
+
+    const targetGoal = goals.find(g => g.id === goalId);
+    if (!targetGoal) return;
+
+    const cleanText = getDisplayGoalText(targetGoal.text);
+    let tag = '';
+    if (targetTimeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
+    else if (targetTimeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
+    else if (targetTimeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
+    else if (targetTimeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+
+    const updatedGoal: GoalTodo = {
+      ...targetGoal,
+      text: `${tag}${cleanText}`,
+      timeframe: targetTimeframe
+    };
+
+    if (onUpdateGoal) {
+      onUpdateGoal(updatedGoal);
+    } else if (onEditGoal) {
+      onEditGoal(targetGoal.id, updatedGoal.text);
+    }
+  };
+
+  const handleDbQuickAdd = (e: React.FormEvent, timeframe: TimeframeType) => {
+    e.preventDefault();
+    const text = (dbQuickAddInputs[timeframe] || '').trim();
+    if (!text) return;
+
+    let tag = '';
+    if (timeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
+    else if (timeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
+    else if (timeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
+    else if (timeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+
+    const est = dbQuickAddEstimates[timeframe] || undefined;
+    onAddGoal(`${tag}${text}`, timeframe, est as TimeEstimate | undefined);
+
+    setDbQuickAddInputs(prev => ({ ...prev, [timeframe]: '' }));
+    setDbQuickAddEstimates(prev => ({ ...prev, [timeframe]: '' }));
+  };
+
   const renderColumn = (
     timeframe: TimeframeType, 
     label: string, 
@@ -845,7 +1015,7 @@ export default function TodoHub({
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
-              <Table className="w-3.5 h-3.5" />
+              <Kanban className="w-3.5 h-3.5" />
               <span>Database</span>
             </button>
             <button
@@ -992,159 +1162,547 @@ export default function TodoHub({
           </div>
         </>
       ) : viewMode === 'table' ? (
-        /* Notion Database Table View Mode */
-        <div className="glass-panel-true border border-white/15">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/[0.08]">
-            <div className="flex items-center gap-2">
-              <Table className="w-4 h-4 text-[#1591DC]" />
-              <span className="text-sm font-semibold text-white">
-                Tasks Database ({databaseGoals.length})
-              </span>
-            </div>
-            
-            {/* Timeframe Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
-              {[
-                { id: 'all', label: `All (${goals.length})` },
-                { id: 'daily', label: `Daily (${goals.filter(g => g.timeframe === 'daily').length})` },
-                { id: 'weekly', label: `Weekly (${goals.filter(g => g.timeframe === 'weekly').length})` },
-                { id: 'monthly', label: `Monthly (${goals.filter(g => g.timeframe === 'monthly').length})` },
-                { id: 'yearly', label: `Yearly (${goals.filter(g => g.timeframe === 'yearly').length})` }
-              ].map(f => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setTableTimeframeFilter(f.id as any)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                    tableTimeframeFilter === f.id
-                      ? 'bg-white text-black font-semibold shadow-sm'
-                      : 'text-[#9496a1] hover:text-white'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+        /* Notion Database View Mode: Multi-column Board (Today, This Week, This Month, This Year) + Table Toggle */
+        <div className="space-y-6 animate-fadeIn font-sans">
+          
+          {/* Database Master Header & Controls */}
+          <div className="glass-panel-true p-4 md:p-5 rounded-2xl border border-white/15 space-y-4">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              
+              {/* Left: Title & Quick Stats */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
+                  <Kanban className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-white tracking-tight">
+                      Tasks Database
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
+                      {goals.length} total
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#9496a1]">
+                    <span className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="tabular-nums">{goals.filter(g => !g.completed).length} active</span>
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                      <span className="tabular-nums">{goals.filter(g => g.completed).length} done</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Search, Filters & View Toggle */}
+              <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                
+                {/* Search Input */}
+                <div className="relative flex-1 sm:w-56 sm:flex-initial">
+                  <Search className="w-3.5 h-3.5 text-[#9496a1] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={databaseSearchQuery}
+                    onChange={(e) => setDatabaseSearchQuery(e.target.value)}
+                    placeholder="Search database..."
+                    className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] pl-8 pr-3 py-1.5 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors"
+                  />
+                  {databaseSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setDatabaseSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Status Filter Pills */}
+                <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
+                  {(['all', 'active', 'completed'] as const).map(st => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setDatabaseStatusFilter(st)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize transition-all cursor-pointer ${
+                        databaseStatusFilter === st
+                          ? 'bg-white text-black font-semibold shadow-sm'
+                          : 'text-[#9496a1] hover:text-white'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Priority Filter */}
+                <div className="flex items-center gap-1 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                  <Filter className="w-3 h-3 text-[#9496a1]" />
+                  <select
+                    value={databasePriorityFilter}
+                    onChange={(e) => setDatabasePriorityFilter(e.target.value as any)}
+                    className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
+                  >
+                    <option value="all" className="bg-[#12141a] text-white">All Priorities</option>
+                    <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                    <option value="High" className="bg-[#12141a] text-rose-300">High Priority</option>
+                    <option value="Medium" className="bg-[#12141a] text-sky-300">Medium Priority</option>
+                    <option value="Low" className="bg-[#12141a] text-zinc-400">Low Priority</option>
+                  </select>
+                </div>
+
+                {/* SubView Mode Toggle: Board Columns vs Spreadsheet Table */}
+                <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
+                  <button
+                    type="button"
+                    onClick={() => setDatabaseSubView('board')}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      databaseSubView === 'board'
+                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                        : 'text-[#9496a1] hover:text-white'
+                    }`}
+                    title="Columns Board View"
+                  >
+                    <Kanban className="w-3 h-3" />
+                    <span>Columns</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDatabaseSubView('table')}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      databaseSubView === 'table'
+                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                        : 'text-[#9496a1] hover:text-white'
+                    }`}
+                    title="Table View"
+                  >
+                    <Table className="w-3 h-3" />
+                    <span>Table</span>
+                  </button>
+                </div>
+
+              </div>
+
             </div>
           </div>
 
-          <table className="w-full text-left border-collapse min-w-[900px] font-sans">
-            <thead>
-              <tr className="border-b border-white/[0.08] text-xs text-[#9496a1] bg-white/[0.02]">
-                <th className="py-2.5 px-3 w-16 text-center font-medium">Status</th>
-                <th className="py-2.5 px-3 font-medium">Task Name</th>
-                <th className="py-2.5 px-3 w-28 font-medium">Timeframe</th>
-                <th className="py-2.5 px-3 w-28 font-medium">Sub-tasks</th>
-                <th className="py-2.5 px-3 w-24 font-medium">Time Est</th>
-                <th className="py-2.5 px-3 w-32 font-medium">Priority</th>
-                <th className="py-2.5 px-3 w-32 font-medium">Context Tag</th>
-                <th className="py-2.5 px-3 w-32 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04] text-xs text-[#ededf3]">
-              {databaseGoals.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-10 text-[#9496a1] text-xs">
-                    No tasks in active view. Add a new task above.
-                  </td>
-                </tr>
-              ) : (
-                databaseGoals.map(g => {
-                  const subCount = g.subTasks ? g.subTasks.length : 0;
-                  const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
-                  const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
-                  const prio = g.priority || 'Medium';
-                  
-                  const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                    : prio === 'Medium' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                    : 'bg-zinc-800 text-zinc-400 border-zinc-700';
+          {/* Database Board View: 4 Columns (Today, This Week, This Month, This Year) */}
+          {databaseSubView === 'board' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+              {DATABASE_COLUMNS.map(col => {
+                const colGoals = filteredDatabaseGoals.filter(g => g.timeframe === col.id);
+                const sortedColGoals = [...colGoals].sort((a, b) => {
+                  if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                  const prioRank: Record<string, number> = { 'The One Thing': 0, 'High': 1, 'Medium': 2, 'Low': 3, 'As and When': 4 };
+                  const rankA = prioRank[a.priority || 'Medium'] ?? 2;
+                  const rankB = prioRank[b.priority || 'Medium'] ?? 2;
+                  return rankA - rankB;
+                });
 
-                  return (
-                    <tr 
-                      key={g.id} 
-                      onClick={() => setActivePanelGoalId(g.id)}
-                      className={`hover:bg-white/[0.03] transition-colors cursor-pointer group ${g.completed ? 'opacity-50' : ''}`}
+                const totalCount = colGoals.length;
+                const completedCount = colGoals.filter(g => g.completed).length;
+                const rate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                const isDragOver = dbDragOverColumn === col.id;
+
+                return (
+                  <div
+                    key={col.id}
+                    onDragOver={(e) => handleDbDragOver(e, col.id)}
+                    onDragLeave={(e) => handleDbDragLeave(e, col.id)}
+                    onDrop={(e) => handleDbDropOnColumn(e, col.id)}
+                    className={`flex flex-col rounded-2xl transition-all duration-200 border ${
+                      isDragOver 
+                        ? 'border-[#1591DC] bg-[#1591DC]/[0.05] shadow-[0_0_25px_rgba(21,145,220,0.15)]' 
+                        : 'border-white/[0.08] bg-[#0e1015] hover:border-white/[0.14]'
+                    }`}
+                  >
+                    {/* Column Header */}
+                    <div className="p-4 border-b border-white/[0.06] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-7 h-7 rounded-lg ${col.bgAccent} border ${col.borderAccent} flex items-center justify-center`}>
+                            <col.icon className={`w-4 h-4 ${col.color}`} />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
+                              <span>{col.label}</span>
+                              <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] text-[#ededf3] tabular-nums font-semibold">
+                                {totalCount}
+                              </span>
+                            </h4>
+                            <p className="text-[10px] text-[#9496a1] font-normal">{col.sublabel}</p>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className={`text-xs font-bold tabular-nums ${col.color}`}>
+                            {rate}%
+                          </span>
+                          <span className="block text-[9px] text-[#9496a1] tabular-nums">
+                            {completedCount}/{totalCount}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${col.progressBar}`}
+                          style={{ width: `${rate}%` }}
+                        />
+                      </div>
+
+                      {/* Quick Add Form */}
+                      <form onSubmit={(e) => handleDbQuickAdd(e, col.id)} className="space-y-1.5 pt-1">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={dbQuickAddInputs[col.id] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setDbQuickAddInputs(prev => ({ ...prev, [col.id]: val }));
+                            }}
+                            placeholder={`+ Add task for ${col.label.toLowerCase()}...`}
+                            className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] px-3 py-1.5 text-xs text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors"
+                          />
+                          <button
+                            type="submit"
+                            className="p-1.5 btn-primary-cyan text-white rounded-xl shrink-0 transition-transform active:scale-95 cursor-pointer"
+                            title="Add task"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Quick Time Estimate Badges */}
+                        <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+                          {(['15m', '30m', '1h', '2h', 'half-day'] as TimeEstimate[]).map((est) => {
+                            const isSelected = dbQuickAddEstimates[col.id] === est;
+                            const lbl = est === 'half-day' ? '4h' : est;
+                            return (
+                              <button
+                                key={est}
+                                type="button"
+                                onClick={() => {
+                                  setDbQuickAddEstimates(prev => ({
+                                    ...prev,
+                                    [col.id]: isSelected ? '' : est
+                                  }));
+                                }}
+                                className={`px-1.5 py-0.5 rounded-full text-[9px] tabular-nums font-medium transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-[#1591DC] text-white font-bold shadow-sm'
+                                    : 'bg-white/[0.02] border border-white/[0.06] text-[#9496a1] hover:text-white'
+                                }`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </form>
+                    </div>
+
+                    {/* Task Cards Container */}
+                    <div className="p-3 flex-1 overflow-y-auto max-h-[580px] space-y-2">
+                      {sortedColGoals.length === 0 ? (
+                        <div className="py-12 px-3 text-center rounded-xl border border-dashed border-white/[0.08] text-[#9496a1] space-y-1">
+                          <p className="text-xs font-medium">No tasks in {col.label}</p>
+                          <p className="text-[10px] text-zinc-500">Drop tasks here or add above</p>
+                        </div>
+                      ) : (
+                        sortedColGoals.map(g => {
+                          const cleanText = getDisplayGoalText(g.text);
+                          const subCount = g.subTasks ? g.subTasks.length : 0;
+                          const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
+                          const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
+                          const prio = g.priority || 'Medium';
+
+                          return (
+                            <div
+                              key={g.id}
+                              draggable={true}
+                              onDragStart={(e) => handleDbDragStart(e, g.id)}
+                              onClick={() => setActivePanelGoalId(g.id)}
+                              className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing group select-none ${
+                                g.completed
+                                  ? 'bg-white/[0.02] border-white/[0.04] opacity-50 hover:opacity-85'
+                                  : 'bg-[#12141a] border-white/[0.08] hover:border-white/[0.18] hover:shadow-md'
+                              }`}
+                            >
+                              {/* Card Main: Checkbox + Title + Hover Actions */}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggle(g.id, !g.completed);
+                                    }}
+                                    className={`mt-0.5 shrink-0 transition-transform active:scale-90 cursor-pointer ${
+                                      g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
+                                    }`}
+                                  >
+                                    {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                                  </button>
+
+                                  <div className="min-w-0 flex-1">
+                                    <span className={`text-xs font-medium block leading-snug break-words ${
+                                      g.completed ? 'line-through text-[#9496a1]' : 'text-white'
+                                    }`}>
+                                      {cleanText}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Hover Action Buttons */}
+                                <div 
+                                  className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => setActivePanelGoalId(g.id)}
+                                    className="p-1 text-[#9496a1] hover:text-white hover:bg-white/[0.08] rounded transition-colors cursor-pointer"
+                                    title="Open Details & Sub-tasks"
+                                  >
+                                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(g.id)}
+                                    className="p-1 text-[#9496a1] hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                                    title="Delete task"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Card Badges Row */}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2 border-t border-white/[0.04] text-[10px]">
+                                {/* Priority Badge */}
+                                {prio === 'The One Thing' && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold flex items-center gap-1">
+                                    <Zap className="w-2.5 h-2.5" />
+                                    <span>The One Thing</span>
+                                  </span>
+                                )}
+                                {prio === 'High' && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+                                    High
+                                  </span>
+                                )}
+                                {prio === 'Medium' && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">
+                                    Medium
+                                  </span>
+                                )}
+                                {prio === 'Low' && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-white/[0.04] text-zinc-400 border border-white/[0.06] font-medium">
+                                    Low
+                                  </span>
+                                )}
+
+                                {/* Time Estimate Badge */}
+                                {estMeta && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#9496a1] tabular-nums font-medium flex items-center gap-1">
+                                    <Clock className="w-2.5 h-2.5 text-[#9496a1]" />
+                                    <span>{estMeta.label}</span>
+                                  </span>
+                                )}
+
+                                {/* Subtask Progress */}
+                                {subCount > 0 && (
+                                  <span className={`px-1.5 py-0.5 rounded-full border flex items-center gap-1 font-medium tabular-nums ${
+                                    subDone === subCount 
+                                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' 
+                                      : 'bg-white/[0.04] text-[#9496a1] border-white/[0.08]'
+                                  }`}>
+                                    <ListChecks className="w-2.5 h-2.5" />
+                                    <span>{subDone}/{subCount}</span>
+                                  </span>
+                                )}
+
+                                {/* Notes indicator */}
+                                {g.notes && (
+                                  <span className="text-[#9496a1] flex items-center gap-0.5 ml-auto" title="Has notes">
+                                    <FileText className="w-3 h-3" />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Database Table View Mode */
+            <div className="glass-panel-true border border-white/15 p-4 rounded-2xl">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/[0.08]">
+                <div className="flex items-center gap-2">
+                  <Table className="w-4 h-4 text-[#1591DC]" />
+                  <span className="text-sm font-semibold text-white">
+                    Spreadsheet Table ({filteredDatabaseGoals.length})
+                  </span>
+                </div>
+                
+                {/* Timeframe Filter Pills */}
+                <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
+                  {[
+                    { id: 'all', label: `All (${goals.length})` },
+                    { id: 'daily', label: `Daily (${goals.filter(g => g.timeframe === 'daily').length})` },
+                    { id: 'weekly', label: `Weekly (${goals.filter(g => g.timeframe === 'weekly').length})` },
+                    { id: 'monthly', label: `Monthly (${goals.filter(g => g.timeframe === 'monthly').length})` },
+                    { id: 'yearly', label: `Yearly (${goals.filter(g => g.timeframe === 'yearly').length})` }
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setTableTimeframeFilter(f.id as any)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                        tableTimeframeFilter === f.id
+                          ? 'bg-white text-black font-semibold shadow-sm'
+                          : 'text-[#9496a1] hover:text-white'
+                      }`}
                     >
-                      <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => handleToggle(g.id, !g.completed)}
-                          className={`transition-transform active:scale-90 ${g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
-                        >
-                          {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                        </button>
-                      </td>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                      <td className="py-3 px-3 font-medium text-white">
-                        <div className="flex items-center gap-2">
-                          <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
-                            {g.text}
-                          </span>
-                          {g.timeEstimate && estMeta && (
-                            <span className="text-[10px] text-[#9496a1] flex items-center gap-1 font-mono">
-                              <Clock className="w-3 h-3 text-[#9496a1]" />
-                              {estMeta.label}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/[0.06] text-[#ededf3]">
-                          {g.timeframe}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-3 font-mono text-[11px] text-[#9496a1]">
-                        {subCount > 0 ? (
-                          <span className={`px-2 py-0.5 rounded-full ${subDone === subCount ? 'text-emerald-400 bg-emerald-500/10' : 'text-[#9496a1]'}`}>
-                            {subDone}/{subCount}
-                          </span>
-                        ) : (
-                          <span className="opacity-40">-</span>
-                        )}
-                      </td>
-
-                      <td className="py-3 px-3 font-mono text-[11px] text-[#9496a1]">
-                        {estMeta ? estMeta.label : '-'}
-                      </td>
-
-                      <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
-                          {prio}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-3 text-[#9496a1] text-xs">
-                        {g.contextTag || '-'}
-                      </td>
-
-                      <td className="py-3 px-3" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => setActivePanelGoalId(g.id)}
-                            className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded"
-                            title="Task Details & Sub-tasks"
-                          >
-                            <SlidersHorizontal className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(g.id)}
-                            className="p-1 text-[#9496a1] hover:text-red-400 glass-button-true rounded"
-                            title="Delete Task"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[900px] font-sans">
+                  <thead>
+                    <tr className="border-b border-white/[0.08] text-xs text-[#9496a1] bg-white/[0.02]">
+                      <th className="py-2.5 px-3 w-16 text-center font-medium">Status</th>
+                      <th className="py-2.5 px-3 font-medium">Task Name</th>
+                      <th className="py-2.5 px-3 w-28 font-medium">Timeframe</th>
+                      <th className="py-2.5 px-3 w-28 font-medium">Sub-tasks</th>
+                      <th className="py-2.5 px-3 w-24 font-medium">Time Est</th>
+                      <th className="py-2.5 px-3 w-32 font-medium">Priority</th>
+                      <th className="py-2.5 px-3 w-32 font-medium">Context Tag</th>
+                      <th className="py-2.5 px-3 w-32 font-medium">Actions</th>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.04] text-xs text-[#ededf3]">
+                    {filteredDatabaseGoals.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="text-center py-10 text-[#9496a1] text-xs">
+                          No tasks in active view. Add a new task above.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredDatabaseGoals.map(g => {
+                        const subCount = g.subTasks ? g.subTasks.length : 0;
+                        const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
+                        const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
+                        const prio = g.priority || 'Medium';
+                        
+                        const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                          : prio === 'Medium' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                          : 'bg-zinc-800 text-zinc-400 border-zinc-700';
+
+                        return (
+                          <tr 
+                            key={g.id} 
+                            onClick={() => setActivePanelGoalId(g.id)}
+                            className={`hover:bg-white/[0.03] transition-colors cursor-pointer group ${g.completed ? 'opacity-50' : ''}`}
+                          >
+                            <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => handleToggle(g.id, !g.completed)}
+                                className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
+                              >
+                                {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                              </button>
+                            </td>
+
+                            <td className="py-3 px-3 font-medium text-white">
+                              <div className="flex items-center gap-2">
+                                <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
+                                  {g.text}
+                                </span>
+                                {g.timeEstimate && estMeta && (
+                                  <span className="text-[10px] text-[#9496a1] flex items-center gap-1 tabular-nums">
+                                    <Clock className="w-3 h-3 text-[#9496a1]" />
+                                    {estMeta.label}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            <td className="py-3 px-3">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/[0.06] text-[#ededf3]">
+                                {g.timeframe}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
+                              {subCount > 0 ? (
+                                <span className={`px-2 py-0.5 rounded-full ${subDone === subCount ? 'text-emerald-400 bg-emerald-500/10' : 'text-[#9496a1]'}`}>
+                                  {subDone}/{subCount}
+                                </span>
+                              ) : (
+                                <span className="opacity-40">-</span>
+                              )}
+                            </td>
+
+                            <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
+                              {estMeta ? estMeta.label : '-'}
+                            </td>
+
+                            <td className="py-3 px-3">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
+                                {prio}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-3 text-[#9496a1] text-xs">
+                              {g.contextTag || '-'}
+                            </td>
+
+                            <td className="py-3 px-3" onClick={e => e.stopPropagation()}>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setActivePanelGoalId(g.id)}
+                                  className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded cursor-pointer"
+                                  title="Task Details & Sub-tasks"
+                                >
+                                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(g.id)}
+                                  className="p-1 text-[#9496a1] hover:text-rose-400 glass-button-true rounded cursor-pointer"
+                                  title="Delete Task"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </div>
       ) : viewMode === 'calendar' ? (
         /* Notion-Style Drag-and-Drop Calendar View Mode */
