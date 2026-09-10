@@ -17,7 +17,8 @@ import {
   Flame,
   Sparkles,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  GripVertical
 } from 'lucide-react';
 
 interface ExecutiveDashboardProps {
@@ -30,6 +31,7 @@ interface ExecutiveDashboardProps {
   onToggleHabitDay: (id: string, day: number) => void;
   onAddGoal?: (text: string, timeframe: TimeframeType, timeEstimate?: TimeEstimate) => void;
   onDeleteGoal?: (id: string) => void;
+  onReorderGoals?: (reorderedGoals: GoalTodo[]) => void;
   activeTheme?: UITheme;
 }
 
@@ -42,7 +44,8 @@ export default function ExecutiveDashboard({
   onToggleGoal,
   onToggleHabitDay,
   onAddGoal,
-  onDeleteGoal
+  onDeleteGoal,
+  onReorderGoals
 }: ExecutiveDashboardProps) {
   // Today's date info
   const todayDate = useMemo(() => new Date(), []);
@@ -53,7 +56,8 @@ export default function ExecutiveDashboard({
   const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
 
   // Helper: Strip context tag [D:...], [W:...], etc.
-  const getDisplayGoalText = (text: string): string => {
+  const getDisplayGoalText = (text?: string | null): string => {
+    if (!text || typeof text !== 'string') return '';
     return text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '');
   };
 
@@ -63,12 +67,53 @@ export default function ExecutiveDashboard({
   const [todayTaskFilter, setTodayTaskFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [strategicFilter, setStrategicFilter] = useState<'all' | 'weekly' | 'monthly' | 'yearly'>('all');
 
+  // Drag-and-drop reordering state
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+
+  const handleTaskDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggedTaskId(id);
+  };
+
+  const handleTaskDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverTaskId !== id) {
+      setDragOverTaskId(id);
+    }
+  };
+
+  const handleTaskDragLeave = (e: React.DragEvent, id: string) => {
+    if (dragOverTaskId === id) {
+      setDragOverTaskId(null);
+    }
+  };
+
+  const handleTaskDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    setDragOverTaskId(null);
+    const sourceId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+    setDraggedTaskId(null);
+    if (!sourceId || sourceId === targetId || !onReorderGoals) return;
+
+    const sourceIndex = goals.findIndex(g => g.id === sourceId);
+    const targetIndex = goals.findIndex(g => g.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const newGoals = [...goals];
+    const [moved] = newGoals.splice(sourceIndex, 1);
+    newGoals.splice(targetIndex, 0, moved);
+    onReorderGoals(newGoals);
+  };
+
   // 1. OVERDUE UNCOMPLETED TASKS from previous days
   const overdueTasks = useMemo(() => {
     return goals.filter(g => {
       if (g.completed) return false;
       if (g.timeframe !== 'daily') return false;
-      const match = g.text.match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
+      const match = (g.text || '').match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
       if (match && match[1] < todayCtxKey) return true;
       return false;
     });
@@ -79,7 +124,8 @@ export default function ExecutiveDashboard({
   const todayDailyTasks = useMemo(() => {
     return goals.filter(g => {
       if (g.timeframe !== 'daily') return false;
-      const match = g.text.match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
+      const text = g.text || '';
+      const match = text.match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
       if (match) {
         return match[1] === todayCtxKey;
       }
@@ -91,20 +137,11 @@ export default function ExecutiveDashboard({
     });
   }, [goals, todayCtxKey]);
 
-  // Sorted today's tasks: Pending high-priority tasks FIRST, completed tasks neatly at the bottom
+  // Today's tasks: Keeps user's custom drag priority order from goals, with active tasks first and completed at bottom
   const sortedTodayTasks = useMemo(() => {
     return [...todayDailyTasks].sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
-      const prioOrder: Record<string, number> = {
-        'The One Thing': 0,
-        'High': 1,
-        'Medium': 2,
-        'Low': 3,
-        'As and When': 4
-      };
-      const aP = prioOrder[a.priority || 'Medium'] ?? 2;
-      const bP = prioOrder[b.priority || 'Medium'] ?? 2;
-      return aP - bP;
+      return 0; // Preserves custom drag-and-drop priority order
     });
   }, [todayDailyTasks]);
 
@@ -407,13 +444,26 @@ export default function ExecutiveDashboard({
               {displayedTodayTasks.map((task) => (
                 <div 
                   key={task.id}
-                  className={`flex items-center justify-between p-3 rounded-xl transition-all group ${
+                  draggable={true}
+                  onDragStart={(e) => handleTaskDragStart(e, task.id)}
+                  onDragOver={(e) => handleTaskDragOver(e, task.id)}
+                  onDragLeave={(e) => handleTaskDragLeave(e, task.id)}
+                  onDrop={(e) => handleTaskDrop(e, task.id)}
+                  className={`flex items-center justify-between p-3 rounded-xl transition-all group select-none ${
+                    dragOverTaskId === task.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                  } ${
                     task.completed
                       ? 'bg-white/[0.02] border border-white/[0.04] text-[#9496a1]'
                       : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15] text-[#ededf3]'
                   }`}
                 >
-                  <div className="flex items-center gap-3 pr-2 min-w-0">
+                  <div className="flex items-center gap-2.5 pr-2 min-w-0">
+                    <div 
+                      className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
+                      title="Kéo thả để đổi thứ tự ưu tiên"
+                    >
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </div>
                     <button
                       type="button"
                       onClick={() => onToggleGoal(task.id, !task.completed)}
@@ -490,17 +540,30 @@ export default function ExecutiveDashboard({
                 <p className="text-xs font-semibold text-white">No strategic objectives for this scope.</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-                {filteredStrategicGoals.slice(0, 6).map((goal) => (
+              <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                {filteredStrategicGoals.map((goal) => (
                   <div
                     key={goal.id}
-                    className={`flex items-center justify-between p-3 rounded-xl transition-all group ${
+                    draggable={true}
+                    onDragStart={(e) => handleTaskDragStart(e, goal.id)}
+                    onDragOver={(e) => handleTaskDragOver(e, goal.id)}
+                    onDragLeave={(e) => handleTaskDragLeave(e, goal.id)}
+                    onDrop={(e) => handleTaskDrop(e, goal.id)}
+                    className={`flex items-center justify-between p-3 rounded-xl transition-all group select-none ${
+                      dragOverTaskId === goal.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                    } ${
                       goal.completed
                         ? 'bg-white/[0.02] border border-white/[0.04] opacity-60'
                         : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15]'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div 
+                        className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
+                        title="Kéo thả để đổi thứ tự ưu tiên"
+                      >
+                        <GripVertical className="w-3.5 h-3.5" />
+                      </div>
                       <button
                         type="button"
                         onClick={() => onToggleGoal(goal.id, !goal.completed)}

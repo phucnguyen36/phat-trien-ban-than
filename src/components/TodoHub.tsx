@@ -55,7 +55,9 @@ import {
   SlidersHorizontal,
   Sun,
   Kanban,
-  Search
+  Search,
+  Filter,
+  ArrowUpDown
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 
@@ -68,6 +70,7 @@ interface TodoHubProps {
   onDeleteGoal: (id: string) => void;
   onEditGoal?: (id: string, newText: string) => void;
   onUpdateGoal?: (updatedGoal: GoalTodo) => void;
+  onReorderGoals?: (reorderedGoals: GoalTodo[]) => void;
   onNavigate?: (section: string) => void;
   isLightMode?: boolean;
 }
@@ -79,6 +82,7 @@ export default function TodoHub({
   onDeleteGoal,
   onEditGoal,
   onUpdateGoal,
+  onReorderGoals,
   onNavigate,
   isLightMode
 }: TodoHubProps) {
@@ -99,11 +103,16 @@ export default function TodoHub({
   const [databaseSearchQuery, setDatabaseSearchQuery] = useState('');
   const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [databasePriorityFilter, setDatabasePriorityFilter] = useState<'all' | PriorityLevel>('all');
-  const [tableTimeframeFilter, setTableTimeframeFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
+  const [databaseContextFilter, setDatabaseContextFilter] = useState<string>('all');
+  const [databaseTimeframeFilter, setDatabaseTimeframeFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
+  const [databaseSortBy, setDatabaseSortBy] = useState<
+    'manual' | 'priority-desc' | 'priority-asc' | 'created-desc' | 'created-asc' | 'alpha-asc' | 'alpha-desc' | 'status' | 'estimate'
+  >('manual');
 
   // Database Drag & Drop State
   const [dbDraggedGoalId, setDbDraggedGoalId] = useState<string | null>(null);
   const [dbDragOverColumn, setDbDragOverColumn] = useState<TimeframeType | null>(null);
+  const [dbDragOverTaskId, setDbDragOverTaskId] = useState<string | null>(null);
 
   // Database Inline Quick Add per column
   const [dbQuickAddInputs, setDbQuickAddInputs] = useState<Record<TimeframeType, string>>({
@@ -119,12 +128,26 @@ export default function TodoHub({
     yearly: ''
   });
 
+  // Unique context tags extracted from existing goals
+  const availableContextTags = useMemo(() => {
+    const tags = new Set<string>();
+    (goals || []).forEach(g => {
+      if (g && g.contextTag && g.contextTag.trim()) {
+        tags.add(g.contextTag.trim());
+      }
+    });
+    return Array.from(tags).sort();
+  }, [goals]);
+
+  // Safe filtered and sorted database goals
   const filteredDatabaseGoals = useMemo(() => {
-    return goals.filter(g => {
+    const list = (goals || []).filter(g => {
+      if (!g) return false;
+
       // Search text query
       if (databaseSearchQuery.trim()) {
         const query = databaseSearchQuery.toLowerCase();
-        const textMatch = g.text.toLowerCase().includes(query);
+        const textMatch = (g.text || '').toLowerCase().includes(query);
         const notesMatch = (g.notes || '').toLowerCase().includes(query);
         const tagMatch = (g.contextTag || '').toLowerCase().includes(query);
         if (!textMatch && !notesMatch && !tagMatch) return false;
@@ -137,14 +160,77 @@ export default function TodoHub({
       // Priority filter
       if (databasePriorityFilter !== 'all' && (g.priority || 'Medium') !== databasePriorityFilter) return false;
 
-      // Table timeframe filter (only active in table mode)
-      if (databaseSubView === 'table' && tableTimeframeFilter !== 'all' && g.timeframe !== tableTimeframeFilter) {
-        return false;
+      // Context Tag filter
+      if (databaseContextFilter !== 'all' && (g.contextTag || '') !== databaseContextFilter) return false;
+
+      // Timeframe filter (applied across both Table and Board view when selected)
+      if (databaseTimeframeFilter !== 'all') {
+        const tf = g.timeframe || 'daily';
+        if (tf !== databaseTimeframeFilter) return false;
       }
 
       return true;
     });
-  }, [goals, databaseSearchQuery, databaseStatusFilter, databasePriorityFilter, databaseSubView, tableTimeframeFilter]);
+
+    const prioRank: Record<string, number> = {
+      'The One Thing': 0,
+      'High': 1,
+      'Medium': 2,
+      'Low': 3,
+      'As and When': 4
+    };
+
+    const estRank: Record<string, number> = {
+      '15m': 1,
+      '30m': 2,
+      '1h': 3,
+      '2h': 4,
+      'half-day': 5
+    };
+
+    return [...list].sort((a, b) => {
+      switch (databaseSortBy) {
+        case 'priority-desc': {
+          const rankA = prioRank[a.priority || 'Medium'] ?? 2;
+          const rankB = prioRank[b.priority || 'Medium'] ?? 2;
+          if (rankA !== rankB) return rankA - rankB;
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        }
+        case 'priority-asc': {
+          const rankA = prioRank[a.priority || 'Medium'] ?? 2;
+          const rankB = prioRank[b.priority || 'Medium'] ?? 2;
+          if (rankA !== rankB) return rankB - rankA;
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        }
+        case 'created-desc':
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        case 'created-asc':
+          return (a.createdAt || 0) - (b.createdAt || 0);
+        case 'alpha-asc': {
+          const textA = (a.text || '').replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').toLowerCase();
+          const textB = (b.text || '').replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').toLowerCase();
+          return textA.localeCompare(textB);
+        }
+        case 'alpha-desc': {
+          const textA = (a.text || '').replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').toLowerCase();
+          const textB = (b.text || '').replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '').toLowerCase();
+          return textB.localeCompare(textA);
+        }
+        case 'status': {
+          if (a.completed !== b.completed) return a.completed ? 1 : -1;
+          return 0;
+        }
+        case 'estimate': {
+          const eA = estRank[a.timeEstimate || ''] ?? 99;
+          const eB = estRank[b.timeEstimate || ''] ?? 99;
+          return eA - eB;
+        }
+        case 'manual':
+        default:
+          return 0;
+      }
+    });
+  }, [goals, databaseSearchQuery, databaseStatusFilter, databasePriorityFilter, databaseContextFilter, databaseTimeframeFilter, databaseSortBy]);
 
   const databaseGoals = filteredDatabaseGoals;
 
@@ -311,8 +397,9 @@ export default function TodoHub({
     const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
     const activeCtxKey = `${selectedYear}-${selectedMonth}-${selectedDay}`;
 
-    return goals.filter(g => {
-      const text = g.text;
+    return (goals || []).filter(g => {
+      if (!g) return false;
+      const text = g.text || '';
 
       if (g.timeframe === 'daily') {
         if (text.startsWith(`[D:${activeCtxKey}]`)) return true;
@@ -350,10 +437,11 @@ export default function TodoHub({
   // Overdue / Incomplete Goals Reminder Logic
   const overdueIncompleteGoals = useMemo(() => {
     const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
-    return goals.filter(g => {
-      if (g.completed) return false;
-      if (g.timeframe === 'daily' && g.text.startsWith('[D:')) {
-        const match = g.text.match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
+    return (goals || []).filter(g => {
+      if (!g || g.completed) return false;
+      const text = g.text || '';
+      if (g.timeframe === 'daily' && text.startsWith('[D:')) {
+        const match = text.match(/^\[D:(\d{4}-\d{2}-\d{2})\]/);
         if (match && match[1] < todayCtxKey) return true;
       }
       return false;
@@ -366,14 +454,15 @@ export default function TodoHub({
   const handleRolloverOverdueGoals = async () => {
     const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
     for (const g of overdueIncompleteGoals) {
-      const cleanText = g.text.replace(/^\[D:\d{4}-\d{2}-\d{2}\]\s*/, '');
+      const cleanText = getDisplayGoalText(g.text);
       await onAddGoal(`[D:${todayCtxKey}] ${cleanText}`, g.timeframe);
       await onDeleteGoal(g.id);
     }
   };
 
-  // Strip context tag from display text
-  const getDisplayGoalText = (text: string): string => {
+  // Strip context tag from display text (100% crash-safe)
+  const getDisplayGoalText = (text?: string | null): string => {
+    if (!text || typeof text !== 'string') return '';
     return text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '');
   };
 
@@ -622,9 +711,72 @@ export default function TodoHub({
     }
   };
 
+  const handleDbTaskDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    if (dbDragOverTaskId !== id) {
+      setDbDragOverTaskId(id);
+    }
+  };
+
+  const handleDbTaskDragLeave = (e: React.DragEvent, id: string) => {
+    e.stopPropagation();
+    if (dbDragOverTaskId === id) {
+      setDbDragOverTaskId(null);
+    }
+  };
+
+  const handleDbDropOnTask = (e: React.DragEvent, targetGoalId: string, targetTimeframe: TimeframeType) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDbDragOverTaskId(null);
+    setDbDragOverColumn(null);
+    const sourceId = e.dataTransfer.getData('text/plain') || dbDraggedGoalId;
+    setDbDraggedGoalId(null);
+    if (!sourceId) return;
+
+    const sourceGoal = goals.find(g => g.id === sourceId);
+    const targetGoal = goals.find(g => g.id === targetGoalId);
+    if (!sourceGoal || !targetGoal) return;
+
+    // Check if sourceGoal timeframe needs updating
+    let updatedSource = { ...sourceGoal };
+    if (sourceGoal.timeframe !== targetTimeframe) {
+      const cleanText = getDisplayGoalText(sourceGoal.text);
+      let tag = '';
+      if (targetTimeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
+      else if (targetTimeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
+      else if (targetTimeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
+      else if (targetTimeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+
+      updatedSource = {
+        ...sourceGoal,
+        text: `${tag}${cleanText}`,
+        timeframe: targetTimeframe
+      };
+      if (onUpdateGoal) {
+        onUpdateGoal(updatedSource);
+      }
+    }
+
+    if (sourceId === targetGoalId || !onReorderGoals) return;
+
+    const sourceIndex = goals.findIndex(g => g.id === sourceId);
+    const targetIndex = goals.findIndex(g => g.id === targetGoalId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const newGoals = [...goals];
+    newGoals.splice(sourceIndex, 1);
+    const insertIndex = newGoals.findIndex(g => g.id === targetGoalId);
+    newGoals.splice(insertIndex === -1 ? targetIndex : insertIndex, 0, updatedSource);
+    onReorderGoals(newGoals);
+  };
+
   const handleDbDropOnColumn = (e: React.DragEvent, targetTimeframe: TimeframeType) => {
     e.preventDefault();
     setDbDragOverColumn(null);
+    setDbDragOverTaskId(null);
     const goalId = e.dataTransfer.getData('text/plain') || dbDraggedGoalId;
     setDbDraggedGoalId(null);
     if (!goalId) return;
@@ -632,23 +784,25 @@ export default function TodoHub({
     const targetGoal = goals.find(g => g.id === goalId);
     if (!targetGoal) return;
 
-    const cleanText = getDisplayGoalText(targetGoal.text);
-    let tag = '';
-    if (targetTimeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
-    else if (targetTimeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
-    else if (targetTimeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
-    else if (targetTimeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+    if (targetGoal.timeframe !== targetTimeframe) {
+      const cleanText = getDisplayGoalText(targetGoal.text);
+      let tag = '';
+      if (targetTimeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
+      else if (targetTimeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
+      else if (targetTimeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
+      else if (targetTimeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
 
-    const updatedGoal: GoalTodo = {
-      ...targetGoal,
-      text: `${tag}${cleanText}`,
-      timeframe: targetTimeframe
-    };
+      const updatedGoal: GoalTodo = {
+        ...targetGoal,
+        text: `${tag}${cleanText}`,
+        timeframe: targetTimeframe
+      };
 
-    if (onUpdateGoal) {
-      onUpdateGoal(updatedGoal);
-    } else if (onEditGoal) {
-      onEditGoal(targetGoal.id, updatedGoal.text);
+      if (onUpdateGoal) {
+        onUpdateGoal(updatedGoal);
+      } else if (onEditGoal) {
+        onEditGoal(targetGoal.id, updatedGoal.text);
+      }
     }
   };
 
@@ -683,9 +837,16 @@ export default function TodoHub({
     const isThisDailyAndToday = timeframe === 'daily' && isTodayActive;
 
     return (
-      <div className={`flex flex-col justify-between p-6 md:p-7 min-h-[460px] w-full border transition-all duration-300 glass-panel-true ${
-        isThisDailyAndToday ? 'border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.15)]' : ''
-      }`}>
+      <div 
+        onDragOver={(e) => handleDbDragOver(e, timeframe)}
+        onDragLeave={(e) => handleDbDragLeave(e, timeframe)}
+        onDrop={(e) => handleDbDropOnColumn(e, timeframe)}
+        className={`flex flex-col justify-between p-6 md:p-7 min-h-[460px] w-full border transition-all duration-300 glass-panel-true ${
+          dbDragOverColumn === timeframe ? 'border-[#1591DC] bg-[#1591DC]/[0.04]' : ''
+        } ${
+          isThisDailyAndToday ? 'border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.15)]' : ''
+        }`}
+      >
         
         <div>
           {/* Column Header */}
@@ -782,14 +943,28 @@ export default function TodoHub({
                 return (
                   <div 
                     key={g.id} 
-                    className={`group flex items-start gap-2.5 p-3 glass-card-true transition-all rounded-xl relative ${
+                    draggable={true}
+                    onDragStart={(e) => handleDbDragStart(e, g.id)}
+                    onDragOver={(e) => handleDbTaskDragOver(e, g.id)}
+                    onDragLeave={(e) => handleDbTaskDragLeave(e, g.id)}
+                    onDrop={(e) => handleDbDropOnTask(e, g.id, timeframe)}
+                    className={`group flex items-start gap-2 p-3 glass-card-true transition-all rounded-xl relative select-none ${
+                      dbDragOverTaskId === g.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                    } ${
                       isTimerRunning ? 'border-amber-500/50 bg-amber-500/10' : ''
                     }`}
                   >
+                    <div 
+                      className="cursor-grab active:cursor-grabbing mt-1 text-zinc-600 hover:text-white transition-colors shrink-0"
+                      title="Kéo thả để đổi thứ tự ưu tiên"
+                    >
+                      <GripVertical className="w-3.5 h-3.5" />
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => onToggleGoal(g.id, !g.completed)}
-                      className="mt-0.5 text-[#9496a1] hover:text-white transition-colors focus:outline-none shrink-0"
+                      className="mt-0.5 text-[#9496a1] hover:text-white transition-colors focus:outline-none shrink-0 cursor-pointer"
                     >
                       {g.completed ? (
                         <CheckSquare className={`w-4 h-4 ${accentClass}`} />
@@ -1198,16 +1373,16 @@ export default function TodoHub({
               </div>
 
               {/* Right: Search, Filters & View Toggle */}
-              <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                 
                 {/* Search Input */}
-                <div className="relative flex-1 sm:w-56 sm:flex-initial">
+                <div className="relative flex-1 sm:w-48 sm:flex-initial">
                   <Search className="w-3.5 h-3.5 text-[#9496a1] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={databaseSearchQuery}
                     onChange={(e) => setDatabaseSearchQuery(e.target.value)}
-                    placeholder="Search database..."
+                    placeholder="Search tasks..."
                     className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] pl-8 pr-3 py-1.5 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors"
                   />
                   {databaseSearchQuery && (
@@ -1240,20 +1415,97 @@ export default function TodoHub({
                 </div>
 
                 {/* Priority Filter */}
-                <div className="flex items-center gap-1 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
                   <Filter className="w-3 h-3 text-[#9496a1]" />
                   <select
                     value={databasePriorityFilter}
                     onChange={(e) => setDatabasePriorityFilter(e.target.value as any)}
                     className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
+                    title="Filter by priority"
                   >
                     <option value="all" className="bg-[#12141a] text-white">All Priorities</option>
                     <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
-                    <option value="High" className="bg-[#12141a] text-rose-300">High Priority</option>
-                    <option value="Medium" className="bg-[#12141a] text-sky-300">Medium Priority</option>
-                    <option value="Low" className="bg-[#12141a] text-zinc-400">Low Priority</option>
+                    <option value="High" className="bg-[#12141a] text-rose-300">High</option>
+                    <option value="Medium" className="bg-[#12141a] text-sky-300">Medium</option>
+                    <option value="Low" className="bg-[#12141a] text-zinc-400">Low</option>
                   </select>
                 </div>
+
+                {/* Sort Order Selector */}
+                <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-[#1591DC]" />
+                  <select
+                    value={databaseSortBy}
+                    onChange={(e) => setDatabaseSortBy(e.target.value as any)}
+                    className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
+                    title="Sort tasks order"
+                  >
+                    <option value="manual" className="bg-[#12141a] text-white">Manual (Drag Order)</option>
+                    <option value="priority-desc" className="bg-[#12141a] text-white">Priority: High → Low</option>
+                    <option value="priority-asc" className="bg-[#12141a] text-white">Priority: Low → High</option>
+                    <option value="created-desc" className="bg-[#12141a] text-white">Newest First</option>
+                    <option value="created-asc" className="bg-[#12141a] text-white">Oldest First</option>
+                    <option value="alpha-asc" className="bg-[#12141a] text-white">Name: A → Z</option>
+                    <option value="alpha-desc" className="bg-[#12141a] text-white">Name: Z → A</option>
+                    <option value="status" className="bg-[#12141a] text-white">Active First</option>
+                    <option value="estimate" className="bg-[#12141a] text-white">Time Estimate</option>
+                  </select>
+                </div>
+
+                {/* Timeframe Filter */}
+                <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                  <Calendar className="w-3.5 h-3.5 text-[#9496a1]" />
+                  <select
+                    value={databaseTimeframeFilter}
+                    onChange={(e) => setDatabaseTimeframeFilter(e.target.value as any)}
+                    className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
+                    title="Filter by timeframe"
+                  >
+                    <option value="all" className="bg-[#12141a] text-white">All Time</option>
+                    <option value="daily" className="bg-[#12141a] text-white">Today</option>
+                    <option value="weekly" className="bg-[#12141a] text-white">This Week</option>
+                    <option value="monthly" className="bg-[#12141a] text-white">This Month</option>
+                    <option value="yearly" className="bg-[#12141a] text-white">This Year</option>
+                  </select>
+                </div>
+
+                {/* Context Tag Filter */}
+                {availableContextTags.length > 0 && (
+                  <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                    <Tag className="w-3 h-3 text-[#9496a1]" />
+                    <select
+                      value={databaseContextFilter}
+                      onChange={(e) => setDatabaseContextFilter(e.target.value)}
+                      className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium max-w-[100px] truncate"
+                      title="Filter by Context Tag"
+                    >
+                      <option value="all" className="bg-[#12141a] text-white">All Tags</option>
+                      {availableContextTags.map(tag => (
+                        <option key={tag} value={tag} className="bg-[#12141a] text-white">#{tag}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Reset Filters & Sort Pill */}
+                {(databaseSearchQuery || databaseStatusFilter !== 'all' || databasePriorityFilter !== 'all' || databaseTimeframeFilter !== 'all' || databaseContextFilter !== 'all' || databaseSortBy !== 'manual') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDatabaseSearchQuery('');
+                      setDatabaseStatusFilter('all');
+                      setDatabasePriorityFilter('all');
+                      setDatabaseTimeframeFilter('all');
+                      setDatabaseContextFilter('all');
+                      setDatabaseSortBy('manual');
+                    }}
+                    className="px-2 py-1 rounded-xl text-xs text-[#9496a1] hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer flex items-center gap-1"
+                    title="Reset all filters and sort"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Reset</span>
+                  </button>
+                )}
 
                 {/* SubView Mode Toggle: Board Columns vs Spreadsheet Table */}
                 <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
@@ -1292,16 +1544,20 @@ export default function TodoHub({
 
           {/* Database Board View: 4 Columns (Today, This Week, This Month, This Year) */}
           {databaseSubView === 'board' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-              {DATABASE_COLUMNS.map(col => {
+            <div className={`grid gap-5 ${
+              databaseTimeframeFilter !== 'all'
+                ? 'grid-cols-1 max-w-2xl mx-auto'
+                : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
+            }`}>
+              {DATABASE_COLUMNS.filter(col => databaseTimeframeFilter === 'all' || col.id === databaseTimeframeFilter).map(col => {
+                const ColIcon = col.icon;
                 const colGoals = filteredDatabaseGoals.filter(g => g.timeframe === col.id);
-                const sortedColGoals = [...colGoals].sort((a, b) => {
-                  if (a.completed !== b.completed) return a.completed ? 1 : -1;
-                  const prioRank: Record<string, number> = { 'The One Thing': 0, 'High': 1, 'Medium': 2, 'Low': 3, 'As and When': 4 };
-                  const rankA = prioRank[a.priority || 'Medium'] ?? 2;
-                  const rankB = prioRank[b.priority || 'Medium'] ?? 2;
-                  return rankA - rankB;
-                });
+                const sortedColGoals = databaseSortBy === 'manual'
+                  ? [...colGoals].sort((a, b) => {
+                      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                      return 0; // Keep user drag-and-drop manual priority order
+                    })
+                  : colGoals;
 
                 const totalCount = colGoals.length;
                 const completedCount = colGoals.filter(g => g.completed).length;
@@ -1325,7 +1581,7 @@ export default function TodoHub({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <div className={`w-7 h-7 rounded-lg ${col.bgAccent} border ${col.borderAccent} flex items-center justify-center`}>
-                            <col.icon className={`w-4 h-4 ${col.color}`} />
+                            <ColIcon className={`w-4 h-4 ${col.color}`} />
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
@@ -1421,22 +1677,37 @@ export default function TodoHub({
                           const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
                           const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
                           const prio = g.priority || 'Medium';
+                          const isDragOver = dbDragOverTaskId === g.id;
 
                           return (
                             <div
                               key={g.id}
                               draggable={true}
                               onDragStart={(e) => handleDbDragStart(e, g.id)}
+                              onDragOver={(e) => handleDbTaskDragOver(e, g.id)}
+                              onDragLeave={(e) => handleDbTaskDragLeave(e, g.id)}
+                              onDrop={(e) => handleDbDropOnTask(e, g.id, col.id)}
                               onClick={() => setActivePanelGoalId(g.id)}
                               className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing group select-none ${
+                                isDragOver 
+                                  ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' 
+                                  : ''
+                              } ${
                                 g.completed
                                   ? 'bg-white/[0.02] border-white/[0.04] opacity-50 hover:opacity-85'
                                   : 'bg-[#12141a] border-white/[0.08] hover:border-white/[0.18] hover:shadow-md'
                               }`}
                             >
-                              {/* Card Main: Checkbox + Title + Hover Actions */}
+                              {/* Card Main: Grip + Checkbox + Title + Hover Actions */}
                               <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                                <div className="flex items-start gap-2 min-w-0 flex-1">
+                                  <div 
+                                    className="mt-0.5 text-zinc-600 group-hover:text-zinc-400 shrink-0 cursor-grab active:cursor-grabbing" 
+                                    title="Kéo thả để đổi thứ tự ưu tiên"
+                                  >
+                                    <GripVertical className="w-3.5 h-3.5" />
+                                  </div>
+
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -1528,6 +1799,13 @@ export default function TodoHub({
                                   </span>
                                 )}
 
+                                {/* Context tag badge */}
+                                {g.contextTag && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-white/[0.03] text-zinc-400 border border-white/[0.06] font-mono text-[9px]">
+                                    #{g.contextTag}
+                                  </span>
+                                )}
+
                                 {/* Notes indicator */}
                                 {g.notes && (
                                   <span className="text-[#9496a1] flex items-center gap-0.5 ml-auto" title="Has notes">
@@ -1567,9 +1845,9 @@ export default function TodoHub({
                     <button
                       key={f.id}
                       type="button"
-                      onClick={() => setTableTimeframeFilter(f.id as any)}
+                      onClick={() => setDatabaseTimeframeFilter(f.id as any)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                        tableTimeframeFilter === f.id
+                        databaseTimeframeFilter === f.id
                           ? 'bg-white text-black font-semibold shadow-sm'
                           : 'text-[#9496a1] hover:text-white'
                       }`}
@@ -1584,6 +1862,7 @@ export default function TodoHub({
                 <table className="w-full text-left border-collapse min-w-[900px] font-sans">
                   <thead>
                     <tr className="border-b border-white/[0.08] text-xs text-[#9496a1] bg-white/[0.02]">
+                      <th className="py-2.5 px-2 w-8 text-center"></th>
                       <th className="py-2.5 px-3 w-16 text-center font-medium">Status</th>
                       <th className="py-2.5 px-3 font-medium">Task Name</th>
                       <th className="py-2.5 px-3 w-28 font-medium">Timeframe</th>
@@ -1597,16 +1876,18 @@ export default function TodoHub({
                   <tbody className="divide-y divide-white/[0.04] text-xs text-[#ededf3]">
                     {filteredDatabaseGoals.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="text-center py-10 text-[#9496a1] text-xs">
+                        <td colSpan={9} className="text-center py-10 text-[#9496a1] text-xs">
                           No tasks in active view. Add a new task above.
                         </td>
                       </tr>
                     ) : (
                       filteredDatabaseGoals.map(g => {
+                        const cleanText = getDisplayGoalText(g.text);
                         const subCount = g.subTasks ? g.subTasks.length : 0;
                         const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
                         const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
                         const prio = g.priority || 'Medium';
+                        const isDragOver = dbDragOverTaskId === g.id;
                         
                         const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                           : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
@@ -1616,9 +1897,25 @@ export default function TodoHub({
                         return (
                           <tr 
                             key={g.id} 
+                            draggable={true}
+                            onDragStart={(e) => handleDbDragStart(e, g.id)}
+                            onDragOver={(e) => handleDbTaskDragOver(e, g.id)}
+                            onDragLeave={(e) => handleDbTaskDragLeave(e, g.id)}
+                            onDrop={(e) => handleDbDropOnTask(e, g.id, g.timeframe)}
                             onClick={() => setActivePanelGoalId(g.id)}
-                            className={`hover:bg-white/[0.03] transition-colors cursor-pointer group ${g.completed ? 'opacity-50' : ''}`}
+                            className={`hover:bg-white/[0.03] transition-colors cursor-pointer group select-none ${
+                              isDragOver ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                            } ${g.completed ? 'opacity-50' : ''}`}
                           >
+                            <td className="py-3 px-2 text-center" onClick={e => e.stopPropagation()}>
+                              <div 
+                                className="text-zinc-600 group-hover:text-zinc-400 cursor-grab active:cursor-grabbing flex justify-center" 
+                                title="Kéo thả để đổi thứ tự ưu tiên"
+                              >
+                                <GripVertical className="w-3.5 h-3.5" />
+                              </div>
+                            </td>
+
                             <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                               <button
                                 type="button"
@@ -1632,7 +1929,7 @@ export default function TodoHub({
                             <td className="py-3 px-3 font-medium text-white">
                               <div className="flex items-center gap-2">
                                 <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
-                                  {g.text}
+                                  {cleanText}
                                 </span>
                                 {g.timeEstimate && estMeta && (
                                   <span className="text-[10px] text-[#9496a1] flex items-center gap-1 tabular-nums">

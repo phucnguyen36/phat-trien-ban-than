@@ -652,6 +652,10 @@ export default function App() {
     await saveGoal(updatedGoal, currentUser?.email);
   };
 
+  const handleReorderGoals = (newGoals: GoalTodo[]) => {
+    setGoals(newGoals);
+  };
+
   // Morning Prompt: submit 3 priorities as daily tasks
   const handleMorningPromptSubmit = async () => {
     const filled = morningPriorities.filter(p => p.trim());
@@ -1348,6 +1352,7 @@ export default function App() {
                       onToggleHabitDay={handleToggleHabitDay}
                       onAddGoal={handleAddGoal}
                       onDeleteGoal={handleDeleteGoal}
+                      onReorderGoals={handleReorderGoals}
                       activeTheme={activeTheme}
                     />
                   </section>
@@ -1363,6 +1368,7 @@ export default function App() {
                       onDeleteGoal={handleDeleteGoal}
                       onEditGoal={handleEditGoal}
                       onUpdateGoal={handleUpdateGoal}
+                      onReorderGoals={handleReorderGoals}
                       onNavigate={(sec) => {
                         if (sec === 'habits') setActiveSection('habit-matrix');
                         else if (sec === 'journal') setActiveSection('daily-journal');
