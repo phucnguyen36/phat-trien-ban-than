@@ -86,6 +86,8 @@ Mỗi khi hoàn thành bất kỳ thay đổi nào, bắt buộc thực hiện �
 | **v5.6** | Tối ưu màn hình Overview: Loại bỏ triệt để 'Task Ảo', lọc chuẩn ngày hôm nay, loại bỏ AI Slop | Khắc phục lỗi lấy toàn bộ task daily trong lịch sử vào ngày hôm nay; đưa việc chưa làm lên đầu, bổ sung Quick-Add + Rollover overdue, chuẩn hóa số liệu tiến độ chân thực và bỏ nút trùng lặp ở danh sách thói quen. |
 | **v5.7** | Đồng bộ Typography chuẩn Swiss toàn diện & Diệt sạch AI Slop font chữ | Nạp trực tiếp Google Fonts `Plus Jakarta Sans`, chuyển đổi toàn bộ số liệu KPI từ `font-mono` thô sang `tabular-nums`, thống nhất format tiền tệ `1,618,000 ₫`, mở rộng cột thói quen `320px` với `whitespace-nowrap` chống bể dòng. |
 | **v5.8** | Tái thiết tab Database thành Board 4 cột trực quan: Today, This Week, This Month, This Year | Chuyển đổi tab Database từ dạng bảng spreadsheet đơn điệu thành giao diện Kanban Board 4 cột trực quan; tích hợp kéo thả di chuyển task giữa các khung thời gian (tự động cập nhật date tag), form thêm nhanh tại chỗ cho từng cột, bộ lọc trạng thái / độ ưu tiên, tìm kiếm tức thì và nút gạt xem dạng bảng linh hoạt. |
+| **v5.9** | Kéo thả thay đổi thứ tự ưu tiên Task ở mọi màn hình & Bộ lọc / Sắp xếp Database đa chiều | Bổ sung tay cầm `GripVertical` và xử lý kéo thả reorder mượt mà cho cả Overview (Today's Tasks, Roadmap) và Tasks Hub (Columns, Board, Table); loại bỏ sort cưỡng bức để bảo lưu thứ tự kéo tay; bổ sung dropdown Sort 9 chế độ, lọc theo Timeframe, Context Tag, Status, Priority và nút Reset tiện lợi; vá triệt để lỗi crash import `Filter`/`ArrowUpDown`. |
 
 ---
 *Tài liệu này là cẩm nang bất biến cho mọi cập nhật tiếp theo của dự án Deep Focus OS.*
+
