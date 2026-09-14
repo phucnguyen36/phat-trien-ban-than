@@ -95,6 +95,50 @@ export default function TodoHub({
     onDeleteGoal(id);
   };
 
+  // Calculate current actual date for Today highlight and default selection
+  const today = useMemo(() => new Date(), []);
+  const todayDayStr = useMemo(() => String(today.getDate()).padStart(2, '0'), [today]);
+  const todayMonthStr = useMemo(() => String(today.getMonth() + 1).padStart(2, '0'), [today]);
+  const todayYearStr = useMemo(() => String(today.getFullYear()), [today]);
+  const todayWeekStr = useMemo(() => `W${Math.ceil(today.getDate() / 7)}`, [today]);
+  const todayCtxKey = `${todayYearStr}-${todayMonthStr}-${todayDayStr}`;
+
+  // Strip context tag from display text (100% crash-safe)
+  const getDisplayGoalText = (text?: string | null): string => {
+    if (!text || typeof text !== 'string') return '';
+    return text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '');
+  };
+
+  // Extract date info from goal text tag: [D:YYYY-MM-DD], [W:...], [M:...], [Y:...]
+  const getGoalDateInfo = (g: GoalTodo) => {
+    const text = g.text || '';
+    const match = text.match(/^\[([DWMY]):([^\]]+)\]/);
+    const todayKey = todayCtxKey;
+
+    if (!match) {
+      return {
+        type: g.timeframe || 'daily',
+        key: g.timeframe === 'daily' ? todayKey : '',
+        isToday: g.timeframe === 'daily',
+        isOverdue: false,
+        displayDate: g.timeframe === 'daily' ? 'Today' : ''
+      };
+    }
+    const tagType = match[1];
+    const tagKey = match[2];
+    const isToday = tagType === 'D' && tagKey === todayKey;
+    const isOverdue = tagType === 'D' && !g.completed && tagKey < todayKey;
+
+    let displayDate = tagKey;
+    if (tagType === 'D') {
+      const parts = tagKey.split('-');
+      if (parts.length === 3) {
+        displayDate = isToday ? 'Today' : `${parts[2]}/${parts[1]}`;
+      }
+    }
+    return { type: tagType, key: tagKey, isToday, isOverdue, displayDate };
+  };
+
   // View mode toggle: Multi-column view vs Notion Table View vs Calendar Grid view vs Weekly/Monthly Review Dashboard
   const [viewMode, setViewMode] = useState<'columns' | 'table' | 'calendar' | 'review'>('columns');
 
@@ -104,7 +148,8 @@ export default function TodoHub({
   const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [databasePriorityFilter, setDatabasePriorityFilter] = useState<'all' | PriorityLevel>('all');
   const [databaseContextFilter, setDatabaseContextFilter] = useState<string>('all');
-  const [databaseTimeframeFilter, setDatabaseTimeframeFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
+  const [databaseTimeframeFilter, setDatabaseTimeframeFilter] = useState<'all' | 'today' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
+  const [dbDailyViewScope, setDbDailyViewScope] = useState<'today' | 'all'>('today');
   const [databaseSortBy, setDatabaseSortBy] = useState<
     'manual' | 'priority-desc' | 'priority-asc' | 'created-desc' | 'created-asc' | 'alpha-asc' | 'alpha-desc' | 'status' | 'estimate'
   >('manual');
@@ -127,6 +172,21 @@ export default function TodoHub({
     monthly: '',
     yearly: ''
   });
+
+  // Today's daily tasks count vs total daily tasks count
+  const todayDailyGoalsCount = useMemo(() => {
+    return (goals || []).filter(g => {
+      if (!g || g.timeframe !== 'daily') return false;
+      const text = g.text || '';
+      const match = text.match(/^\[D:([^\]]+)\]/);
+      if (match) return match[1] === todayCtxKey;
+      return true; // legacy untagged daily task is today
+    }).length;
+  }, [goals, todayCtxKey]);
+
+  const allDailyGoalsCount = useMemo(() => {
+    return (goals || []).filter(g => g && g.timeframe === 'daily').length;
+  }, [goals]);
 
   // Unique context tags extracted from existing goals
   const availableContextTags = useMemo(() => {
@@ -165,6 +225,13 @@ export default function TodoHub({
 
       // Timeframe filter (applied across both Table and Board view when selected)
       if (databaseTimeframeFilter !== 'all') {
+        if (databaseTimeframeFilter === 'today') {
+          const text = g.text || '';
+          if (g.timeframe !== 'daily') return false;
+          const match = text.match(/^\[D:([^\]]+)\]/);
+          if (match) return match[1] === todayCtxKey;
+          return true; // legacy untagged is today
+        }
         const tf = g.timeframe || 'daily';
         if (tf !== databaseTimeframeFilter) return false;
       }
@@ -277,14 +344,6 @@ export default function TodoHub({
       onUpdateGoal({ ...goal, [key]: value });
     }
   };
-
-  // Calculate current actual date for Today highlight and default selection
-  const today = useMemo(() => new Date(), []);
-  const todayDayStr = useMemo(() => String(today.getDate()).padStart(2, '0'), [today]);
-  const todayMonthStr = useMemo(() => String(today.getMonth() + 1).padStart(2, '0'), [today]);
-  const todayYearStr = useMemo(() => String(today.getFullYear()), [today]);
-  const todayWeekStr = useMemo(() => `W${Math.ceil(today.getDate() / 7)}`, [today]);
-
   const [selectedYear, setSelectedYear] = useState(todayYearStr);
   const [selectedMonth, setSelectedMonth] = useState(todayMonthStr);
   const [selectedWeek, setSelectedWeek] = useState(todayWeekStr);
@@ -458,12 +517,6 @@ export default function TodoHub({
       await onAddGoal(`[D:${todayCtxKey}] ${cleanText}`, g.timeframe);
       await onDeleteGoal(g.id);
     }
-  };
-
-  // Strip context tag from display text (100% crash-safe)
-  const getDisplayGoalText = (text?: string | null): string => {
-    if (!text || typeof text !== 'string') return '';
-    return text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '');
   };
 
   // Submit Goal
@@ -841,7 +894,7 @@ export default function TodoHub({
         onDragOver={(e) => handleDbDragOver(e, timeframe)}
         onDragLeave={(e) => handleDbDragLeave(e, timeframe)}
         onDrop={(e) => handleDbDropOnColumn(e, timeframe)}
-        className={`flex flex-col justify-between p-6 md:p-7 min-h-[460px] w-full border transition-all duration-300 glass-panel-true ${
+        className={`flex flex-col justify-between p-4 md:p-5 rounded-2xl min-h-[460px] w-full border transition-all duration-300 glass-panel-true ${
           dbDragOverColumn === timeframe ? 'border-[#1591DC] bg-[#1591DC]/[0.04]' : ''
         } ${
           isThisDailyAndToday ? 'border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.15)]' : ''
@@ -940,6 +993,8 @@ export default function TodoHub({
                 const timeStr = `${String(mins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
                 const isRec = recurringTasks[g.id] || g.isRecurring;
 
+                const dateInfo = getGoalDateInfo(g);
+
                 return (
                   <div 
                     key={g.id} 
@@ -948,114 +1003,19 @@ export default function TodoHub({
                     onDragOver={(e) => handleDbTaskDragOver(e, g.id)}
                     onDragLeave={(e) => handleDbTaskDragLeave(e, g.id)}
                     onDrop={(e) => handleDbDropOnTask(e, g.id, timeframe)}
-                    className={`group flex items-start gap-2 p-3 glass-card-true transition-all rounded-xl relative select-none ${
+                    className={`group relative p-3 glass-card-true transition-all rounded-xl select-none ${
                       dbDragOverTaskId === g.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
                     } ${
                       isTimerRunning ? 'border-amber-500/50 bg-amber-500/10' : ''
                     }`}
                   >
-                    <div 
-                      className="cursor-grab active:cursor-grabbing mt-1 text-zinc-600 hover:text-white transition-colors shrink-0"
-                      title="Kéo thả để đổi thứ tự ưu tiên"
-                    >
-                      <GripVertical className="w-3.5 h-3.5" />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onToggleGoal(g.id, !g.completed)}
-                      className="mt-0.5 text-[#9496a1] hover:text-white transition-colors focus:outline-none shrink-0 cursor-pointer"
-                    >
-                      {g.completed ? (
-                        <CheckSquare className={`w-4 h-4 ${accentClass}`} />
-                      ) : (
-                        <Square className="w-4 h-4 text-[#9496a1]" />
-                      )}
-                    </button>
-                    
-                    <div className="flex-1 min-w-0 pr-1">
-                      {editingGoalId === g.id ? (
-                        <div className="flex items-center gap-1 my-0.5">
-                          <input
-                            type="text"
-                            value={editingGoalText}
-                            onChange={(e) => setEditingGoalText(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleSaveEditGoal(g.id);
-                              if (e.key === 'Escape') setEditingGoalId(null);
-                            }}
-                            className="w-full glass-input-true px-2 py-1 text-xs text-white rounded"
-                            autoFocus
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleSaveEditGoal(g.id)}
-                            className="p-1 text-emerald-400 text-xs font-bold"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingGoalId(null)}
-                            className="p-1 text-[#9496a1] hover:text-white text-xs"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span 
-                          onDoubleClick={() => handleStartEditGoal(g)}
-                          className={`text-xs break-words leading-relaxed transition-all duration-300 font-medium block cursor-pointer select-text ${
-                            g.completed ? 'text-[#9496a1] line-through' : 'text-[#ededf3]'
-                          }`}
-                          title="Double-click to edit goal"
-                        >
-                          {getDisplayGoalText(g.text)}
-                        </span>
-                      )}
-                      
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                        {/* Time Estimate Badge */}
-                        {estMeta && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-sans font-medium text-[#9496a1] bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
-                            <Clock className="w-2.5 h-2.5 text-[#1591DC]" />
-                            <span>{estMeta.label}</span>
-                          </span>
-                        )}
-                        {/* B2 — Live Timer Badge */}
-                        {secs > 0 && (
-                          <span className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-medium ${isTimerRunning ? 'text-amber-400 animate-pulse' : 'text-[#9496a1]'}`}>
-                            <Clock className="w-3 h-3" /> {timeStr}
-                          </span>
-                        )}
-                        {/* C2 — Recurring Badge */}
-                        {isRec && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded">
-                            Auto-Reset
-                          </span>
-                        )}
-                        {/* Sub-tasks Badge */}
-                        {g.subTasks && g.subTasks.length > 0 && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
-                            <ListChecks className="w-3 h-3" /> {g.subTasks.filter(s => s.completed).length}/{g.subTasks.length}
-                          </span>
-                        )}
-                        {/* Notes Indicator Badge */}
-                        {g.notes && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded">
-                            <FileText className="w-3 h-3" /> Note
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Action buttons: Subtle on hover, never squishing text */}
-                    <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Action buttons floating at top-right on hover, never squishing text */}
+                    <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-[#14151c]/95 backdrop-blur-md px-1 py-0.5 rounded-lg border border-white/10 shadow-lg">
                       {/* Notion Side Panel Open Button */}
                       <button
                         type="button"
-                        onClick={() => setActivePanelGoalId(g.id)}
-                        className="p-1 rounded text-[#9496a1] hover:text-[#1591DC] transition-colors"
+                        onClick={(e) => { e.stopPropagation(); setActivePanelGoalId(g.id); }}
+                        className="p-1 rounded text-[#9496a1] hover:text-[#1591DC] transition-colors cursor-pointer"
                         title="Open Details & Sub-tasks"
                       >
                         <PanelRightOpen className="w-3.5 h-3.5" />
@@ -1063,8 +1023,8 @@ export default function TodoHub({
                       {/* Edit Button */}
                       <button
                         type="button"
-                        onClick={() => handleStartEditGoal(g)}
-                        className="p-1 rounded text-[#9496a1] hover:text-white transition-colors"
+                        onClick={(e) => { e.stopPropagation(); handleStartEditGoal(g); }}
+                        className="p-1 rounded text-[#9496a1] hover:text-white transition-colors cursor-pointer"
                         title="Edit Task"
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -1073,8 +1033,8 @@ export default function TodoHub({
                       {/* Stopwatch Button */}
                       <button
                         type="button"
-                        onClick={() => setActiveTimerId(isTimerRunning ? null : g.id)}
-                        className={`p-1 rounded transition-colors ${
+                        onClick={(e) => { e.stopPropagation(); setActiveTimerId(isTimerRunning ? null : g.id); }}
+                        className={`p-1 rounded transition-colors cursor-pointer ${
                           isTimerRunning 
                             ? 'text-amber-400 bg-amber-500/20' 
                             : 'text-[#9496a1] hover:text-amber-300'
@@ -1087,12 +1047,126 @@ export default function TodoHub({
                       {/* Delete Button */}
                       <button
                         type="button"
-                        onClick={() => onDeleteGoal(g.id)}
-                        className="text-[#9496a1] hover:text-rose-400 transition-colors focus:outline-none p-1"
+                        onClick={(e) => { e.stopPropagation(); onDeleteGoal(g.id); }}
+                        className="text-[#9496a1] hover:text-rose-400 transition-colors focus:outline-none p-1 cursor-pointer"
                         title="Delete Task"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
+                    </div>
+
+                    {/* Top row: Grip + Checkbox + Title (Takes entire width!) */}
+                    <div className="flex items-start gap-2.5 w-full">
+                      <div 
+                        className="cursor-grab active:cursor-grabbing mt-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
+                        title="Kéo thả để đổi thứ tự ưu tiên"
+                      >
+                        <GripVertical className="w-3.5 h-3.5" />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onToggleGoal(g.id, !g.completed)}
+                        className="mt-0.5 text-[#9496a1] hover:text-white transition-colors focus:outline-none shrink-0 cursor-pointer"
+                      >
+                        {g.completed ? (
+                          <CheckSquare className={`w-4 h-4 ${accentClass}`} />
+                        ) : (
+                          <Square className="w-4 h-4 text-[#9496a1]" />
+                        )}
+                      </button>
+                      
+                      <div className="flex-1 min-w-0 pr-1">
+                        {editingGoalId === g.id ? (
+                          <div className="flex items-center gap-1 my-0.5">
+                            <input
+                              type="text"
+                              value={editingGoalText}
+                              onChange={(e) => setEditingGoalText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEditGoal(g.id);
+                                if (e.key === 'Escape') setEditingGoalId(null);
+                              }}
+                              className="w-full glass-input-true px-2 py-1 text-xs text-white rounded"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSaveEditGoal(g.id)}
+                              className="p-1 text-emerald-400 text-xs font-bold"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingGoalId(null)}
+                              className="p-1 text-[#9496a1] hover:text-white text-xs"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span 
+                            onDoubleClick={() => handleStartEditGoal(g)}
+                            className={`text-xs break-words [word-break:break-word] leading-snug transition-all duration-300 font-medium block cursor-pointer select-text ${
+                              g.completed ? 'text-[#9496a1] line-through' : 'text-[#ededf3]'
+                            }`}
+                            title="Double-click to edit goal"
+                          >
+                            {getDisplayGoalText(g.text)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Dedicated Badges Row (Below Title) */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2 pt-1.5 border-t border-white/[0.04]">
+                      {/* Date Badge */}
+                      {dateInfo.displayDate && (
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
+                          dateInfo.isToday 
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold' 
+                            : dateInfo.isOverdue 
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' 
+                              : 'bg-white/[0.04] text-zinc-400 border-white/[0.06]'
+                        }`}>
+                          <Calendar className="w-2.5 h-2.5" />
+                          <span>{dateInfo.displayDate}</span>
+                          {dateInfo.isOverdue && <span className="text-[8px] opacity-75 font-sans">Trễ</span>}
+                        </span>
+                      )}
+
+                      {/* Time Estimate Badge */}
+                      {estMeta && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-sans font-medium text-[#9496a1] bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
+                          <Clock className="w-2.5 h-2.5 text-[#1591DC]" />
+                          <span>{estMeta.label}</span>
+                        </span>
+                      )}
+                      {/* B2 — Live Timer Badge */}
+                      {secs > 0 && (
+                        <span className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-medium ${isTimerRunning ? 'text-amber-400 animate-pulse' : 'text-[#9496a1]'}`}>
+                          <Clock className="w-3 h-3" /> {timeStr}
+                        </span>
+                      )}
+                      {/* C2 — Recurring Badge */}
+                      {isRec && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded">
+                          Auto-Reset
+                        </span>
+                      )}
+                      {/* Sub-tasks Badge */}
+                      {g.subTasks && g.subTasks.length > 0 && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
+                          <ListChecks className="w-3 h-3" /> {g.subTasks.filter(s => s.completed).length}/{g.subTasks.length}
+                        </span>
+                      )}
+                      {/* Notes Indicator Badge */}
+                      {g.notes && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded">
+                          <FileText className="w-3 h-3" /> Note
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -1462,7 +1536,8 @@ export default function TodoHub({
                     title="Filter by timeframe"
                   >
                     <option value="all" className="bg-[#12141a] text-white">All Time</option>
-                    <option value="daily" className="bg-[#12141a] text-white">Today</option>
+                    <option value="today" className="bg-[#12141a] text-emerald-300">Today ({todayDailyGoalsCount})</option>
+                    <option value="daily" className="bg-[#12141a] text-white">All Daily Tasks ({allDailyGoalsCount})</option>
                     <option value="weekly" className="bg-[#12141a] text-white">This Week</option>
                     <option value="monthly" className="bg-[#12141a] text-white">This Month</option>
                     <option value="yearly" className="bg-[#12141a] text-white">This Year</option>
@@ -1549,9 +1624,23 @@ export default function TodoHub({
                 ? 'grid-cols-1 max-w-2xl mx-auto'
                 : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
             }`}>
-              {DATABASE_COLUMNS.filter(col => databaseTimeframeFilter === 'all' || col.id === databaseTimeframeFilter).map(col => {
+              {DATABASE_COLUMNS.filter(col => {
+                if (databaseTimeframeFilter === 'all') return true;
+                if (databaseTimeframeFilter === 'today') return col.id === 'daily';
+                return col.id === databaseTimeframeFilter;
+              }).map(col => {
                 const ColIcon = col.icon;
-                const colGoals = filteredDatabaseGoals.filter(g => g.timeframe === col.id);
+                const isDailyCol = col.id === 'daily';
+                const isTodayOnly = isDailyCol && (dbDailyViewScope === 'today' || databaseTimeframeFilter === 'today') && databaseTimeframeFilter !== 'daily';
+
+                const colGoals = filteredDatabaseGoals.filter(g => {
+                  if (g.timeframe !== col.id) return false;
+                  if (isTodayOnly) {
+                    const info = getGoalDateInfo(g);
+                    return info.isToday || !g.text?.startsWith('[D:');
+                  }
+                  return true;
+                });
                 const sortedColGoals = databaseSortBy === 'manual'
                   ? [...colGoals].sort((a, b) => {
                       if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -1585,12 +1674,14 @@ export default function TodoHub({
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
-                              <span>{col.label}</span>
+                              <span>{isDailyCol ? (isTodayOnly ? 'Today' : 'Daily Tasks') : col.label}</span>
                               <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] text-[#ededf3] tabular-nums font-semibold">
                                 {totalCount}
                               </span>
                             </h4>
-                            <p className="text-[10px] text-[#9496a1] font-normal">{col.sublabel}</p>
+                            <p className="text-[10px] text-[#9496a1] font-normal">
+                              {isDailyCol ? (isTodayOnly ? 'Daily Priorities (Hôm nay)' : `Tất cả việc theo ngày (${allDailyGoalsCount})`) : col.sublabel}
+                            </p>
                           </div>
                         </div>
 
@@ -1603,6 +1694,36 @@ export default function TodoHub({
                           </span>
                         </div>
                       </div>
+
+                      {/* Daily Column Today vs All Toggle */}
+                      {isDailyCol && databaseTimeframeFilter === 'all' && (
+                        <div className="flex items-center justify-between pt-0.5">
+                          <div className="inline-flex p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                            <button
+                              type="button"
+                              onClick={() => setDbDailyViewScope('today')}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                                isTodayOnly
+                                  ? 'bg-[#1591DC] text-white shadow-sm'
+                                  : 'text-[#9496a1] hover:text-white'
+                              }`}
+                            >
+                              Hôm nay ({todayDailyGoalsCount})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDbDailyViewScope('all')}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                                !isTodayOnly
+                                  ? 'bg-[#1591DC] text-white shadow-sm'
+                                  : 'text-[#9496a1] hover:text-white'
+                              }`}
+                            >
+                              Tất cả ({allDailyGoalsCount})
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Progress Bar */}
                       <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
@@ -1665,6 +1786,27 @@ export default function TodoHub({
 
                     {/* Task Cards Container */}
                     <div className="p-3 flex-1 overflow-y-auto max-h-[580px] space-y-2">
+                      {/* Overdue rollover banner for Today view */}
+                      {isTodayOnly && overdueIncompleteGoals.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2 text-xs">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span className="text-[11px] text-amber-300 font-medium truncate">
+                              {overdueIncompleteGoals.length} việc từ ngày cũ
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRolloverOverdueGoals}
+                            className="px-2 py-0.5 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[10px] font-semibold transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                            title="Chuyển tất cả việc ngày cũ sang hôm nay"
+                          >
+                            <RefreshCw className="w-2.5 h-2.5" />
+                            <span>Chuyển sang hôm nay</span>
+                          </button>
+                        </div>
+                      )}
+
                       {sortedColGoals.length === 0 ? (
                         <div className="py-12 px-3 text-center rounded-xl border border-dashed border-white/[0.08] text-[#9496a1] space-y-1">
                           <p className="text-xs font-medium">No tasks in {col.label}</p>
@@ -1688,7 +1830,7 @@ export default function TodoHub({
                               onDragLeave={(e) => handleDbTaskDragLeave(e, g.id)}
                               onDrop={(e) => handleDbDropOnTask(e, g.id, col.id)}
                               onClick={() => setActivePanelGoalId(g.id)}
-                              className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing group select-none ${
+                              className={`relative p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing group select-none ${
                                 isDragOver 
                                   ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' 
                                   : ''
@@ -1698,64 +1840,81 @@ export default function TodoHub({
                                   : 'bg-[#12141a] border-white/[0.08] hover:border-white/[0.18] hover:shadow-md'
                               }`}
                             >
-                              {/* Card Main: Grip + Checkbox + Title + Hover Actions */}
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-start gap-2 min-w-0 flex-1">
-                                  <div 
-                                    className="mt-0.5 text-zinc-600 group-hover:text-zinc-400 shrink-0 cursor-grab active:cursor-grabbing" 
-                                    title="Kéo thả để đổi thứ tự ưu tiên"
-                                  >
-                                    <GripVertical className="w-3.5 h-3.5" />
-                                  </div>
+                              {/* Hover Action Buttons */}
+                              <div 
+                                className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#14151c]/95 backdrop-blur-md px-1.5 py-0.5 rounded-lg border border-white/10 shadow-lg"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => setActivePanelGoalId(g.id)}
+                                  className="p-1 text-[#9496a1] hover:text-white hover:bg-white/[0.08] rounded transition-colors cursor-pointer"
+                                  title="Open Details & Sub-tasks"
+                                >
+                                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(g.id)}
+                                  className="p-1 text-[#9496a1] hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                                  title="Delete task"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
 
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleToggle(g.id, !g.completed);
-                                    }}
-                                    className={`mt-0.5 shrink-0 transition-transform active:scale-90 cursor-pointer ${
-                                      g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
-                                    }`}
-                                  >
-                                    {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                                  </button>
-
-                                  <div className="min-w-0 flex-1">
-                                    <span className={`text-xs font-medium block leading-snug break-words ${
-                                      g.completed ? 'line-through text-[#9496a1]' : 'text-white'
-                                    }`}>
-                                      {cleanText}
-                                    </span>
-                                  </div>
+                              {/* Card Main: Grip + Checkbox + Title */}
+                              <div className="flex items-start gap-2.5 w-full pr-1">
+                                <div 
+                                  className="mt-0.5 text-zinc-600 group-hover:text-zinc-400 shrink-0 cursor-grab active:cursor-grabbing" 
+                                  title="Kéo thả để đổi thứ tự ưu tiên"
+                                >
+                                  <GripVertical className="w-3.5 h-3.5" />
                                 </div>
 
-                                {/* Hover Action Buttons */}
-                                <div 
-                                  className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={e => e.stopPropagation()}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggle(g.id, !g.completed);
+                                  }}
+                                  className={`mt-0.5 shrink-0 transition-transform active:scale-90 cursor-pointer ${
+                                    g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
+                                  }`}
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={() => setActivePanelGoalId(g.id)}
-                                    className="p-1 text-[#9496a1] hover:text-white hover:bg-white/[0.08] rounded transition-colors cursor-pointer"
-                                    title="Open Details & Sub-tasks"
-                                  >
-                                    <SlidersHorizontal className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(g.id)}
-                                    className="p-1 text-[#9496a1] hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
-                                    title="Delete task"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                  {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                                </button>
+
+                                <div className="min-w-0 flex-1">
+                                  <span className={`text-xs font-medium block leading-snug break-words [word-break:break-word] ${
+                                    g.completed ? 'line-through text-[#9496a1]' : 'text-white'
+                                  }`}>
+                                    {cleanText}
+                                  </span>
                                 </div>
                               </div>
 
                               {/* Card Badges Row */}
                               <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2 border-t border-white/[0.04] text-[10px]">
+                                {/* Date Badge */}
+                                {(() => {
+                                  const dateInfo = getGoalDateInfo(g);
+                                  if (!dateInfo.displayDate) return null;
+                                  return (
+                                    <span className={`px-1.5 py-0.5 rounded-full border flex items-center gap-1 font-mono text-[9px] ${
+                                      dateInfo.isToday
+                                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold'
+                                        : dateInfo.isOverdue
+                                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-medium'
+                                          : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
+                                    }`}>
+                                      <Calendar className="w-2.5 h-2.5" />
+                                      <span>{dateInfo.displayDate}</span>
+                                      {dateInfo.isOverdue && <span className="text-[8px] opacity-80 font-sans">Trễ</span>}
+                                    </span>
+                                  );
+                                })()}
+
                                 {/* Priority Badge */}
                                 {prio === 'The One Thing' && (
                                   <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold flex items-center gap-1">
@@ -1837,7 +1996,8 @@ export default function TodoHub({
                 <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
                   {[
                     { id: 'all', label: `All (${goals.length})` },
-                    { id: 'daily', label: `Daily (${goals.filter(g => g.timeframe === 'daily').length})` },
+                    { id: 'today', label: `Today (${todayDailyGoalsCount})` },
+                    { id: 'daily', label: `All Daily (${allDailyGoalsCount})` },
                     { id: 'weekly', label: `Weekly (${goals.filter(g => g.timeframe === 'weekly').length})` },
                     { id: 'monthly', label: `Monthly (${goals.filter(g => g.timeframe === 'monthly').length})` },
                     { id: 'yearly', label: `Yearly (${goals.filter(g => g.timeframe === 'yearly').length})` }
@@ -1941,9 +2101,26 @@ export default function TodoHub({
                             </td>
 
                             <td className="py-3 px-3">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/[0.06] text-[#ededf3]">
-                                {g.timeframe}
-                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/[0.06] text-[#ededf3] capitalize">
+                                  {g.timeframe}
+                                </span>
+                                {(() => {
+                                  const dateInfo = getGoalDateInfo(g);
+                                  if (!dateInfo.displayDate) return null;
+                                  return (
+                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono border ${
+                                      dateInfo.isToday 
+                                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold' 
+                                        : dateInfo.isOverdue 
+                                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' 
+                                          : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
+                                    }`}>
+                                      {dateInfo.displayDate}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                             </td>
 
                             <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
