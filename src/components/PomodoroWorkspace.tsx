@@ -13,6 +13,12 @@ import {
   PriorityLevel 
 } from '../types';
 import { 
+  usePomodoro, 
+  TimerMode, 
+  AmbientSoundType, 
+  FocusSessionRecord 
+} from '../context/PomodoroContext';
+import { 
   Flame, 
   Play, 
   Pause, 
@@ -57,21 +63,10 @@ interface PomodoroWorkspaceProps {
   onUpdateGoal?: (updatedGoal: GoalTodo) => void;
   onToggleHabitDay?: (id: string, day: number) => void;
   onSaveJournal?: (date: string, energy: number, text: string) => void;
-  activeFocusGoalId: string | null;
-  setActiveFocusGoalId: (id: string | null) => void;
+  activeFocusGoalId?: string | null;
+  setActiveFocusGoalId?: (id: string | null) => void;
   onNavigate: (section: string) => void;
   isLightMode?: boolean;
-}
-
-type TimerMode = 'focus' | 'short_break' | 'long_break';
-type AmbientSoundType = 'off' | 'brown' | 'white' | 'rain' | 'binaural';
-
-interface FocusSessionRecord {
-  id: string;
-  timestamp: number;
-  durationMinutes: number;
-  taskTitle: string;
-  mode: TimerMode;
 }
 
 export default function PomodoroWorkspace({
@@ -95,38 +90,34 @@ export default function PomodoroWorkspace({
   const todayDateStr = useMemo(() => today.toISOString().split('T')[0], [today]);
   const todayDayNumber = useMemo(() => today.getDate(), [today]);
 
-  // Timer mode state
-  const [mode, setMode] = useState<TimerMode>('focus');
+  // Consume Persistent Global Pomodoro Context (Never unmounts, never stops across tabs)
+  const {
+    mode,
+    timeLeft,
+    isRunning,
+    totalSessionSeconds,
+    durations,
+    activeFocusGoalId: contextGoalId,
+    setActiveFocusGoalId: setContextGoalId,
+    todaySessions,
+    ambientSound,
+    ambientVolume,
+    isZenMode,
+    toggleTimer,
+    resetTimer,
+    addSeconds,
+    switchMode,
+    setModeDuration,
+    setAmbientSound,
+    setAmbientVolume,
+    setIsZenMode
+  } = usePomodoro();
 
-  // Custom durations (stored in localStorage)
-  const [durations, setDurations] = useState<Record<TimerMode, number>>(() => ({
-    focus: parseInt(localStorage.getItem('df_timer_focus') || '25', 10),
-    short_break: parseInt(localStorage.getItem('df_timer_short_break') || '5', 10),
-    long_break: parseInt(localStorage.getItem('df_timer_long_break') || '15', 10),
-  }));
-
-  const [timeLeft, setTimeLeft] = useState<number>(durations.focus * 60);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [totalSessionSeconds, setTotalSessionSeconds] = useState<number>(durations.focus * 60);
-
-  // Zen / Distraction-free mode
-  const [isZenMode, setIsZenMode] = useState<boolean>(false);
-
-  // Ambient sound synthesizer state
-  const [ambientSound, setAmbientSound] = useState<AmbientSoundType>('off');
-  const [ambientVolume, setAmbientVolume] = useState<number>(() => {
-    return parseFloat(localStorage.getItem('df_ambient_volume') || '0.3');
-  });
-
-  // Daily focus history
-  const [todaySessions, setTodaySessions] = useState<FocusSessionRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(`df_focus_history_${todayDateStr}`);
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const currentActiveGoalId = activeFocusGoalId || contextGoalId;
+  const setGoalId = (id: string | null) => {
+    setActiveFocusGoalId?.(id);
+    setContextGoalId(id);
+  };
 
   // Scratchpad local state for fast typing + debounced save
   const [localScratchpad, setLocalScratchpad] = useState<string>(scratchpadText || '');
@@ -136,10 +127,6 @@ export default function PomodoroWorkspace({
   // Task selection drawer / popover state
   const [isTaskSelectorOpen, setIsTaskSelectorOpen] = useState<boolean>(false);
   const [newQuickTaskText, setNewQuickTaskText] = useState<string>('');
-
-  // Audio Context Ref
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const soundNodesRef = useRef<{ source?: AudioNode; gain?: GainNode; filter?: AudioNode } | null>(null);
 
   // Keep local scratchpad updated when parent updates
   useEffect(() => {
@@ -154,9 +141,9 @@ export default function PomodoroWorkspace({
 
   // Find active goal object
   const activeGoal = useMemo(() => {
-    if (!activeFocusGoalId) return null;
-    return goals.find(g => g.id === activeFocusGoalId) || null;
-  }, [activeFocusGoalId, goals]);
+    if (!currentActiveGoalId) return null;
+    return goals.find(g => g.id === currentActiveGoalId) || null;
+  }, [currentActiveGoalId, goals]);
 
   // Filter available candidate tasks
   const candidateTasks = useMemo(() => {
@@ -191,232 +178,6 @@ export default function PomodoroWorkspace({
     } catch (e) {}
   }, [todaySessions, todayDateStr]);
 
-  // Save ambient volume
-  useEffect(() => {
-    localStorage.setItem('df_ambient_volume', String(ambientVolume));
-    if (soundNodesRef.current?.gain) {
-      soundNodesRef.current.gain.gain.setValueAtTime(ambientVolume, audioContextRef.current?.currentTime || 0);
-    }
-  }, [ambientVolume]);
-
-  // Web Audio Chime Sound
-  const playHarmonicChime = () => {
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioCtx();
-      
-      const freqs = mode === 'focus' ? [528, 660, 792] : [440, 554, 659];
-      freqs.forEach((f, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(f, ctx.currentTime + idx * 0.08);
-        gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.08);
-        gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + idx * 0.08 + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 1.8);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + idx * 0.08);
-        osc.stop(ctx.currentTime + idx * 0.08 + 1.8);
-      });
-    } catch (e) {
-      console.warn('Audio chime failed', e);
-    }
-  };
-
-  // Ambient Sound Engine (Brown Noise, White Noise, Rain, Binaural Beats)
-  const stopAmbientSound = () => {
-    if (soundNodesRef.current?.source) {
-      try {
-        (soundNodesRef.current.source as any).stop?.();
-        soundNodesRef.current.source.disconnect();
-      } catch (e) {}
-    }
-    soundNodesRef.current = null;
-  };
-
-  const startAmbientSound = (soundType: AmbientSoundType) => {
-    stopAmbientSound();
-    if (soundType === 'off') return;
-
-    try {
-      if (!audioContextRef.current) {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        audioContextRef.current = new AudioCtx();
-      }
-      const ctx = audioContextRef.current;
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(ambientVolume, ctx.currentTime);
-      masterGain.connect(ctx.destination);
-
-      if (soundType === 'binaural') {
-        // Binaural Alpha (200Hz Left / 210Hz Right = 10Hz Alpha flow)
-        const merger = ctx.createChannelMerger(2);
-
-        const oscL = ctx.createOscillator();
-        oscL.type = 'sine';
-        oscL.frequency.setValueAtTime(200, ctx.currentTime);
-
-        const oscR = ctx.createOscillator();
-        oscR.type = 'sine';
-        oscR.frequency.setValueAtTime(210, ctx.currentTime);
-
-        const gainL = ctx.createGain();
-        gainL.gain.value = 0.5;
-        const gainR = ctx.createGain();
-        gainR.gain.value = 0.5;
-
-        oscL.connect(gainL);
-        oscR.connect(gainR);
-        gainL.connect(merger, 0, 0);
-        gainR.connect(merger, 0, 1);
-        merger.connect(masterGain);
-
-        oscL.start();
-        oscR.start();
-
-        soundNodesRef.current = {
-          source: merger,
-          gain: masterGain
-        };
-      } else {
-        // Synthesize 5 seconds of looped noise buffer
-        const bufferSize = ctx.sampleRate * 5;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const output = buffer.getChannelData(0);
-
-        let lastOut = 0.0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          if (soundType === 'brown') {
-            // Brown noise: integrated random walk
-            output[i] = (lastOut + (0.02 * white)) / 1.02;
-            lastOut = output[i];
-            output[i] *= 3.5; // boost brown gain
-          } else if (soundType === 'rain') {
-            // Rain simulation: pink filtered noise with random drops
-            output[i] = (lastOut + (0.05 * white)) / 1.05;
-            lastOut = output[i];
-            if (Math.random() < 0.003) {
-              output[i] += (Math.random() - 0.5) * 0.8;
-            }
-          } else {
-            // Pure White noise
-            output[i] = white * 0.15;
-          }
-        }
-
-        const whiteNoiseSource = ctx.createBufferSource();
-        whiteNoiseSource.buffer = buffer;
-        whiteNoiseSource.loop = true;
-
-        if (soundType === 'rain') {
-          const biquad = ctx.createBiquadFilter();
-          biquad.type = 'lowpass';
-          biquad.frequency.setValueAtTime(1400, ctx.currentTime);
-          whiteNoiseSource.connect(biquad);
-          biquad.connect(masterGain);
-        } else if (soundType === 'brown') {
-          const biquad = ctx.createBiquadFilter();
-          biquad.type = 'lowpass';
-          biquad.frequency.setValueAtTime(600, ctx.currentTime);
-          whiteNoiseSource.connect(biquad);
-          biquad.connect(masterGain);
-        } else {
-          whiteNoiseSource.connect(masterGain);
-        }
-
-        whiteNoiseSource.start();
-
-        soundNodesRef.current = {
-          source: whiteNoiseSource,
-          gain: masterGain
-        };
-      }
-    } catch (err) {
-      console.warn('Failed to start ambient sound:', err);
-    }
-  };
-
-  // Change ambient sound
-  const handleAmbientChange = (type: AmbientSoundType) => {
-    setAmbientSound(type);
-    if (type === 'off') {
-      stopAmbientSound();
-    } else {
-      startAmbientSound(type);
-    }
-  };
-
-  // Cleanup audio on unmount
-  useEffect(() => {
-    return () => {
-      stopAmbientSound();
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        try { audioContextRef.current.close(); } catch (e) {}
-      }
-    };
-  }, []);
-
-  // Timer Tick Engine
-  useEffect(() => {
-    let interval: any = null;
-
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isRunning) {
-      setIsRunning(false);
-      playHarmonicChime();
-
-      // Record session completion
-      const completedMins = Math.round(totalSessionSeconds / 60);
-      const newRecord: FocusSessionRecord = {
-        id: 's_' + Math.random().toString(36).substring(2, 9),
-        timestamp: Date.now(),
-        durationMinutes: completedMins,
-        taskTitle: activeGoal ? cleanGoalText(activeGoal.text) : 'Deep Work Session',
-        mode
-      };
-
-      setTodaySessions(prev => [newRecord, ...prev]);
-
-      // If finished a focus block, prompt short break
-      if (mode === 'focus') {
-        setMode('short_break');
-        const nextSecs = durations.short_break * 60;
-        setTimeLeft(nextSecs);
-        setTotalSessionSeconds(nextSecs);
-      } else {
-        setMode('focus');
-        const nextSecs = durations.focus * 60;
-        setTimeLeft(nextSecs);
-        setTotalSessionSeconds(nextSecs);
-      }
-    }
-
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, mode, totalSessionSeconds, activeGoal, durations]);
-
-  // Tab Title updates
-  useEffect(() => {
-    const mins = Math.floor(timeLeft / 60);
-    const secs = timeLeft % 60;
-    const timeFormatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    if (isRunning) {
-      const modeIcon = mode === 'focus' ? '🎯' : '☕';
-      const taskSnippet = activeGoal ? ` — ${cleanGoalText(activeGoal.text).slice(0, 24)}...` : '';
-      document.title = `${modeIcon} ${timeFormatted} Deep Focus${taskSnippet}`;
-    } else {
-      document.title = 'Deep Focus — Self Development OS';
-    }
-  }, [isRunning, timeLeft, mode, activeGoal]);
-
   // Hotkey listener: Space to toggle, R to reset, B for break
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -427,13 +188,13 @@ export default function PomodoroWorkspace({
 
       if (e.code === 'Space') {
         e.preventDefault();
-        setIsRunning(prev => !prev);
+        toggleTimer();
       } else if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
-        handleReset();
+        resetTimer();
       } else if (e.key === 'b' || e.key === 'B') {
         e.preventDefault();
-        handleSwitchMode(mode === 'focus' ? 'short_break' : 'focus');
+        switchMode(mode === 'focus' ? 'short_break' : 'focus');
       } else if (e.key === 'Escape' && isZenMode) {
         setIsZenMode(false);
       }
@@ -441,48 +202,32 @@ export default function PomodoroWorkspace({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isZenMode, mode]);
+  }, [isZenMode, mode, toggleTimer, resetTimer, switchMode, setIsZenMode]);
 
   // Handlers
   const handleToggleTimer = () => {
-    if (timeLeft === 0) {
-      const dur = durations[mode] * 60;
-      setTimeLeft(dur);
-      setTotalSessionSeconds(dur);
-      setIsRunning(true);
-    } else {
-      setIsRunning(!isRunning);
-    }
+    toggleTimer();
   };
 
   const handleReset = () => {
-    setIsRunning(false);
-    const dur = durations[mode] * 60;
-    setTimeLeft(dur);
-    setTotalSessionSeconds(dur);
+    resetTimer();
   };
 
   const handleAddFiveMinutes = () => {
-    setTimeLeft(prev => prev + 300);
-    setTotalSessionSeconds(prev => prev + 300);
+    addSeconds(300);
   };
 
   const handleSwitchMode = (newMode: TimerMode, customMins?: number) => {
-    setIsRunning(false);
-    setMode(newMode);
-    const minutes = customMins || durations[newMode];
-    const seconds = minutes * 60;
-    setTimeLeft(seconds);
-    setTotalSessionSeconds(seconds);
+    switchMode(newMode, customMins);
   };
 
   const handleSetCustomFocusMinutes = (mins: number) => {
-    setDurations(prev => {
-      const updated = { ...prev, focus: mins };
-      localStorage.setItem('df_timer_focus', String(mins));
-      return updated;
-    });
-    handleSwitchMode('focus', mins);
+    setModeDuration('focus', mins);
+    switchMode('focus', mins);
+  };
+
+  const handleAmbientChange = (type: AmbientSoundType) => {
+    setAmbientSound(type);
   };
 
   // Quick add new task from inside Pomodoro
@@ -890,11 +635,11 @@ export default function PomodoroWorkspace({
                       <div
                         key={task.id}
                         onClick={() => {
-                          setActiveFocusGoalId(task.id);
+                          setGoalId(task.id);
                           setIsTaskSelectorOpen(false);
                         }}
                         className={`p-2.5 rounded-lg text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
-                          activeFocusGoalId === task.id
+                          currentActiveGoalId === task.id
                             ? 'bg-[#1591DC]/20 text-white font-semibold border border-[#1591DC]/40'
                             : 'bg-white/[0.02] hover:bg-white/[0.06] text-[#ededf3]'
                         }`}

@@ -48,6 +48,7 @@ import DailyJournalPanel from './components/DailyJournal';
 import ExpenseLedger from './components/ExpenseLedger';
 import DeepWorkTimer from './components/DeepWorkTimer';
 import PomodoroWorkspace from './components/PomodoroWorkspace';
+import { usePomodoro } from './context/PomodoroContext';
 import AEPicker from './components/AEPicker';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CommandPalette from './components/CommandPalette';
@@ -91,7 +92,10 @@ import {
   Facebook,
   Linkedin,
   Mail,
-  Flame
+  Flame,
+  Play,
+  Pause,
+  ArrowRight
 } from 'lucide-react';
 
 interface UserProfile {
@@ -335,7 +339,16 @@ export default function App() {
 
   // Active section scroll tracking
   const [activeSection, setActiveSection] = useState<string>('overview');
-  const [activeFocusGoalId, setActiveFocusGoalId] = useState<string | null>(null);
+
+  // Persistent Pomodoro Engine (Runs non-stop across all tabs)
+  const {
+    activeFocusGoalId,
+    setActiveFocusGoalId,
+    isRunning: isTimerRunning,
+    timeLeft: timerTimeLeft,
+    mode: timerMode,
+    toggleTimer
+  } = usePomodoro();
 
   // Command Palette Open State
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -2034,6 +2047,7 @@ export default function App() {
             <div className="space-y-2 text-xs font-mono">
               {[
                 { key: 'Ctrl + K / Cmd + K', label: 'Command Palette Search' },
+                { key: 'P', label: 'Jump to Pomodoro Deep Work' },
                 { key: 'N / T', label: 'Jump to Tactical Roadmap (Tasks)' },
                 { key: 'H', label: 'Jump to Habit Matrix' },
                 { key: 'J', label: 'Jump to Energy Journal' },
@@ -2055,6 +2069,48 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Persistent Mini Floating Timer (Visible whenever Pomodoro is running and user is on other tabs) */}
+      {isTimerRunning && activeSection !== 'pomodoro-station' && (
+        <aside 
+          aria-label="Active Pomodoro Session Indicator"
+          className="fixed bottom-5 right-5 z-40 animate-slideUp flex items-center gap-2.5 px-3.5 py-2 glass-panel-true border border-[#1591DC]/40 bg-[#0e1015]/95 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(21,145,220,0.2)] backdrop-blur-xl transition-all select-none"
+        >
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1591DC] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1591DC]"></span>
+            </span>
+            <span className="font-mono font-bold text-sm text-white tabular-nums tracking-tight">
+              {String(Math.floor(timerTimeLeft / 60)).padStart(2, '0')}:{String(timerTimeLeft % 60).padStart(2, '0')}
+            </span>
+          </div>
+
+          <span className="hidden sm:inline text-xs text-[#9496a1] truncate max-w-[130px]">
+            {timerMode === 'focus' ? '🎯 Focus' : '☕ Break'}
+          </span>
+
+          <div className="flex items-center gap-1 pl-2 border-l border-white/10">
+            <button
+              type="button"
+              onClick={toggleTimer}
+              className="p-1 rounded-lg hover:bg-white/10 text-white transition-colors cursor-pointer"
+              title="Tạm dừng / Tiếp tục"
+            >
+              <Pause className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSection('pomodoro-station')}
+              className="px-2 py-1 rounded-lg bg-[#1591DC]/20 hover:bg-[#1591DC]/30 text-[#1591DC] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              title="Mở Workspace Pomodoro"
+            >
+              <span>Mở</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+        </aside>
       )}
 
     </div>

@@ -6,12 +6,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronDown, Bell } from 'lucide-react';
 
+import { usePomodoro, TimerMode } from '../context/PomodoroContext';
+
 interface DeepWorkTimerProps {
   isLightMode?: boolean;
   onOpenWorkspace?: () => void;
 }
-
-type TimerMode = 'focus' | 'short_break' | 'long_break';
 
 const MODE_CONFIGS: Record<TimerMode, { label: string; defaultMinutes: number; color: string; bg: string; border: string; icon: any }> = {
   focus: {
@@ -48,24 +48,25 @@ const FOCUS_PRESETS = [
 ];
 
 export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpenWorkspace }) => {
-  const [mode, setMode] = useState<TimerMode>('focus');
-  const [durations, setDurations] = useState<Record<TimerMode, number>>(() => {
-    return {
-      focus: parseInt(localStorage.getItem('df_timer_focus') || '25', 10),
-      short_break: parseInt(localStorage.getItem('df_timer_short_break') || '5', 10),
-      long_break: parseInt(localStorage.getItem('df_timer_long_break') || '15', 10),
-    };
-  });
+  const {
+    mode,
+    timeLeft,
+    isRunning,
+    durations,
+    sessionsCompleted,
+    toggleTimer,
+    resetTimer,
+    switchMode,
+    setModeDuration
+  } = usePomodoro();
 
-  const [timeLeft, setTimeLeft] = useState<number>(durations.focus * 60);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isOpenMenu, setIsOpenMenu] = useState<boolean>(false);
-  const [customInput, setCustomInput] = useState<string>(String(durations.focus));
-  const [sessionsCompleted, setSessionsCompleted] = useState<number>(() => {
-    return parseInt(localStorage.getItem('df_pomo_sessions') || '0', 10);
-  });
-
+  const [customInput, setCustomInput] = useState<string>(String(durations[mode] || 25));
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCustomInput(String(durations[mode] || 25));
+  }, [mode, durations]);
 
   // Close menu on click outside
   useEffect(() => {
@@ -78,83 +79,22 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Timer Tick
-  useEffect(() => {
-    let interval: any = null;
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isRunning) {
-      setIsRunning(false);
-      
-      // Play chime sound
-      try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(mode === 'focus' ? 659.25 : 523.25, audioCtx.currentTime); // E5 or C5
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.2);
-      } catch (e) {
-        console.error('Audio chime error:', e);
-      }
-
-      // If finished focus, increment session count and suggest break
-      if (mode === 'focus') {
-        const updated = sessionsCompleted + 1;
-        setSessionsCompleted(updated);
-        localStorage.setItem('df_pomo_sessions', String(updated));
-      }
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft, mode, sessionsCompleted]);
-
-  // Tab Title updates
-  useEffect(() => {
-    if (isRunning) {
-      const m = Math.floor(timeLeft / 60);
-      const s = timeLeft % 60;
-      const modePrefix = mode === 'focus' ? '🎯' : '☕';
-      document.title = `${modePrefix} (${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}) Deep Focus`;
-    } else {
-      document.title = 'Deep Focus — Self Development OS';
-    }
-  }, [isRunning, timeLeft, mode]);
-
   const handleToggle = () => {
-    if (timeLeft === 0) {
-      setTimeLeft(durations[mode] * 60);
-      setIsRunning(true);
-    } else {
-      setIsRunning(!isRunning);
-    }
+    toggleTimer();
   };
 
   const handleReset = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsRunning(false);
-    setTimeLeft(durations[mode] * 60);
+    resetTimer();
   };
 
   const handleSwitchMode = (newMode: TimerMode) => {
-    setMode(newMode);
-    setIsRunning(false);
-    setTimeLeft(durations[newMode] * 60);
-    setCustomInput(String(durations[newMode]));
+    switchMode(newMode);
+    setCustomInput(String(durations[newMode] || 25));
   };
 
   const handleSelectPreset = (mins: number) => {
-    const updated = { ...durations, [mode]: mins };
-    setDurations(updated);
-    localStorage.setItem(`df_timer_${mode}`, String(mins));
-    setTimeLeft(mins * 60);
-    setIsRunning(false);
+    setModeDuration(mode, mins);
     setCustomInput(String(mins));
     setIsOpenMenu(false);
   };
