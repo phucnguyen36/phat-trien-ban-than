@@ -1228,73 +1228,55 @@ export default function TodoHub({
   return (
     <div id="todo-hub" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl">
       
-      {/* Overdue / Incomplete Target Reminder Banner */}
+      {/* Overdue / Incomplete Target Reminder Banner (Slim & Compact) */}
       {!isOverdueBannerDismissed && overdueIncompleteGoals.length > 0 && (
-        <div className="mb-6 p-4 glass-card-true border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-500/5 animate-fadeIn">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-            <div>
-              <h4 className="text-xs font-semibold text-amber-300">
-                Incomplete tasks reminder ({overdueIncompleteGoals.length} pending)
-              </h4>
-              <p className="text-[#9496a1] text-xs mt-0.5">
-                You have {overdueIncompleteGoals.length} incomplete daily task{overdueIncompleteGoals.length > 1 ? 's' : ''} from previous days.
-              </p>
-            </div>
+        <div className="mb-4 px-3.5 py-2 glass-card-true border border-amber-500/25 rounded-xl flex items-center justify-between gap-3 bg-amber-500/10 text-xs animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="text-amber-200 font-medium">
+              Bạn có {overdueIncompleteGoals.length} nhiệm vụ chưa hoàn thành từ các ngày trước
+            </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handleRolloverOverdueGoals}
-              className="px-3 py-1.5 glass-button-true text-amber-300 hover:text-amber-200 text-xs font-medium flex items-center gap-1.5 rounded-full"
+              className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Rollover to today</span>
+              <RefreshCw className="w-3 h-3" />
+              <span>Chuyển sang hôm nay</span>
             </button>
             <button
               type="button"
               onClick={() => setIsOverdueBannerDismissed(true)}
-              className="p-1.5 text-[#9496a1] hover:text-white transition-colors"
-              title="Dismiss"
+              className="p-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              title="Đóng thông báo"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       )}
 
       {/* Module Title & Mode Switcher Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 border-b border-white/[0.08] pb-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
-              Tasks & Roadmap
-            </h2>
-            {onNavigate && (
-              <button
-                type="button"
-                onClick={() => onNavigate('overview')}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-[#1591DC]/40 transition-all cursor-pointer"
-                title="Open Executive Dashboard Overview"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-[#1591DC]" />
-                <span>Executive Dashboard</span>
-              </button>
-            )}
-          </div>
-          <p className="text-xs text-[#9496a1] mt-0.5">
-            Scope: Daily • Weekly • Monthly • Yearly
-          </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5 border-b border-white/[0.08] pb-3.5">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold tracking-tight text-white font-sans">
+            {viewMode === 'table' ? 'Database' : viewMode === 'calendar' ? 'Calendar' : viewMode === 'review' ? 'Review Protocol' : 'Tasks & Roadmap'}
+          </h2>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
+            {goals.length}
+          </span>
         </div>
 
-        {/* View Mode Switcher + Context Control */}
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+        {/* View Mode Switcher + Conditional Date Controls */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
           
           {/* View Mode Toggle Switch */}
           <div className="flex items-center glass-pill-true p-1">
             <button
               onClick={() => setViewMode('columns')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
                 viewMode === 'columns'
                   ? 'bg-white text-black font-semibold shadow-sm'
                   : 'text-[#9496a1] hover:text-white'
@@ -1305,7 +1287,7 @@ export default function TodoHub({
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-white text-black font-semibold shadow-sm'
                   : 'text-[#9496a1] hover:text-white'
@@ -1316,7 +1298,7 @@ export default function TodoHub({
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
                 viewMode === 'calendar'
                   ? 'bg-white text-black font-semibold shadow-sm'
                   : 'text-[#9496a1] hover:text-white'
@@ -1327,7 +1309,7 @@ export default function TodoHub({
             </button>
             <button
               onClick={() => setViewMode('review')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all rounded-full ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
                 viewMode === 'review'
                   ? 'bg-white text-black font-semibold shadow-sm'
                   : 'text-[#9496a1] hover:text-white'
@@ -1338,62 +1320,60 @@ export default function TodoHub({
             </button>
           </div>
 
-          {/* Date Context Dropdowns */}
-          <div className="flex flex-wrap items-center gap-2 glass-pill-true p-1.5">
-            {/* Year */}
-            <div className="flex items-center gap-1 glass-card-true px-2.5 py-1">
-              <span className="text-[10px] text-[#9496a1] font-medium">Year:</span>
-              <select 
-                value={selectedYear} 
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
-              >
-                {['2025', '2026', '2027', '2028'].map(y => <option key={y} value={y} className="bg-[#12141a] text-white">{y}</option>)}
-              </select>
-            </div>
+          {/* Date Context Dropdowns ONLY in Columns View */}
+          {viewMode === 'columns' && (
+            <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
+              <div className="flex items-center gap-1 px-2 py-0.5 text-xs text-white">
+                <span className="text-[10px] text-[#9496a1]">Year:</span>
+                <select 
+                  value={selectedYear} 
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
+                >
+                  {['2025', '2026', '2027', '2028'].map(y => <option key={y} value={y} className="bg-[#12141a] text-white">{y}</option>)}
+                </select>
+              </div>
 
-            {/* Month */}
-            <div className="flex items-center gap-1 glass-card-true px-2.5 py-1">
-              <span className="text-[10px] text-[#9496a1] font-medium">Month:</span>
-              <select 
-                value={selectedMonth} 
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
-              >
-                {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(m => (
-                  <option key={m} value={m} className="bg-[#12141a] text-white">{m}</option>
-                ))}
-              </select>
-            </div>
+              <div className="flex items-center gap-1 px-2 py-0.5 text-xs text-white">
+                <span className="text-[10px] text-[#9496a1]">Month:</span>
+                <select 
+                  value={selectedMonth} 
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
+                >
+                  {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(m => (
+                    <option key={m} value={m} className="bg-[#12141a] text-white">{m}</option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Week */}
-            <div className="flex items-center gap-1 glass-card-true px-2.5 py-1">
-              <span className="text-[10px] text-[#9496a1] font-medium">Week:</span>
-              <select 
-                value={selectedWeek} 
-                onChange={(e) => setSelectedWeek(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
-              >
-                {['W1', 'W2', 'W3', 'W4', 'W5'].map(w => <option key={w} value={w} className="bg-[#12141a] text-white">{w.replace('W', 'Week ')}</option>)}
-              </select>
-            </div>
+              <div className="flex items-center gap-1 px-2 py-0.5 text-xs text-white">
+                <span className="text-[10px] text-[#9496a1]">Week:</span>
+                <select 
+                  value={selectedWeek} 
+                  onChange={(e) => setSelectedWeek(e.target.value)}
+                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
+                >
+                  {['W1', 'W2', 'W3', 'W4', 'W5'].map(w => <option key={w} value={w} className="bg-[#12141a] text-white">{w.replace('W', 'Week ')}</option>)}
+                </select>
+              </div>
 
-            {/* Day */}
-            <div className={`flex items-center gap-1 glass-card-true px-2.5 py-1 transition-colors ${
-              isTodayActive ? 'bg-emerald-500/20 border-emerald-400/50' : ''
-            }`}>
-              <span className="text-[10px] text-[#9496a1] font-medium">Day:</span>
-              <select 
-                value={selectedDay} 
-                onChange={(e) => setSelectedDay(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
-              >
-                {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map(d => (
-                  <option key={d} value={d} className="bg-[#12141a] text-white">{d}</option>
-                ))}
-              </select>
+              <div className={`flex items-center gap-1 px-2 py-0.5 text-xs rounded transition-colors ${
+                isTodayActive ? 'bg-emerald-500/20 text-emerald-300 font-semibold' : 'text-white'
+              }`}>
+                <span className="text-[10px] text-[#9496a1]">Day:</span>
+                <select 
+                  value={selectedDay} 
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
+                >
+                  {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map(d => (
+                    <option key={d} value={d} className="bg-[#12141a] text-white">{d}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -1461,147 +1441,167 @@ export default function TodoHub({
         /* Notion Database View Mode: Multi-column Board (Today, This Week, This Month, This Year) + Table Toggle */
         <div className="space-y-6 animate-fadeIn font-sans">
           
-          {/* Database Master Header & Controls */}
-          <div className="glass-panel-true p-4 md:p-5 rounded-2xl border border-white/15 space-y-4">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              
-              {/* Left: Title & Quick Stats */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
-                  <Kanban className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-white tracking-tight">
-                      Tasks Database
-                    </h3>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
-                      {goals.length} total
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#9496a1]">
-                    <span className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      <span className="tabular-nums">{goals.filter(g => !g.completed).length} active</span>
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-                      <span className="tabular-nums">{goals.filter(g => g.completed).length} done</span>
-                    </span>
-                  </div>
-                </div>
+          {/* Unified Database Control Bar */}
+          <div className="glass-panel-true p-3.5 md:p-4 rounded-2xl border border-white/15 space-y-3">
+            {/* Row 1: Full-width Search & SubView Switcher */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-[#9496a1] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={databaseSearchQuery}
+                  onChange={(e) => setDatabaseSearchQuery(e.target.value)}
+                  placeholder="Tìm kiếm nhiệm vụ theo tên, #tag, ghi chú..."
+                  className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#1591DC] pl-10 pr-9 py-2 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors"
+                />
+                {databaseSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setDatabaseSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-0.5 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
-              {/* Right: Search, Filters & View Toggle */}
-              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                
-                {/* Search Input */}
-                <div className="relative flex-1 sm:w-48 sm:flex-initial">
-                  <Search className="w-3.5 h-3.5 text-[#9496a1] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={databaseSearchQuery}
-                    onChange={(e) => setDatabaseSearchQuery(e.target.value)}
-                    placeholder="Search tasks..."
-                    className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] pl-8 pr-3 py-1.5 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors"
-                  />
-                  {databaseSearchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setDatabaseSearchQuery('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
+              {/* SubView Mode Switcher: Table vs Grouped vs Board */}
+              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] shrink-0 self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setDatabaseSubView('table')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    databaseSubView === 'table'
+                      ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                      : 'text-[#9496a1] hover:text-white'
+                  }`}
+                  title="Dạng bảng chi tiết (Table)"
+                >
+                  <Table className="w-3.5 h-3.5" />
+                  <span>Bảng (Table)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDatabaseSubView('grouped')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    databaseSubView === 'grouped'
+                      ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                      : 'text-[#9496a1] hover:text-white'
+                  }`}
+                  title="Phân nhóm theo chu kỳ (Grouped)"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Phân nhóm</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDatabaseSubView('board')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    databaseSubView === 'board'
+                      ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                      : 'text-[#9496a1] hover:text-white'
+                  }`}
+                  title="Dạng cột Kanban (Board)"
+                >
+                  <Kanban className="w-3.5 h-3.5" />
+                  <span>Cột (Board)</span>
+                </button>
+              </div>
+            </div>
 
-                {/* Status Filter Pills */}
-                <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
+            {/* Row 2: Unified Filter Bar (Timeframe tabs + Status + Priority + Sort + Reset) */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/[0.06] text-xs">
+              {/* Timeframe Quick Tabs */}
+              <div className="flex flex-wrap items-center gap-1">
+                {[
+                  { id: 'all', label: `Tất cả (${goals.length})` },
+                  { id: 'today', label: `Hôm nay (${todayDailyGoalsCount})` },
+                  { id: 'weekly', label: `Tuần này (${goals.filter(g => g.timeframe === 'weekly').length})` },
+                  { id: 'monthly', label: `Tháng này (${goals.filter(g => g.timeframe === 'monthly').length})` },
+                  { id: 'yearly', label: `Năm này (${goals.filter(g => g.timeframe === 'yearly').length})` }
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setDatabaseTimeframeFilter(f.id as any)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      databaseTimeframeFilter === f.id
+                        ? 'bg-white text-black font-semibold shadow-sm'
+                        : 'text-[#9496a1] hover:text-white hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status, Priority, Sort & Reset Dropdowns */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Status Segmented */}
+                <div className="flex items-center gap-0.5 bg-white/[0.03] p-0.5 rounded-lg border border-white/[0.06]">
                   {(['all', 'active', 'completed'] as const).map(st => (
                     <button
                       key={st}
                       type="button"
                       onClick={() => setDatabaseStatusFilter(st)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize transition-all cursor-pointer ${
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                         databaseStatusFilter === st
-                          ? 'bg-white text-black font-semibold shadow-sm'
+                          ? 'bg-white/20 text-white font-semibold shadow-sm'
                           : 'text-[#9496a1] hover:text-white'
                       }`}
                     >
-                      {st}
+                      {st === 'all' ? 'Tất cả' : st === 'active' ? 'Đang làm' : 'Đã xong'}
                     </button>
                   ))}
                 </div>
 
-                {/* Priority Filter */}
-                <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                {/* Priority Select */}
+                <div className="flex items-center gap-1 bg-white/[0.03] px-2 py-1 rounded-lg border border-white/[0.06]">
                   <Filter className="w-3 h-3 text-[#9496a1]" />
                   <select
                     value={databasePriorityFilter}
                     onChange={(e) => setDatabasePriorityFilter(e.target.value as any)}
-                    className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
-                    title="Filter by priority"
+                    className="bg-transparent text-[11px] text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Lọc theo độ ưu tiên"
                   >
-                    <option value="all" className="bg-[#12141a] text-white">All Priorities</option>
+                    <option value="all" className="bg-[#12141a] text-white">Mọi ưu tiên</option>
                     <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
-                    <option value="High" className="bg-[#12141a] text-rose-300">High</option>
-                    <option value="Medium" className="bg-[#12141a] text-sky-300">Medium</option>
-                    <option value="Low" className="bg-[#12141a] text-zinc-400">Low</option>
+                    <option value="High" className="bg-[#12141a] text-rose-300">Cao</option>
+                    <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình</option>
+                    <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp</option>
                   </select>
                 </div>
 
-                {/* Sort Order Selector */}
-                <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
-                  <ArrowUpDown className="w-3.5 h-3.5 text-[#1591DC]" />
+                {/* Sort Select */}
+                <div className="flex items-center gap-1 bg-white/[0.03] px-2 py-1 rounded-lg border border-white/[0.06]">
+                  <ArrowUpDown className="w-3 h-3 text-[#1591DC]" />
                   <select
                     value={databaseSortBy}
                     onChange={(e) => setDatabaseSortBy(e.target.value as any)}
-                    className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
-                    title="Sort tasks order"
+                    className="bg-transparent text-[11px] text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Sắp xếp danh sách"
                   >
-                    <option value="manual" className="bg-[#12141a] text-white">Manual (Drag Order)</option>
-                    <option value="priority-desc" className="bg-[#12141a] text-white">Priority: High → Low</option>
-                    <option value="priority-asc" className="bg-[#12141a] text-white">Priority: Low → High</option>
-                    <option value="created-desc" className="bg-[#12141a] text-white">Newest First</option>
-                    <option value="created-asc" className="bg-[#12141a] text-white">Oldest First</option>
-                    <option value="alpha-asc" className="bg-[#12141a] text-white">Name: A → Z</option>
-                    <option value="alpha-desc" className="bg-[#12141a] text-white">Name: Z → A</option>
-                    <option value="status" className="bg-[#12141a] text-white">Active First</option>
-                    <option value="estimate" className="bg-[#12141a] text-white">Time Estimate</option>
+                    <option value="manual" className="bg-[#12141a] text-white">Thứ tự kéo thả</option>
+                    <option value="priority-desc" className="bg-[#12141a] text-white">Ưu tiên: Cao → Thấp</option>
+                    <option value="priority-asc" className="bg-[#12141a] text-white">Ưu tiên: Thấp → Cao</option>
+                    <option value="created-desc" className="bg-[#12141a] text-white">Mới nhất trước</option>
+                    <option value="created-asc" className="bg-[#12141a] text-white">Cũ nhất trước</option>
+                    <option value="alpha-asc" className="bg-[#12141a] text-white">Tên: A → Z</option>
+                    <option value="estimate" className="bg-[#12141a] text-white">Ước tính thời gian</option>
                   </select>
                 </div>
 
-                {/* Timeframe Filter */}
-                <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
-                  <Calendar className="w-3.5 h-3.5 text-[#9496a1]" />
-                  <select
-                    value={databaseTimeframeFilter}
-                    onChange={(e) => setDatabaseTimeframeFilter(e.target.value as any)}
-                    className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium"
-                    title="Filter by timeframe"
-                  >
-                    <option value="all" className="bg-[#12141a] text-white">All Time</option>
-                    <option value="today" className="bg-[#12141a] text-emerald-300">Today ({todayDailyGoalsCount})</option>
-                    <option value="daily" className="bg-[#12141a] text-white">All Daily Tasks ({allDailyGoalsCount})</option>
-                    <option value="weekly" className="bg-[#12141a] text-white">This Week</option>
-                    <option value="monthly" className="bg-[#12141a] text-white">This Month</option>
-                    <option value="yearly" className="bg-[#12141a] text-white">This Year</option>
-                  </select>
-                </div>
-
-                {/* Context Tag Filter */}
+                {/* Context Tag Select */}
                 {availableContextTags.length > 0 && (
-                  <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1 rounded-xl border border-white/[0.06]">
+                  <div className="flex items-center gap-1 bg-white/[0.03] px-2 py-1 rounded-lg border border-white/[0.06]">
                     <Tag className="w-3 h-3 text-[#9496a1]" />
                     <select
                       value={databaseContextFilter}
                       onChange={(e) => setDatabaseContextFilter(e.target.value)}
-                      className="bg-transparent text-xs text-[#ededf3] focus:outline-none cursor-pointer font-medium max-w-[100px] truncate"
-                      title="Filter by Context Tag"
+                      className="bg-transparent text-[11px] text-[#ededf3] focus:outline-none cursor-pointer max-w-[90px] truncate"
+                      title="Lọc theo tag"
                     >
-                      <option value="all" className="bg-[#12141a] text-white">All Tags</option>
+                      <option value="all" className="bg-[#12141a] text-white">Mọi tag</option>
                       {availableContextTags.map(tag => (
                         <option key={tag} value={tag} className="bg-[#12141a] text-white">#{tag}</option>
                       ))}
@@ -1609,7 +1609,7 @@ export default function TodoHub({
                   </div>
                 )}
 
-                {/* Reset Filters & Sort Pill */}
+                {/* Reset Filters */}
                 {(databaseSearchQuery || databaseStatusFilter !== 'all' || databasePriorityFilter !== 'all' || databaseTimeframeFilter !== 'all' || databaseContextFilter !== 'all' || databaseSortBy !== 'manual') && (
                   <button
                     type="button"
@@ -1621,61 +1621,84 @@ export default function TodoHub({
                       setDatabaseContextFilter('all');
                       setDatabaseSortBy('manual');
                     }}
-                    className="px-2 py-1 rounded-xl text-xs text-[#9496a1] hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer flex items-center gap-1"
-                    title="Reset all filters and sort"
+                    className="px-2 py-1 rounded-lg text-[11px] text-[#9496a1] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors cursor-pointer flex items-center gap-1"
+                    title="Đặt lại bộ lọc"
                   >
                     <RefreshCw className="w-3 h-3" />
                     <span>Reset</span>
                   </button>
                 )}
-
-                {/* SubView Mode Toggle: Spreadsheet Table vs Grouped List vs Board Columns */}
-                <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
-                  <button
-                    type="button"
-                    onClick={() => setDatabaseSubView('table')}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      databaseSubView === 'table'
-                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                        : 'text-[#9496a1] hover:text-white'
-                    }`}
-                    title="Dạng bảng dữ liệu tổng thể (Master Table)"
-                  >
-                    <Table className="w-3 h-3" />
-                    <span>Table</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDatabaseSubView('grouped')}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      databaseSubView === 'grouped'
-                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                        : 'text-[#9496a1] hover:text-white'
-                    }`}
-                    title="Nhóm theo chu kỳ thời gian (Grouped)"
-                  >
-                    <Layers className="w-3 h-3" />
-                    <span>Grouped</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDatabaseSubView('board')}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      databaseSubView === 'board'
-                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                        : 'text-[#9496a1] hover:text-white'
-                    }`}
-                    title="Dạng cột Kanban (Board)"
-                  >
-                    <Kanban className="w-3 h-3" />
-                    <span>Columns</span>
-                  </button>
-                </div>
-
               </div>
-
             </div>
           </div>
+
+          {/* Master Inline Quick-Add Row */}
+          <form 
+            onSubmit={handleMasterQuickAdd}
+            className="glass-panel-true p-2.5 rounded-2xl border border-white/10 flex flex-wrap items-center gap-2 focus-within:border-[#1591DC]/50 transition-colors"
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+              <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
+                <Plus className="w-3.5 h-3.5" />
+              </div>
+              <input
+                type="text"
+                value={dbMasterAddTitle}
+                onChange={(e) => setDbMasterAddTitle(e.target.value)}
+                placeholder="Thêm nhanh nhiệm vụ mới... (Nhấn Enter để lưu)"
+                className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <select
+                value={dbMasterAddTimeframe}
+                onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
+                className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                title="Khung thời gian"
+              >
+                <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Hôm nay</option>
+                <option value="weekly" className="bg-[#12141a] text-sky-300">📅 Tuần này</option>
+                <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 Tháng này</option>
+                <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ Năm này</option>
+              </select>
+
+              <select
+                value={dbMasterAddPriority}
+                onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
+                className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                title="Độ ưu tiên"
+              >
+                <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                <option value="High" className="bg-[#12141a] text-rose-300">Cao</option>
+                <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình</option>
+                <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp</option>
+              </select>
+
+              <select
+                value={dbMasterAddEstimate || ''}
+                onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
+                className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                title="Thời gian ước tính"
+              >
+                <option value="" className="bg-[#12141a] text-zinc-400">Thời gian (Tùy chọn)</option>
+                <option value="15m" className="bg-[#12141a] text-white">15 phút</option>
+                <option value="30m" className="bg-[#12141a] text-white">30 phút</option>
+                <option value="1h" className="bg-[#12141a] text-white">1 giờ</option>
+                <option value="2h" className="bg-[#12141a] text-white">2 giờ</option>
+                <option value="half-day" className="bg-[#12141a] text-white">Nửa ngày</option>
+              </select>
+
+              <button
+                type="submit"
+                disabled={!dbMasterAddTitle.trim()}
+                className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Thêm</span>
+              </button>
+            </div>
+          </form>
 
           {/* Database Board View: 4 Columns (Today, This Week, This Month, This Year) */}
           {databaseSubView === 'board' ? (
@@ -2057,74 +2080,6 @@ export default function TodoHub({
           ) : databaseSubView === 'grouped' ? (
             /* Database Grouped View Mode: Clean Collapsible Timeframe Groups */
             <div className="space-y-4">
-              {/* Master Quick-Add Bar */}
-              <form 
-                onSubmit={handleMasterQuickAdd}
-                className="glass-panel-true p-3 rounded-2xl border border-white/15 flex flex-wrap items-center gap-2.5 focus-within:border-[#1591DC]/50 transition-colors"
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-                  <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
-                    <Plus className="w-3.5 h-3.5" />
-                  </div>
-                  <input
-                    type="text"
-                    value={dbMasterAddTitle}
-                    onChange={(e) => setDbMasterAddTitle(e.target.value)}
-                    placeholder="Thêm nhiệm vụ nhanh vào database... (Nhấn Enter để lưu)"
-                    className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <select
-                    value={dbMasterAddTimeframe}
-                    onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
-                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Khung thời gian"
-                  >
-                    <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Hôm nay (Today)</option>
-                    <option value="weekly" className="bg-[#12141a] text-sky-300">📅 Tuần này (Week)</option>
-                    <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 Tháng này (Month)</option>
-                    <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ Năm này (Year)</option>
-                  </select>
-
-                  <select
-                    value={dbMasterAddPriority}
-                    onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
-                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Độ ưu tiên"
-                  >
-                    <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
-                    <option value="High" className="bg-[#12141a] text-rose-300">Cao (High)</option>
-                    <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình (Medium)</option>
-                    <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp (Low)</option>
-                  </select>
-
-                  <select
-                    value={dbMasterAddEstimate || ''}
-                    onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
-                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Thời gian ước tính"
-                  >
-                    <option value="" className="bg-[#12141a] text-zinc-400">Thời gian (Tùy chọn)</option>
-                    <option value="15m" className="bg-[#12141a] text-white">15 phút</option>
-                    <option value="30m" className="bg-[#12141a] text-white">30 phút</option>
-                    <option value="1h" className="bg-[#12141a] text-white">1 giờ</option>
-                    <option value="2h" className="bg-[#12141a] text-white">2 giờ</option>
-                    <option value="half-day" className="bg-[#12141a] text-white">Nửa ngày</option>
-                  </select>
-
-                  <button
-                    type="submit"
-                    disabled={!dbMasterAddTitle.trim()}
-                    className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-all cursor-pointer flex items-center gap-1 shadow-sm"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Thêm</span>
-                  </button>
-                </div>
-              </form>
-
               {/* Collapsible Timeframe Groups */}
               {DATABASE_COLUMNS.filter(col => {
                 if (databaseTimeframeFilter === 'all') return true;
@@ -2303,111 +2258,7 @@ export default function TodoHub({
             </div>
           ) : (
             /* Database Master Table View Mode (High Density, Linear/Notion Style) */
-            <div className="glass-panel-true border border-white/15 p-4 rounded-2xl space-y-4">
-              
-              {/* Master Inline Quick-Add Bar */}
-              <form 
-                onSubmit={handleMasterQuickAdd}
-                className="flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] focus-within:border-[#1591DC]/50 transition-colors"
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-                  <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
-                    <Plus className="w-3.5 h-3.5" />
-                  </div>
-                  <input
-                    type="text"
-                    value={dbMasterAddTitle}
-                    onChange={(e) => setDbMasterAddTitle(e.target.value)}
-                    placeholder="Thêm nhiệm vụ nhanh vào database... (Nhấn Enter để lưu)"
-                    className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <select
-                    value={dbMasterAddTimeframe}
-                    onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
-                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Khung thời gian"
-                  >
-                    <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Hôm nay (Today)</option>
-                    <option value="weekly" className="bg-[#12141a] text-sky-300">📅 Tuần này (Week)</option>
-                    <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 Tháng này (Month)</option>
-                    <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ Năm này (Year)</option>
-                  </select>
-
-                  <select
-                    value={dbMasterAddPriority}
-                    onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
-                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Độ ưu tiên"
-                  >
-                    <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
-                    <option value="High" className="bg-[#12141a] text-rose-300">Cao (High)</option>
-                    <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình (Medium)</option>
-                    <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp (Low)</option>
-                  </select>
-
-                  <select
-                    value={dbMasterAddEstimate || ''}
-                    onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
-                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Thời gian ước tính"
-                  >
-                    <option value="" className="bg-[#12141a] text-zinc-400">Thời gian (Tùy chọn)</option>
-                    <option value="15m" className="bg-[#12141a] text-white">15 phút</option>
-                    <option value="30m" className="bg-[#12141a] text-white">30 phút</option>
-                    <option value="1h" className="bg-[#12141a] text-white">1 giờ</option>
-                    <option value="2h" className="bg-[#12141a] text-white">2 giờ</option>
-                    <option value="half-day" className="bg-[#12141a] text-white">Nửa ngày</option>
-                  </select>
-
-                  <button
-                    type="submit"
-                    disabled={!dbMasterAddTitle.trim()}
-                    className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-all cursor-pointer flex items-center gap-1 shadow-sm"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Thêm</span>
-                  </button>
-                </div>
-              </form>
-
-              {/* Table Sub-header */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2 border-b border-white/[0.08]">
-                <div className="flex items-center gap-2">
-                  <Table className="w-4 h-4 text-[#1591DC]" />
-                  <span className="text-sm font-semibold text-white">
-                    Master Tasks Table ({filteredDatabaseGoals.length})
-                  </span>
-                </div>
-                
-                {/* Timeframe Filter Quick Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
-                  {[
-                    { id: 'all', label: `All (${goals.length})` },
-                    { id: 'today', label: `Today (${todayDailyGoalsCount})` },
-                    { id: 'daily', label: `All Daily (${allDailyGoalsCount})` },
-                    { id: 'weekly', label: `Weekly (${goals.filter(g => g.timeframe === 'weekly').length})` },
-                    { id: 'monthly', label: `Monthly (${goals.filter(g => g.timeframe === 'monthly').length})` },
-                    { id: 'yearly', label: `Yearly (${goals.filter(g => g.timeframe === 'yearly').length})` }
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setDatabaseTimeframeFilter(f.id as any)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                        databaseTimeframeFilter === f.id
-                          ? 'bg-white text-black font-semibold shadow-sm'
-                          : 'text-[#9496a1] hover:text-white'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+            <div className="glass-panel-true border border-white/10 rounded-2xl overflow-hidden shadow-xl">
               {/* Master Spreadsheet Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[960px] font-sans">
