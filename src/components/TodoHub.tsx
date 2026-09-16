@@ -49,6 +49,7 @@ import {
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   GripVertical,
   Trophy,
   LayoutDashboard,
@@ -57,7 +58,9 @@ import {
   Kanban,
   Search,
   Filter,
-  ArrowUpDown
+  ArrowUpDown,
+  Flame,
+  Layers
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 
@@ -65,13 +68,14 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface TodoHubProps {
   goals: GoalTodo[];
-  onAddGoal: (text: string, timeframe: TimeframeType, timeEstimate?: TimeEstimate) => void;
+  onAddGoal: (text: string, timeframe: TimeframeType, timeEstimate?: TimeEstimate, priority?: PriorityLevel) => void;
   onToggleGoal: (id: string, completed: boolean) => void;
   onDeleteGoal: (id: string) => void;
   onEditGoal?: (id: string, newText: string) => void;
   onUpdateGoal?: (updatedGoal: GoalTodo) => void;
   onReorderGoals?: (reorderedGoals: GoalTodo[]) => void;
   onNavigate?: (section: string) => void;
+  onStartFocus?: (goalId: string) => void;
   isLightMode?: boolean;
 }
 
@@ -84,6 +88,7 @@ export default function TodoHub({
   onUpdateGoal,
   onReorderGoals,
   onNavigate,
+  onStartFocus,
   isLightMode
 }: TodoHubProps) {
   // Safe helper handlers
@@ -142,8 +147,8 @@ export default function TodoHub({
   // View mode toggle: Multi-column view vs Notion Table View vs Calendar Grid view vs Weekly/Monthly Review Dashboard
   const [viewMode, setViewMode] = useState<'columns' | 'table' | 'calendar' | 'review'>('columns');
 
-  // Database View State: Board (Columns) vs Table View
-  const [databaseSubView, setDatabaseSubView] = useState<'board' | 'table'>('board');
+  // Database View State: Table vs Grouped vs Board (Default: Table view for true Master Database experience)
+  const [databaseSubView, setDatabaseSubView] = useState<'table' | 'grouped' | 'board'>('table');
   const [databaseSearchQuery, setDatabaseSearchQuery] = useState('');
   const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [databasePriorityFilter, setDatabasePriorityFilter] = useState<'all' | PriorityLevel>('all');
@@ -153,6 +158,48 @@ export default function TodoHub({
   const [databaseSortBy, setDatabaseSortBy] = useState<
     'manual' | 'priority-desc' | 'priority-asc' | 'created-desc' | 'created-asc' | 'alpha-asc' | 'alpha-desc' | 'status' | 'estimate'
   >('manual');
+
+  // Master Database Quick-Add Input State
+  const [dbMasterAddTitle, setDbMasterAddTitle] = useState('');
+  const [dbMasterAddTimeframe, setDbMasterAddTimeframe] = useState<TimeframeType>('daily');
+  const [dbMasterAddPriority, setDbMasterAddPriority] = useState<PriorityLevel>('Medium');
+  const [dbMasterAddEstimate, setDbMasterAddEstimate] = useState<TimeEstimate | undefined>(undefined);
+
+  // Grouped View Collapsed Groups State
+  const [dbCollapsedGroups, setDbCollapsedGroups] = useState<Record<string, boolean>>({});
+  const toggleGroupCollapse = (id: string) => {
+    setDbCollapsedGroups(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Launch Pomodoro Deep Work Focus on any goal
+  const handleStartFocus = (goalId: string) => {
+    if (onStartFocus) {
+      onStartFocus(goalId);
+    } else if (onNavigate) {
+      onNavigate('pomodoro-station');
+    }
+  };
+
+  // Handler for Master Quick Add
+  const handleMasterQuickAdd = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = dbMasterAddTitle.trim();
+    if (!clean) return;
+
+    let fullText = clean;
+    if (dbMasterAddTimeframe === 'daily') {
+      fullText = `[D:${todayCtxKey}] ${clean}`;
+    } else if (dbMasterAddTimeframe === 'weekly') {
+      fullText = `[W:${todayYearStr}-${todayWeekStr}] ${clean}`;
+    } else if (dbMasterAddTimeframe === 'monthly') {
+      fullText = `[M:${todayYearStr}-${todayMonthStr}] ${clean}`;
+    } else if (dbMasterAddTimeframe === 'yearly') {
+      fullText = `[Y:${todayYearStr}] ${clean}`;
+    }
+
+    onAddGoal(fullText, dbMasterAddTimeframe, dbMasterAddEstimate, dbMasterAddPriority);
+    setDbMasterAddTitle('');
+  };
 
   // Database Drag & Drop State
   const [dbDraggedGoalId, setDbDraggedGoalId] = useState<string | null>(null);
@@ -1582,33 +1629,46 @@ export default function TodoHub({
                   </button>
                 )}
 
-                {/* SubView Mode Toggle: Board Columns vs Spreadsheet Table */}
+                {/* SubView Mode Toggle: Spreadsheet Table vs Grouped List vs Board Columns */}
                 <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
                   <button
                     type="button"
-                    onClick={() => setDatabaseSubView('board')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      databaseSubView === 'board'
-                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                        : 'text-[#9496a1] hover:text-white'
-                    }`}
-                    title="Columns Board View"
-                  >
-                    <Kanban className="w-3 h-3" />
-                    <span>Columns</span>
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setDatabaseSubView('table')}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                       databaseSubView === 'table'
                         ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
                         : 'text-[#9496a1] hover:text-white'
                     }`}
-                    title="Table View"
+                    title="Dạng bảng dữ liệu tổng thể (Master Table)"
                   >
                     <Table className="w-3 h-3" />
                     <span>Table</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDatabaseSubView('grouped')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      databaseSubView === 'grouped'
+                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                        : 'text-[#9496a1] hover:text-white'
+                    }`}
+                    title="Nhóm theo chu kỳ thời gian (Grouped)"
+                  >
+                    <Layers className="w-3 h-3" />
+                    <span>Grouped</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDatabaseSubView('board')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      databaseSubView === 'board'
+                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                        : 'text-[#9496a1] hover:text-white'
+                    }`}
+                    title="Dạng cột Kanban (Board)"
+                  >
+                    <Kanban className="w-3 h-3" />
+                    <span>Columns</span>
                   </button>
                 </div>
 
@@ -1965,12 +2025,25 @@ export default function TodoHub({
                                   </span>
                                 )}
 
-                                {/* Notes indicator */}
-                                {g.notes && (
-                                  <span className="text-[#9496a1] flex items-center gap-0.5 ml-auto" title="Has notes">
-                                    <FileText className="w-3 h-3" />
-                                  </span>
-                                )}
+                                {/* Notes & Focus action */}
+                                <div className="flex items-center gap-1 ml-auto">
+                                  {g.notes && (
+                                    <span className="text-[#9496a1] flex items-center gap-0.5" title="Has notes">
+                                      <FileText className="w-3 h-3" />
+                                    </span>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleStartFocus(g.id);
+                                    }}
+                                    className="p-1 rounded hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                                    title="Tập trung Pomodoro với task này"
+                                  >
+                                    <Flame className="w-3 h-3" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           );
@@ -1981,18 +2054,335 @@ export default function TodoHub({
                 );
               })}
             </div>
+          ) : databaseSubView === 'grouped' ? (
+            /* Database Grouped View Mode: Clean Collapsible Timeframe Groups */
+            <div className="space-y-4">
+              {/* Master Quick-Add Bar */}
+              <form 
+                onSubmit={handleMasterQuickAdd}
+                className="glass-panel-true p-3 rounded-2xl border border-white/15 flex flex-wrap items-center gap-2.5 focus-within:border-[#1591DC]/50 transition-colors"
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                  <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
+                    <Plus className="w-3.5 h-3.5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={dbMasterAddTitle}
+                    onChange={(e) => setDbMasterAddTitle(e.target.value)}
+                    placeholder="Thêm nhiệm vụ nhanh vào database... (Nhấn Enter để lưu)"
+                    className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={dbMasterAddTimeframe}
+                    onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
+                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Khung thời gian"
+                  >
+                    <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Hôm nay (Today)</option>
+                    <option value="weekly" className="bg-[#12141a] text-sky-300">📅 Tuần này (Week)</option>
+                    <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 Tháng này (Month)</option>
+                    <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ Năm này (Year)</option>
+                  </select>
+
+                  <select
+                    value={dbMasterAddPriority}
+                    onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
+                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Độ ưu tiên"
+                  >
+                    <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                    <option value="High" className="bg-[#12141a] text-rose-300">Cao (High)</option>
+                    <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình (Medium)</option>
+                    <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp (Low)</option>
+                  </select>
+
+                  <select
+                    value={dbMasterAddEstimate || ''}
+                    onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
+                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Thời gian ước tính"
+                  >
+                    <option value="" className="bg-[#12141a] text-zinc-400">Thời gian (Tùy chọn)</option>
+                    <option value="15m" className="bg-[#12141a] text-white">15 phút</option>
+                    <option value="30m" className="bg-[#12141a] text-white">30 phút</option>
+                    <option value="1h" className="bg-[#12141a] text-white">1 giờ</option>
+                    <option value="2h" className="bg-[#12141a] text-white">2 giờ</option>
+                    <option value="half-day" className="bg-[#12141a] text-white">Nửa ngày</option>
+                  </select>
+
+                  <button
+                    type="submit"
+                    disabled={!dbMasterAddTitle.trim()}
+                    className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Thêm</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Collapsible Timeframe Groups */}
+              {DATABASE_COLUMNS.filter(col => {
+                if (databaseTimeframeFilter === 'all') return true;
+                if (databaseTimeframeFilter === 'today') return col.id === 'daily';
+                return col.id === databaseTimeframeFilter;
+              }).map(col => {
+                const isCollapsed = !!dbCollapsedGroups[col.id];
+                const isDailyCol = col.id === 'daily';
+                const isTodayOnly = isDailyCol && (dbDailyViewScope === 'today' || databaseTimeframeFilter === 'today') && databaseTimeframeFilter !== 'daily';
+                const colGoals = filteredDatabaseGoals.filter(g => {
+                  if (g.timeframe !== col.id) return false;
+                  if (isTodayOnly) {
+                    const info = getGoalDateInfo(g);
+                    return info.isToday || !g.text?.startsWith('[D:');
+                  }
+                  return true;
+                });
+                const totalCount = colGoals.length;
+                const completedCount = colGoals.filter(g => g.completed).length;
+                const rate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                const ColIcon = col.icon;
+
+                return (
+                  <div key={col.id} className="glass-panel-true border border-white/15 rounded-2xl overflow-hidden shadow-sm">
+                    {/* Group Header Bar */}
+                    <div 
+                      onClick={() => toggleGroupCollapse(col.id)}
+                      className="flex items-center justify-between p-3.5 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors border-b border-white/[0.06]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-[#9496a1]">
+                          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </span>
+                        <div className={`w-7 h-7 rounded-lg ${col.bgAccent} border ${col.borderAccent} flex items-center justify-center ${col.color}`}>
+                          <ColIcon className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white tracking-tight">{col.label}</span>
+                          <span className="text-[11px] text-[#9496a1] hidden sm:inline">({col.sublabel})</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
+                            {completedCount}/{totalCount}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 bg-white/[0.06] rounded-full h-1.5 overflow-hidden hidden sm:block">
+                          <div 
+                            className={`h-full ${col.progressBar} transition-all duration-300`} 
+                            style={{ width: `${rate}%` }} 
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-[#9496a1] tabular-nums min-w-[36px] text-right">
+                          {rate}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Group Table */}
+                    {!isCollapsed && (
+                      <div className="p-2 sm:p-3">
+                        {colGoals.length === 0 ? (
+                          <div className="py-6 text-center text-xs text-[#9496a1]">
+                            Chưa có nhiệm vụ nào trong mục này.
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[760px] font-sans">
+                              <thead>
+                                <tr className="border-b border-white/[0.06] text-[11px] text-[#9496a1]">
+                                  <th className="py-2 px-2 w-8 text-center"></th>
+                                  <th className="py-2 px-3 w-12 text-center font-medium">Status</th>
+                                  <th className="py-2 px-3 font-medium">Nhiệm vụ</th>
+                                  <th className="py-2 px-3 w-28 font-medium">Ưu tiên</th>
+                                  <th className="py-2 px-3 w-24 font-medium">Thời gian</th>
+                                  <th className="py-2 px-3 w-20 font-medium">Sub-tasks</th>
+                                  <th className="py-2 px-3 w-20 text-center font-medium">Focus</th>
+                                  <th className="py-2 px-3 w-20 text-right font-medium">Thao tác</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-white/[0.03] text-xs text-[#ededf3]">
+                                {colGoals.map(g => {
+                                  const cleanText = getDisplayGoalText(g.text);
+                                  const subCount = g.subTasks ? g.subTasks.length : 0;
+                                  const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
+                                  const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
+                                  const prio = g.priority || 'Medium';
+                                  const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                    : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                    : prio === 'Medium' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                                    : 'bg-zinc-800 text-zinc-400 border-zinc-700';
+
+                                  return (
+                                    <tr 
+                                      key={g.id}
+                                      onClick={() => setActivePanelGoalId(g.id)}
+                                      className={`hover:bg-white/[0.03] transition-colors cursor-pointer group select-none ${g.completed ? 'opacity-50' : ''}`}
+                                    >
+                                      <td className="py-2.5 px-2 text-center" onClick={e => e.stopPropagation()}>
+                                        <div className="text-zinc-600 group-hover:text-zinc-400 flex justify-center">
+                                          <GripVertical className="w-3.5 h-3.5" />
+                                        </div>
+                                      </td>
+                                      <td className="py-2.5 px-3 text-center" onClick={e => e.stopPropagation()}>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleToggle(g.id, !g.completed)}
+                                          className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
+                                        >
+                                          {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                                        </button>
+                                      </td>
+                                      <td className="py-2.5 px-3 font-medium text-white">
+                                        <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
+                                          {cleanText}
+                                        </span>
+                                      </td>
+                                      <td className="py-2.5 px-3">
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
+                                          {prio}
+                                        </span>
+                                      </td>
+                                      <td className="py-2.5 px-3 text-[11px] text-[#9496a1] tabular-nums">
+                                        {estMeta ? estMeta.label : '-'}
+                                      </td>
+                                      <td className="py-2.5 px-3 text-[11px] text-[#9496a1] tabular-nums">
+                                        {subCount > 0 ? (
+                                          <span className={subDone === subCount ? 'text-emerald-400' : ''}>
+                                            {subDone}/{subCount}
+                                          </span>
+                                        ) : '-'}
+                                      </td>
+                                      <td className="py-2.5 px-2 text-center" onClick={e => e.stopPropagation()}>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleStartFocus(g.id)}
+                                          className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
+                                          title="Bắt đầu Pomodoro Focus với task này"
+                                        >
+                                          <Flame className="w-3 h-3 text-amber-400 group-hover/btn:scale-110 transition-transform" />
+                                          <span className="text-[10px] font-semibold">Focus</span>
+                                        </button>
+                                      </td>
+                                      <td className="py-2.5 px-3 text-right" onClick={e => e.stopPropagation()}>
+                                        <div className="flex items-center justify-end gap-1">
+                                          <button
+                                            type="button"
+                                            onClick={() => setActivePanelGoalId(g.id)}
+                                            className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded cursor-pointer"
+                                            title="Chi tiết & Ghi chú"
+                                          >
+                                            <SlidersHorizontal className="w-3.5 h-3.5" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDelete(g.id)}
+                                            className="p-1 text-[#9496a1] hover:text-rose-400 glass-button-true rounded cursor-pointer"
+                                            title="Xoá task"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            /* Database Table View Mode */
-            <div className="glass-panel-true border border-white/15 p-4 rounded-2xl">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-3 border-b border-white/[0.08]">
+            /* Database Master Table View Mode (High Density, Linear/Notion Style) */
+            <div className="glass-panel-true border border-white/15 p-4 rounded-2xl space-y-4">
+              
+              {/* Master Inline Quick-Add Bar */}
+              <form 
+                onSubmit={handleMasterQuickAdd}
+                className="flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] focus-within:border-[#1591DC]/50 transition-colors"
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                  <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
+                    <Plus className="w-3.5 h-3.5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={dbMasterAddTitle}
+                    onChange={(e) => setDbMasterAddTitle(e.target.value)}
+                    placeholder="Thêm nhiệm vụ nhanh vào database... (Nhấn Enter để lưu)"
+                    className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={dbMasterAddTimeframe}
+                    onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
+                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Khung thời gian"
+                  >
+                    <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Hôm nay (Today)</option>
+                    <option value="weekly" className="bg-[#12141a] text-sky-300">📅 Tuần này (Week)</option>
+                    <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 Tháng này (Month)</option>
+                    <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ Năm này (Year)</option>
+                  </select>
+
+                  <select
+                    value={dbMasterAddPriority}
+                    onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
+                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Độ ưu tiên"
+                  >
+                    <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                    <option value="High" className="bg-[#12141a] text-rose-300">Cao (High)</option>
+                    <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình (Medium)</option>
+                    <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp (Low)</option>
+                  </select>
+
+                  <select
+                    value={dbMasterAddEstimate || ''}
+                    onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
+                    className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                    title="Thời gian ước tính"
+                  >
+                    <option value="" className="bg-[#12141a] text-zinc-400">Thời gian (Tùy chọn)</option>
+                    <option value="15m" className="bg-[#12141a] text-white">15 phút</option>
+                    <option value="30m" className="bg-[#12141a] text-white">30 phút</option>
+                    <option value="1h" className="bg-[#12141a] text-white">1 giờ</option>
+                    <option value="2h" className="bg-[#12141a] text-white">2 giờ</option>
+                    <option value="half-day" className="bg-[#12141a] text-white">Nửa ngày</option>
+                  </select>
+
+                  <button
+                    type="submit"
+                    disabled={!dbMasterAddTitle.trim()}
+                    className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Thêm</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Table Sub-header */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-2 border-b border-white/[0.08]">
                 <div className="flex items-center gap-2">
                   <Table className="w-4 h-4 text-[#1591DC]" />
                   <span className="text-sm font-semibold text-white">
-                    Spreadsheet Table ({filteredDatabaseGoals.length})
+                    Master Tasks Table ({filteredDatabaseGoals.length})
                   </span>
                 </div>
                 
-                {/* Timeframe Filter Pills */}
+                {/* Timeframe Filter Quick Tabs */}
                 <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
                   {[
                     { id: 'all', label: `All (${goals.length})` },
@@ -2018,26 +2408,28 @@ export default function TodoHub({
                 </div>
               </div>
 
+              {/* Master Spreadsheet Table */}
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[900px] font-sans">
+                <table className="w-full text-left border-collapse min-w-[960px] font-sans">
                   <thead>
                     <tr className="border-b border-white/[0.08] text-xs text-[#9496a1] bg-white/[0.02]">
                       <th className="py-2.5 px-2 w-8 text-center"></th>
-                      <th className="py-2.5 px-3 w-16 text-center font-medium">Status</th>
+                      <th className="py-2.5 px-3 w-14 text-center font-medium">Status</th>
                       <th className="py-2.5 px-3 font-medium">Task Name</th>
                       <th className="py-2.5 px-3 w-28 font-medium">Timeframe</th>
-                      <th className="py-2.5 px-3 w-28 font-medium">Sub-tasks</th>
+                      <th className="py-2.5 px-3 w-28 font-medium">Priority</th>
                       <th className="py-2.5 px-3 w-24 font-medium">Time Est</th>
-                      <th className="py-2.5 px-3 w-32 font-medium">Priority</th>
-                      <th className="py-2.5 px-3 w-32 font-medium">Context Tag</th>
-                      <th className="py-2.5 px-3 w-32 font-medium">Actions</th>
+                      <th className="py-2.5 px-3 w-24 font-medium">Sub-tasks</th>
+                      <th className="py-2.5 px-3 w-28 font-medium">Context Tag</th>
+                      <th className="py-2.5 px-3 w-20 text-center font-medium">Focus</th>
+                      <th className="py-2.5 px-3 w-24 text-right font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.04] text-xs text-[#ededf3]">
                     {filteredDatabaseGoals.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="text-center py-10 text-[#9496a1] text-xs">
-                          No tasks in active view. Add a new task above.
+                        <td colSpan={10} className="text-center py-10 text-[#9496a1] text-xs">
+                          Không có task nào khớp với bộ lọc. Sử dụng thanh thêm nhanh ở trên để thêm task mới.
                         </td>
                       </tr>
                     ) : (
@@ -2091,11 +2483,8 @@ export default function TodoHub({
                                 <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
                                   {cleanText}
                                 </span>
-                                {g.timeEstimate && estMeta && (
-                                  <span className="text-[10px] text-[#9496a1] flex items-center gap-1 tabular-nums">
-                                    <Clock className="w-3 h-3 text-[#9496a1]" />
-                                    {estMeta.label}
-                                  </span>
+                                {g.notes && (
+                                  <FileText className="w-3 h-3 text-[#9496a1]" title="Có ghi chú" />
                                 )}
                               </div>
                             </td>
@@ -2123,6 +2512,16 @@ export default function TodoHub({
                               </div>
                             </td>
 
+                            <td className="py-3 px-3">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
+                                {prio}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
+                              {estMeta ? estMeta.label : '-'}
+                            </td>
+
                             <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
                               {subCount > 0 ? (
                                 <span className={`px-2 py-0.5 rounded-full ${subDone === subCount ? 'text-emerald-400 bg-emerald-500/10' : 'text-[#9496a1]'}`}>
@@ -2133,22 +2532,24 @@ export default function TodoHub({
                               )}
                             </td>
 
-                            <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
-                              {estMeta ? estMeta.label : '-'}
-                            </td>
-
-                            <td className="py-3 px-3">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
-                                {prio}
-                              </span>
-                            </td>
-
                             <td className="py-3 px-3 text-[#9496a1] text-xs">
-                              {g.contextTag || '-'}
+                              {g.contextTag ? `#${g.contextTag}` : '-'}
                             </td>
 
-                            <td className="py-3 px-3" onClick={e => e.stopPropagation()}>
-                              <div className="flex items-center gap-1">
+                            <td className="py-3 px-2 text-center" onClick={e => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => handleStartFocus(g.id)}
+                                className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
+                                title="Bắt đầu Pomodoro Focus với task này"
+                              >
+                                <Flame className="w-3.5 h-3.5 text-amber-400 group-hover/btn:scale-110 transition-transform" />
+                                <span className="text-[10px] font-semibold">Focus</span>
+                              </button>
+                            </td>
+
+                            <td className="py-3 px-3 text-right" onClick={e => e.stopPropagation()}>
+                              <div className="flex items-center justify-end gap-1">
                                 <button
                                   type="button"
                                   onClick={() => setActivePanelGoalId(g.id)}

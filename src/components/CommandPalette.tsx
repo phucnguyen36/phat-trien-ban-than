@@ -11,7 +11,8 @@ import {
   X, 
   ArrowRight,
   Sun,
-  Moon
+  Moon,
+  Flame
 } from 'lucide-react';
 import { GoalTodo, HabitData, PersonalExpense } from '../types';
 
@@ -65,6 +66,7 @@ export default function CommandPalette({
   const NAV_ITEMS = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'todo-hub', label: 'Tasks & Roadmap', icon: CheckSquare },
+    { id: 'pomodoro-station', label: 'Pomodoro Deep Work', icon: Flame },
     { id: 'habits', label: 'Habits & Consistency', icon: Activity },
     { id: 'journal', label: 'Daily Journal', icon: BookOpen },
     { id: 'expenses', label: 'Cash Flow & Expenses', icon: DollarSign },

@@ -8,6 +8,7 @@ import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronD
 
 interface DeepWorkTimerProps {
   isLightMode?: boolean;
+  onOpenWorkspace?: () => void;
 }
 
 type TimerMode = 'focus' | 'short_break' | 'long_break';
@@ -46,7 +47,7 @@ const FOCUS_PRESETS = [
   { label: '90 min', minutes: 90, desc: 'Ultradian Cycle' },
 ];
 
-export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode }) => {
+export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpenWorkspace }) => {
   const [mode, setMode] = useState<TimerMode>('focus');
   const [durations, setDurations] = useState<Record<TimerMode, number>>(() => {
     return {
@@ -375,6 +376,20 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode }) => 
               </button>
             </div>
           </form>
+
+          {onOpenWorkspace && (
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpenMenu(false);
+                onOpenWorkspace();
+              }}
+              className="w-full mt-3 py-2 px-3 rounded-xl bg-[#1591DC]/15 hover:bg-[#1591DC]/25 text-[#1591DC] border border-[#1591DC]/30 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Flame className="w-3.5 h-3.5" />
+              <span>Open Pomodoro Workspace</span>
+            </button>
+          )}
         </div>
       )}
     </div>

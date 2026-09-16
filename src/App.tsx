@@ -47,6 +47,7 @@ import HabitTracker from './components/HabitTracker';
 import DailyJournalPanel from './components/DailyJournal';
 import ExpenseLedger from './components/ExpenseLedger';
 import DeepWorkTimer from './components/DeepWorkTimer';
+import PomodoroWorkspace from './components/PomodoroWorkspace';
 import AEPicker from './components/AEPicker';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CommandPalette from './components/CommandPalette';
@@ -89,7 +90,8 @@ import {
   Instagram,
   Facebook,
   Linkedin,
-  Mail
+  Mail,
+  Flame
 } from 'lucide-react';
 
 interface UserProfile {
@@ -333,6 +335,7 @@ export default function App() {
 
   // Active section scroll tracking
   const [activeSection, setActiveSection] = useState<string>('overview');
+  const [activeFocusGoalId, setActiveFocusGoalId] = useState<string | null>(null);
 
   // Command Palette Open State
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -360,14 +363,16 @@ export default function App() {
       } else if (e.key === '?') {
         e.preventDefault();
         setIsShortcutsModalOpen(prev => !prev);
+      } else if (e.key === 'p' || e.key === 'P') {
+        setActiveSection('pomodoro-station');
       } else if (e.key === 'j' || e.key === 'J') {
-        scrollToSection('daily-journal');
+        setActiveSection('daily-journal');
       } else if (e.key === 'h' || e.key === 'H') {
-        scrollToSection('habit-matrix');
+        setActiveSection('habit-matrix');
       } else if (e.key === 'e' || e.key === 'E') {
-        scrollToSection('expense-ledger');
+        setActiveSection('expense-ledger');
       } else if (e.key === 'n' || e.key === 'N' || e.key === 't' || e.key === 'T') {
-        scrollToSection('todo-hub');
+        setActiveSection('todo-hub');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -607,7 +612,12 @@ export default function App() {
   };
 
   // Handler: Goal operations
-  const handleAddGoal = async (text: string, timeframe: TimeframeType, timeEstimate?: import('./types').TimeEstimate) => {
+  const handleAddGoal = async (
+    text: string, 
+    timeframe: TimeframeType, 
+    timeEstimate?: import('./types').TimeEstimate,
+    priority?: import('./types').PriorityLevel
+  ) => {
     const id = 'g_' + Math.random().toString(36).substring(2, 9);
     const newGoal: GoalTodo = {
       id,
@@ -615,7 +625,8 @@ export default function App() {
       timeframe,
       completed: false,
       createdAt: Date.now(),
-      ...(timeEstimate ? { timeEstimate } : {})
+      ...(timeEstimate ? { timeEstimate } : {}),
+      ...(priority ? { priority } : {})
     };
     
     setGoals(prev => [...prev, newGoal]);
@@ -1076,6 +1087,7 @@ export default function App() {
             {[
               { id: 'overview', label: 'Overview' },
               { id: 'todo-hub', label: 'Tasks' },
+              { id: 'pomodoro-station', label: 'Pomodoro' },
               { id: 'habit-matrix', label: 'Habits' },
               { id: 'daily-journal', label: 'Journal' },
               { id: 'expense-ledger', label: 'Expenses' },
@@ -1103,7 +1115,10 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             
             {/* Minimal Deep Work Timer (Pomodoro) */}
-            <DeepWorkTimer isLightMode={isLightMode} />
+            <DeepWorkTimer 
+              isLightMode={isLightMode} 
+              onOpenWorkspace={() => setActiveSection('pomodoro-station')}
+            />
 
             {/* Quick Command Search */}
             <button
@@ -1179,6 +1194,7 @@ export default function App() {
             {[
               { id: 'overview', label: 'Overview', icon: LayoutDashboard },
               { id: 'todo-hub', label: 'Tasks', icon: CheckSquare },
+              { id: 'pomodoro-station', label: 'Pomodoro', icon: Flame },
               { id: 'habit-matrix', label: 'Habits', icon: Activity },
               { id: 'daily-journal', label: 'Journal', icon: BookOpen },
               { id: 'expense-ledger', label: 'Expenses', icon: DollarSign }
@@ -1239,7 +1255,8 @@ export default function App() {
                 {[
                   ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'Customer management', icon: ShieldCheck }] : []),
                   { id: 'overview', label: 'Overview', sub: 'Dashboard & stats', icon: LayoutDashboard },
-                  { id: 'todo-hub', label: 'Tasks', sub: 'Roadmap & timeline', icon: CheckSquare },
+                  { id: 'todo-hub', label: 'Tasks', sub: 'Roadmap & database', icon: CheckSquare },
+                  { id: 'pomodoro-station', label: 'Pomodoro', sub: 'Deep work & flow', icon: Flame },
                   { id: 'habit-matrix', label: 'Habits', sub: 'Consistency & streaks', icon: Activity },
                   { id: 'daily-journal', label: 'Journal', sub: 'Daily reflection', icon: BookOpen },
                   { id: 'expense-ledger', label: 'Expenses', sub: 'Cash flow & budget', icon: DollarSign }
@@ -1346,6 +1363,8 @@ export default function App() {
                         if (sec === 'habits') setActiveSection('habit-matrix');
                         else if (sec === 'journal') setActiveSection('daily-journal');
                         else if (sec === 'expenses') setActiveSection('expense-ledger');
+                        else if (sec === 'pomodoro' || sec === 'pomodoro-station') setActiveSection('pomodoro-station');
+                        else if (sec === 'tasks' || sec === 'todo-hub') setActiveSection('todo-hub');
                         else setActiveSection(sec);
                       }}
                       onToggleGoal={handleToggleGoal}
@@ -1373,6 +1392,40 @@ export default function App() {
                         if (sec === 'habits') setActiveSection('habit-matrix');
                         else if (sec === 'journal') setActiveSection('daily-journal');
                         else if (sec === 'expenses') setActiveSection('expense-ledger');
+                        else if (sec === 'pomodoro' || sec === 'pomodoro-station') setActiveSection('pomodoro-station');
+                        else setActiveSection(sec);
+                      }}
+                      onStartFocus={(goalId) => {
+                        setActiveFocusGoalId(goalId);
+                        setActiveSection('pomodoro-station');
+                      }}
+                      isLightMode={isLightMode}
+                    />
+                  </section>
+                )}
+
+                {/* Module 1.5: Pomodoro Deep Work Station */}
+                {activeSection === 'pomodoro-station' && (
+                  <section id="pomodoro-station">
+                    <PomodoroWorkspace
+                      goals={goals}
+                      habits={habits}
+                      journalEntries={journalEntries}
+                      scratchpadText={scratchpadText}
+                      onSaveScratchpad={handleSaveScratchpadText}
+                      onToggleGoal={handleToggleGoal}
+                      onAddGoal={handleAddGoal}
+                      onUpdateGoal={handleUpdateGoal}
+                      onToggleHabitDay={handleToggleHabitDay}
+                      onSaveJournal={handleSaveJournal}
+                      activeFocusGoalId={activeFocusGoalId}
+                      setActiveFocusGoalId={setActiveFocusGoalId}
+                      onNavigate={(sec) => {
+                        if (sec === 'habits') setActiveSection('habit-matrix');
+                        else if (sec === 'journal') setActiveSection('daily-journal');
+                        else if (sec === 'expenses') setActiveSection('expense-ledger');
+                        else if (sec === 'tasks' || sec === 'todo-hub') setActiveSection('todo-hub');
+                        else if (sec === 'overview') setActiveSection('overview');
                         else setActiveSection(sec);
                       }}
                       isLightMode={isLightMode}
