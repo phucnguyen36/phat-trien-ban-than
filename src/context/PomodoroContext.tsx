@@ -111,24 +111,69 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Today date string
   const todayDateStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
-  // Mode & Durations
-  const [mode, setMode] = useState<TimerMode>('focus');
+  // Mode & Durations with Persistence across reloads
+  const [mode, setMode] = useState<TimerMode>(() => {
+    const saved = localStorage.getItem('df_timer_mode') as TimerMode;
+    return (saved && ['focus', 'short_break', 'long_break'].includes(saved)) ? saved : 'focus';
+  });
+
   const [durations, setDurations] = useState<Record<TimerMode, number>>(() => ({
     focus: parseInt(localStorage.getItem('df_timer_focus') || '25', 10),
     short_break: parseInt(localStorage.getItem('df_timer_short_break') || '5', 10),
     long_break: parseInt(localStorage.getItem('df_timer_long_break') || '15', 10),
   }));
 
-  const [timeLeft, setTimeLeft] = useState<number>(() => {
-    const focusMins = parseInt(localStorage.getItem('df_timer_focus') || '25', 10);
-    return focusMins * 60;
+  // Restore running timer seamlessly if page was reloaded mid-session
+  const [isRunning, setIsRunning] = useState<boolean>(() => {
+    const savedIsRunning = localStorage.getItem('df_timer_is_running') === 'true';
+    const savedTargetEnd = localStorage.getItem('df_timer_target_end_time');
+    if (savedIsRunning && savedTargetEnd) {
+      const remaining = Math.ceil((parseInt(savedTargetEnd, 10) - Date.now()) / 1000);
+      return remaining > 0;
+    }
+    return false;
   });
 
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [targetEndTime, setTargetEndTime] = useState<number | null>(null);
+  const [targetEndTime, setTargetEndTime] = useState<number | null>(() => {
+    const savedIsRunning = localStorage.getItem('df_timer_is_running') === 'true';
+    const savedTargetEnd = localStorage.getItem('df_timer_target_end_time');
+    if (savedIsRunning && savedTargetEnd) {
+      const remaining = Math.ceil((parseInt(savedTargetEnd, 10) - Date.now()) / 1000);
+      if (remaining > 0) {
+        return parseInt(savedTargetEnd, 10);
+      }
+    }
+    return null;
+  });
+
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    const savedIsRunning = localStorage.getItem('df_timer_is_running') === 'true';
+    const savedTargetEnd = localStorage.getItem('df_timer_target_end_time');
+    if (savedIsRunning && savedTargetEnd) {
+      const remaining = Math.ceil((parseInt(savedTargetEnd, 10) - Date.now()) / 1000);
+      if (remaining > 0) {
+        return remaining;
+      }
+    }
+    const savedTimeLeft = localStorage.getItem('df_timer_time_left');
+    if (savedTimeLeft) {
+      const parsed = parseInt(savedTimeLeft, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    const savedMode = (localStorage.getItem('df_timer_mode') as TimerMode) || 'focus';
+    const savedFocus = parseInt(localStorage.getItem(`df_timer_${savedMode}`) || '25', 10);
+    return savedFocus * 60;
+  });
+
   const [totalSessionSeconds, setTotalSessionSeconds] = useState<number>(() => {
-    const focusMins = parseInt(localStorage.getItem('df_timer_focus') || '25', 10);
-    return focusMins * 60;
+    const savedTotal = localStorage.getItem('df_timer_total_session_seconds');
+    if (savedTotal) {
+      const parsed = parseInt(savedTotal, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    const savedMode = (localStorage.getItem('df_timer_mode') as TimerMode) || 'focus';
+    const savedFocus = parseInt(localStorage.getItem(`df_timer_${savedMode}`) || '25', 10);
+    return savedFocus * 60;
   });
 
   // Active focus goal
@@ -163,6 +208,21 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Audio Context Ref for Ambient Sound
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundNodesRef = useRef<{ source?: AudioNode; gain?: GainNode; filter?: AudioNode } | null>(null);
+
+  // Synchronize timer state to localStorage so page refresh never loses timer
+  useEffect(() => {
+    try {
+      localStorage.setItem('df_timer_mode', mode);
+      localStorage.setItem('df_timer_is_running', String(isRunning));
+      if (targetEndTime) {
+        localStorage.setItem('df_timer_target_end_time', String(targetEndTime));
+      } else {
+        localStorage.removeItem('df_timer_target_end_time');
+      }
+      localStorage.setItem('df_timer_time_left', String(timeLeft));
+      localStorage.setItem('df_timer_total_session_seconds', String(totalSessionSeconds));
+    } catch (e) {}
+  }, [mode, isRunning, targetEndTime, timeLeft, totalSessionSeconds]);
 
   // Sync activeFocusGoalId to localStorage
   useEffect(() => {

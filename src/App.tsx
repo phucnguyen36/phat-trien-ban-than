@@ -337,8 +337,39 @@ export default function App() {
     };
   }, [activeThemeId, customAccentColor]);
 
-  // Active section scroll tracking
-  const [activeSection, setActiveSection] = useState<string>('overview');
+  // Active section tracking with persistence across reloads
+  const VALID_SECTIONS = ['overview', 'todo-hub', 'pomodoro-station', 'habit-matrix', 'daily-journal', 'expense-ledger', 'admin-portal'];
+  const [activeSection, setActiveSection] = useState<string>(() => {
+    try {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && VALID_SECTIONS.includes(hash)) return hash;
+      const saved = localStorage.getItem('df_active_section');
+      if (saved && VALID_SECTIONS.includes(saved)) return saved;
+    } catch (e) {}
+    return 'overview';
+  });
+
+  // Keep activeSection synchronized with URL hash & localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('df_active_section', activeSection);
+      if (window.location.hash.replace('#', '') !== activeSection) {
+        window.history.replaceState(null, '', `#${activeSection}`);
+      }
+    } catch (e) {}
+  }, [activeSection]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && VALID_SECTIONS.includes(hash)) {
+        setActiveSection(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Persistent Pomodoro Engine (Runs non-stop across all tabs)
   const {
