@@ -49,13 +49,13 @@ interface CurrencyMeta {
 }
 
 const CURRENCIES: Record<string, CurrencyMeta> = {
-  USD: { symbol: '$', label: 'USD (US Dollar)', rate: 1, prefix: '$' },
-  EUR: { symbol: '€', label: 'EUR (Euro)', rate: 1.08, prefix: '€' },
-  GBP: { symbol: '£', label: 'GBP (British Pound)', rate: 1.26, prefix: '£' },
-  JPY: { symbol: '¥', label: 'JPY (Japanese Yen)', rate: 0.0065, prefix: '¥' },
-  SGD: { symbol: 'S$', label: 'SGD (Singapore Dollar)', rate: 0.74, prefix: 'S$' },
-  AUD: { symbol: 'A$', label: 'AUD (Australian Dollar)', rate: 0.65, prefix: 'A$' },
-  VND: { symbol: '₫', label: 'VND (Vietnamese Dong)', rate: 0.000039, suffix: '₫' },
+  VND: { symbol: '₫', label: 'VND (Vietnamese Dong)', rate: 1, suffix: '₫' },
+  USD: { symbol: '$', label: 'USD (US Dollar)', rate: 25400, prefix: '$' },
+  EUR: { symbol: '€', label: 'EUR (Euro)', rate: 27500, prefix: '€' },
+  GBP: { symbol: '£', label: 'GBP (British Pound)', rate: 32000, prefix: '£' },
+  JPY: { symbol: '¥', label: 'JPY (Japanese Yen)', rate: 165, prefix: '¥' },
+  SGD: { symbol: 'S$', label: 'SGD (Singapore Dollar)', rate: 19000, prefix: 'S$' },
+  AUD: { symbol: 'A$', label: 'AUD (Australian Dollar)', rate: 16500, prefix: 'A$' },
 };
 
 type CurrencyCode = keyof typeof CURRENCIES;
@@ -75,7 +75,23 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
   const [noteInput, setNoteInput] = useState<string>('');
   const [dateInput, setDateInput] = useState<string>(todayStr);
 
-  const [currency, setCurrency] = useState<CurrencyCode>('USD');
+  // Persistent currency state: default to VND and remember user preference across reloads
+  const [currency, setCurrency] = useState<CurrencyCode>(() => {
+    try {
+      const saved = localStorage.getItem('df_expense_currency') as CurrencyCode;
+      if (saved && CURRENCIES[saved]) return saved;
+    } catch (e) {}
+    return 'VND';
+  });
+
+  const handleCurrencyChange = (newCode: CurrencyCode) => {
+    setCurrency(newCode);
+    try {
+      localStorage.setItem('df_expense_currency', newCode);
+      window.dispatchEvent(new Event('df_currency_change'));
+    } catch (e) {}
+  };
+
   const [filterMode, setFilterMode] = useState<'all' | 'monthly'>('monthly');
 
   const currentMonthStr = useMemo(() => {
@@ -365,7 +381,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
             <span className="text-xs text-[#9496a1]">Currency:</span>
             <select
               value={currency}
-              onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+              onChange={(e) => handleCurrencyChange(e.target.value as CurrencyCode)}
               className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
             >
               {Object.entries(CURRENCIES).map(([code, meta]) => (

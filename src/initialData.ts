@@ -95,11 +95,11 @@ export const INITIAL_JOURNAL: DailyJournal[] = [
 ];
 
 export const INITIAL_EXPENSES: PersonalExpense[] = [
-  { id: 'exp1', date: '2026-07-11', amount: 15, category: 'Eating', note: 'Breakfast & Coffee' },
-  { id: 'exp2', date: '2026-07-12', amount: 45, category: 'Entertainment', note: 'Live Concert & Gallery Admission' },
-  { id: 'exp3', date: '2026-07-13', amount: 120, category: 'Study/Equipment', note: 'Design & Motion Masterclass' },
-  { id: 'exp4', date: '2026-07-14', amount: 25, category: 'Transport', note: 'Transit Pass Reload' },
-  { id: 'exp5', date: '2026-07-15', amount: 65, category: 'Eating', note: 'Groceries & Nutrition' }
+  { id: 'exp1', date: '2026-07-11', amount: 120000, category: 'Eating', note: 'Breakfast & Coffee' },
+  { id: 'exp2', date: '2026-07-12', amount: 350000, category: 'Entertainment', note: 'Live Concert & Gallery Admission' },
+  { id: 'exp3', date: '2026-07-13', amount: 1500000, category: 'Study/Equipment', note: 'Design & Motion Masterclass' },
+  { id: 'exp4', date: '2026-07-14', amount: 80000, category: 'Transport', note: 'Transit Pass Reload' },
+  { id: 'exp5', date: '2026-07-15', amount: 210000, category: 'Eating', note: 'Groceries & Nutrition' }
 ];
 
 export const INITIAL_SCRATCHPAD_TEXT = `# Focus & Strategic Notes

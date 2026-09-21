@@ -205,6 +205,40 @@ export default function ExecutiveDashboard({
       .reduce((sum, e) => sum + Math.abs(e.amount), 0);
   }, [monthlyExpenses]);
 
+  // Read persistent currency for financial overview
+  const [dashboardCurrency, setDashboardCurrency] = useState<string>(() => {
+    try {
+      return localStorage.getItem('df_expense_currency') || 'VND';
+    } catch (e) {
+      return 'VND';
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        setDashboardCurrency(localStorage.getItem('df_expense_currency') || 'VND');
+      } catch (e) {}
+    };
+    window.addEventListener('df_currency_change', handleStorageChange);
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('df_currency_change', handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const formatDashboardMoney = (vndAmount: number) => {
+    if (!vndAmount || vndAmount === 0) {
+      return dashboardCurrency === 'USD' ? '$0.00' : '0 ₫';
+    }
+    if (dashboardCurrency === 'USD') {
+      const usd = vndAmount / 25400;
+      return `$${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `${Math.round(vndAmount).toLocaleString('en-US')} ₫`;
+  };
+
   // Handler: Quick add task for today
   const handleQuickAddToday = (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,7 +347,7 @@ export default function ExecutiveDashboard({
             <CreditCard className="w-4 h-4 text-sky-400" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
-            {monthlyTotalSpent > 0 ? `$${monthlyTotalSpent.toLocaleString('en-US')}` : '$0'}
+            {formatDashboardMoney(monthlyTotalSpent)}
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
             <span>{monthlyExpenses.length} transactions recorded</span>
