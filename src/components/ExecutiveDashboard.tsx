@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { GoalTodo, HabitData, DailyJournal, PersonalExpense, TimeframeType, TimeEstimate } from '../types';
 import { calculateGamification } from '../gamification';
 import { UITheme } from '../App';
