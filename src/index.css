@@ -22,6 +22,8 @@
 html, body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div, a, li, th, td {
   font-family: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   letter-spacing: -0.01em;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
 }
 
 h1, h2, h3 {

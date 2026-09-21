@@ -313,7 +313,7 @@ export default function ExecutiveDashboard({
             <CreditCard className="w-4 h-4 text-sky-400" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
-            {monthlyTotalSpent > 0 ? `${monthlyTotalSpent.toLocaleString('en-US')} ₫` : '0 ₫'}
+            {monthlyTotalSpent > 0 ? `$${monthlyTotalSpent.toLocaleString('en-US')}` : '$0'}
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#9496a1]">
             <span>{monthlyExpenses.length} transactions recorded</span>
@@ -460,7 +460,7 @@ export default function ExecutiveDashboard({
                   <div className="flex items-center gap-2.5 pr-2 min-w-0">
                     <div 
                       className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
-                      title="Kéo thả để đổi thứ tự ưu tiên"
+                      title="Drag to reorder priority"
                     >
                       <GripVertical className="w-3.5 h-3.5" />
                     </div>
@@ -560,7 +560,7 @@ export default function ExecutiveDashboard({
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div 
                         className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
-                        title="Kéo thả để đổi thứ tự ưu tiên"
+                        title="Drag to reorder priority"
                       >
                         <GripVertical className="w-3.5 h-3.5" />
                       </div>

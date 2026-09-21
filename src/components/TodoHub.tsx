@@ -144,11 +144,9 @@ export default function TodoHub({
     return { type: tagType, key: tagKey, isToday, isOverdue, displayDate };
   };
 
-  // View mode toggle: Multi-column view vs Notion Table View vs Calendar Grid view vs Weekly/Monthly Review Dashboard
-  const [viewMode, setViewMode] = useState<'columns' | 'table' | 'calendar' | 'review'>('columns');
-
-  // Database View State: Table vs Grouped vs Board (Default: Table view for true Master Database experience)
-  const [databaseSubView, setDatabaseSubView] = useState<'table' | 'grouped' | 'board'>('table');
+  // View mode toggle: Board vs Master Table View vs Grouped View vs Calendar Grid vs Weekly Review
+  type ViewMode = 'board' | 'table' | 'grouped' | 'calendar' | 'review';
+  const [viewMode, setViewMode] = useState<ViewMode>('board');
   const [databaseSearchQuery, setDatabaseSearchQuery] = useState('');
   const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [databasePriorityFilter, setDatabasePriorityFilter] = useState<'all' | PriorityLevel>('all');
@@ -417,23 +415,7 @@ export default function TodoHub({
     return months[idx] || months[today.getMonth()];
   }, [selectedMonth, today]);
 
-  // Filters for Column visibility
-  const [visibleColumns, setVisibleColumns] = useState<Record<TimeframeType, boolean>>({
-    daily: true,
-    weekly: true,
-    monthly: true,
-    yearly: true
-  });
-
-  // Individual column Quick-add input states
-  const [inputs, setInputs] = useState<Record<TimeframeType, string>>({
-    daily: '',
-    weekly: '',
-    monthly: '',
-    yearly: ''
-  });
-
-  // Time Estimate presets per column
+  // Time Estimate presets
   const TIME_ESTIMATES: { value: TimeEstimate; label: string; color: string }[] = [
     { value: '15m', label: '15m', color: 'text-emerald-400' },
     { value: '30m', label: '30m', color: 'text-emerald-400' },
@@ -441,29 +423,6 @@ export default function TodoHub({
     { value: '2h', label: '2h', color: 'text-sky-400' },
     { value: 'half-day', label: '4h', color: 'text-amber-400' },
   ];
-  const [estimates, setEstimates] = useState<Record<TimeframeType, TimeEstimate | ''>>({ daily: '', weekly: '', monthly: '', yearly: '' });
-
-  // B2 — Live Stopwatch Timer State
-  const [activeTimerId, setActiveTimerId] = useState<string | null>(null);
-  const [timerSeconds, setTimerSeconds] = useState<Record<string, number>>({});
-
-  // Timer Tick Effect
-  React.useEffect(() => {
-    if (!activeTimerId) return;
-    const interval = setInterval(() => {
-      setTimerSeconds(prev => ({
-        ...prev,
-        [activeTimerId]: (prev[activeTimerId] || 0) + 1
-      }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [activeTimerId]);
-
-  // C2 — Recurring Tasks State (in-memory toggle)
-  const [recurringTasks, setRecurringTasks] = useState<Record<string, boolean>>({});
-  const toggleRecurring = (id: string) => {
-    setRecurringTasks(prev => ({ ...prev, [id]: !prev[id] }));
-  };
 
   // Inline Editing Goal State
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
@@ -924,309 +883,8 @@ export default function TodoHub({
     setDbQuickAddEstimates(prev => ({ ...prev, [timeframe]: '' }));
   };
 
-  const renderColumn = (
-    timeframe: TimeframeType, 
-    label: string, 
-    accentClass: string, 
-    glowClass: string,
-    barColor: string,
-    activeContextDisplay: string
-  ) => {
-    const list = filteredGoals.filter(g => g.timeframe === timeframe);
-    const { rate } = stats[timeframe];
-    const isThisDailyAndToday = timeframe === 'daily' && isTodayActive;
-
-    return (
-      <div 
-        onDragOver={(e) => handleDbDragOver(e, timeframe)}
-        onDragLeave={(e) => handleDbDragLeave(e, timeframe)}
-        onDrop={(e) => handleDbDropOnColumn(e, timeframe)}
-        className={`flex flex-col justify-between p-4 md:p-5 rounded-2xl min-h-[460px] w-full border transition-all duration-300 glass-panel-true ${
-          dbDragOverColumn === timeframe ? 'border-[#1591DC] bg-[#1591DC]/[0.04]' : ''
-        } ${
-          isThisDailyAndToday ? 'border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.15)]' : ''
-        }`}
-      >
-        
-        <div>
-          {/* Column Header */}
-          <div className="flex justify-between items-baseline mb-3">
-            <h3 className="text-base font-bold tracking-tight text-white flex items-baseline gap-1.5 font-sans">
-              <span>{label} Tasks</span>
-              {isThisDailyAndToday && (
-                <span className="ml-1.5 px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/20 text-emerald-300 font-medium">Today</span>
-              )}
-            </h3>
-            <span className={`text-xs font-mono font-bold ${isThisDailyAndToday ? 'text-emerald-400' : 'text-[#9496a1]'}`}>
-              {rate}% done
-            </span>
-          </div>
-
-          {/* Dynamic Context Tag */}
-          <div className="text-xs text-[#9496a1] mb-2 flex items-center gap-1.5 font-normal">
-            <CalendarIcon className="w-3.5 h-3.5 text-[#1591DC]" />
-            <span>{activeContextDisplay}</span>
-          </div>
-
-          {timeframe === 'weekly' && (
-            <div className="text-[10px] text-zinc-400 font-mono mb-4 uppercase tracking-wider">
-              {weekRangeStr}
-            </div>
-          )}
-
-          {/* Progress Bar Line */}
-          <div className="h-1 w-full bg-black/40 rounded-full mb-6 overflow-hidden border border-white/10">
-            <div 
-              className={`h-full rounded-full transition-all duration-700 ease-out ${barColor}`}
-              style={{ width: `${rate}%` }}
-            />
-          </div>
-
-          {/* Quick Add Form */}
-          <form onSubmit={(e) => handleAdd(e, timeframe)} className="mb-6 space-y-2 w-full">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputs[timeframe]}
-                onChange={(e) => setInputs(prev => ({ ...prev, [timeframe]: e.target.value }))}
-                placeholder={`Add task for ${label.toLowerCase()}...`}
-                className="w-full glass-input-true px-3 py-2 text-xs text-white placeholder-zinc-500 font-sans rounded-xl focus:outline-none"
-              />
-              <button 
-                type="submit"
-                className="p-2 btn-primary-cyan text-white transition-all flex-shrink-0 rounded-xl"
-                title="Add Task"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            
-            {/* Clean Time Estimate Pill Selector */}
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="text-[10px] text-[#9496a1] font-sans font-medium mr-1">Time:</span>
-              {TIME_ESTIMATES.map(({ value, label: lbl }) => {
-                const isSelected = estimates[timeframe] === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setEstimates(prev => ({ ...prev, [timeframe]: isSelected ? '' : value }))}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-medium transition-all ${
-                      isSelected
-                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                        : 'bg-white/[0.03] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/20'
-                    }`}
-                  >
-                    {lbl}
-                  </button>
-                );
-              })}
-            </div>
-          </form>
-
-          {/* To-Do Items List */}
-          <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
-            {list.length === 0 ? (
-              <div className="text-xs text-[#9496a1] py-8 text-center glass-card-true font-medium rounded-xl">
-                No tasks set
-              </div>
-            ) : (
-              list.map(g => {
-                const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
-                const isTimerRunning = activeTimerId === g.id;
-                const secs = timerSeconds[g.id] || 0;
-                const mins = Math.floor(secs / 60);
-                const remainingSecs = secs % 60;
-                const timeStr = `${String(mins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
-                const isRec = recurringTasks[g.id] || g.isRecurring;
-
-                const dateInfo = getGoalDateInfo(g);
-
-                return (
-                  <div 
-                    key={g.id} 
-                    draggable={true}
-                    onDragStart={(e) => handleDbDragStart(e, g.id)}
-                    onDragOver={(e) => handleDbTaskDragOver(e, g.id)}
-                    onDragLeave={(e) => handleDbTaskDragLeave(e, g.id)}
-                    onDrop={(e) => handleDbDropOnTask(e, g.id, timeframe)}
-                    className={`group relative p-3 glass-card-true transition-all rounded-xl select-none ${
-                      dbDragOverTaskId === g.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
-                    } ${
-                      isTimerRunning ? 'border-amber-500/50 bg-amber-500/10' : ''
-                    }`}
-                  >
-                    {/* Action buttons floating at top-right on hover, never squishing text */}
-                    <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-[#14151c]/95 backdrop-blur-md px-1 py-0.5 rounded-lg border border-white/10 shadow-lg">
-                      {/* Notion Side Panel Open Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setActivePanelGoalId(g.id); }}
-                        className="p-1 rounded text-[#9496a1] hover:text-[#1591DC] transition-colors cursor-pointer"
-                        title="Open Details & Sub-tasks"
-                      >
-                        <PanelRightOpen className="w-3.5 h-3.5" />
-                      </button>
-                      {/* Edit Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleStartEditGoal(g); }}
-                        className="p-1 rounded text-[#9496a1] hover:text-white transition-colors cursor-pointer"
-                        title="Edit Task"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Stopwatch Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setActiveTimerId(isTimerRunning ? null : g.id); }}
-                        className={`p-1 rounded transition-colors cursor-pointer ${
-                          isTimerRunning 
-                            ? 'text-amber-400 bg-amber-500/20' 
-                            : 'text-[#9496a1] hover:text-amber-300'
-                        }`}
-                        title={isTimerRunning ? 'Pause Stopwatch' : 'Start Timer'}
-                      >
-                        {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                      </button>
-
-                      {/* Delete Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onDeleteGoal(g.id); }}
-                        className="text-[#9496a1] hover:text-rose-400 transition-colors focus:outline-none p-1 cursor-pointer"
-                        title="Delete Task"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Top row: Grip + Checkbox + Title (Takes entire width!) */}
-                    <div className="flex items-start gap-2.5 w-full">
-                      <div 
-                        className="cursor-grab active:cursor-grabbing mt-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
-                        title="Kéo thả để đổi thứ tự ưu tiên"
-                      >
-                        <GripVertical className="w-3.5 h-3.5" />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => onToggleGoal(g.id, !g.completed)}
-                        className="mt-0.5 text-[#9496a1] hover:text-white transition-colors focus:outline-none shrink-0 cursor-pointer"
-                      >
-                        {g.completed ? (
-                          <CheckSquare className={`w-4 h-4 ${accentClass}`} />
-                        ) : (
-                          <Square className="w-4 h-4 text-[#9496a1]" />
-                        )}
-                      </button>
-                      
-                      <div className="flex-1 min-w-0 pr-1">
-                        {editingGoalId === g.id ? (
-                          <div className="flex items-center gap-1 my-0.5">
-                            <input
-                              type="text"
-                              value={editingGoalText}
-                              onChange={(e) => setEditingGoalText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSaveEditGoal(g.id);
-                                if (e.key === 'Escape') setEditingGoalId(null);
-                              }}
-                              className="w-full glass-input-true px-2 py-1 text-xs text-white rounded"
-                              autoFocus
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleSaveEditGoal(g.id)}
-                              className="p-1 text-emerald-400 text-xs font-bold"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditingGoalId(null)}
-                              className="p-1 text-[#9496a1] hover:text-white text-xs"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <span 
-                            onDoubleClick={() => handleStartEditGoal(g)}
-                            className={`text-xs break-words [word-break:break-word] leading-snug transition-all duration-300 font-medium block cursor-pointer select-text ${
-                              g.completed ? 'text-[#9496a1] line-through' : 'text-[#ededf3]'
-                            }`}
-                            title="Double-click to edit goal"
-                          >
-                            {getDisplayGoalText(g.text)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Dedicated Badges Row (Below Title) */}
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2 pt-1.5 border-t border-white/[0.04]">
-                      {/* Date Badge */}
-                      {dateInfo.displayDate && (
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${
-                          dateInfo.isToday 
-                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold' 
-                            : dateInfo.isOverdue 
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' 
-                              : 'bg-white/[0.04] text-zinc-400 border-white/[0.06]'
-                        }`}>
-                          <Calendar className="w-2.5 h-2.5" />
-                          <span>{dateInfo.displayDate}</span>
-                          {dateInfo.isOverdue && <span className="text-[8px] opacity-75 font-sans">Trễ</span>}
-                        </span>
-                      )}
-
-                      {/* Time Estimate Badge */}
-                      {estMeta && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-sans font-medium text-[#9496a1] bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
-                          <Clock className="w-2.5 h-2.5 text-[#1591DC]" />
-                          <span>{estMeta.label}</span>
-                        </span>
-                      )}
-                      {/* B2 — Live Timer Badge */}
-                      {secs > 0 && (
-                        <span className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-medium ${isTimerRunning ? 'text-amber-400 animate-pulse' : 'text-[#9496a1]'}`}>
-                          <Clock className="w-3 h-3" /> {timeStr}
-                        </span>
-                      )}
-                      {/* C2 — Recurring Badge */}
-                      {isRec && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded">
-                          Auto-Reset
-                        </span>
-                      )}
-                      {/* Sub-tasks Badge */}
-                      {g.subTasks && g.subTasks.length > 0 && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
-                          <ListChecks className="w-3 h-3" /> {g.subTasks.filter(s => s.completed).length}/{g.subTasks.length}
-                        </span>
-                      )}
-                      {/* Notes Indicator Badge */}
-                      {g.notes && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-sans font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded">
-                          <FileText className="w-3 h-3" /> Note
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div id="todo-hub" className="p-6 md:p-8 glass-panel-true mb-12 border border-white/15 shadow-2xl">
+    <div id="todo-hub" className="p-5 sm:p-6 lg:p-7 glass-panel-true mb-12 border border-white/15 shadow-2xl">
       
       {/* Overdue / Incomplete Target Reminder Banner (Slim & Compact) */}
       {!isOverdueBannerDismissed && overdueIncompleteGoals.length > 0 && (
@@ -1234,7 +892,7 @@ export default function TodoHub({
           <div className="flex items-center gap-2">
             <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span className="text-amber-200 font-medium">
-              Bạn có {overdueIncompleteGoals.length} nhiệm vụ chưa hoàn thành từ các ngày trước
+              You have {overdueIncompleteGoals.length} overdue tasks from previous days
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -1244,13 +902,13 @@ export default function TodoHub({
               className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
-              <span>Chuyển sang hôm nay</span>
+              <span>Roll over to Today</span>
             </button>
             <button
               type="button"
               onClick={() => setIsOverdueBannerDismissed(true)}
               className="p-1 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-              title="Đóng thông báo"
+              title="Dismiss notification"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -1262,280 +920,101 @@ export default function TodoHub({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5 border-b border-white/[0.08] pb-3.5">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold tracking-tight text-white font-sans">
-            {viewMode === 'table' ? 'Database' : viewMode === 'calendar' ? 'Calendar' : viewMode === 'review' ? 'Review Protocol' : 'Tasks & Roadmap'}
+            {viewMode === 'board' ? 'Tasks & Roadmap' : viewMode === 'table' ? 'Task Database' : viewMode === 'grouped' ? 'Timeframe Groups' : viewMode === 'calendar' ? 'Calendar' : 'Review Protocol'}
           </h2>
           <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
             {goals.length}
           </span>
         </div>
 
-        {/* View Mode Switcher + Conditional Date Controls */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
-          
-          {/* View Mode Toggle Switch */}
-          <div className="flex items-center glass-pill-true p-1">
-            <button
-              onClick={() => setViewMode('columns')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
-                viewMode === 'columns'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-[#9496a1] hover:text-white'
-              }`}
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Columns</span>
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
-                viewMode === 'table'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-[#9496a1] hover:text-white'
-              }`}
-            >
-              <Kanban className="w-3.5 h-3.5" />
-              <span>Database</span>
-            </button>
-            <button
-              onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
-                viewMode === 'calendar'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-[#9496a1] hover:text-white'
-              }`}
-            >
-              <CalendarDays className="w-3.5 h-3.5" />
-              <span>Calendar</span>
-            </button>
-            <button
-              onClick={() => setViewMode('review')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
-                viewMode === 'review'
-                  ? 'bg-white text-black font-semibold shadow-sm'
-                  : 'text-[#9496a1] hover:text-white'
-              }`}
-            >
-              <Trophy className="w-3.5 h-3.5 text-[#1591DC]" />
-              <span>Review Protocol</span>
-            </button>
-          </div>
-
-          {/* Date Context Dropdowns ONLY in Columns View */}
-          {viewMode === 'columns' && (
-            <div className="flex flex-wrap items-center gap-1.5 glass-pill-true p-1">
-              <div className="flex items-center gap-1 px-2 py-0.5 text-xs text-white">
-                <span className="text-[10px] text-[#9496a1]">Year:</span>
-                <select 
-                  value={selectedYear} 
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
-                >
-                  {['2025', '2026', '2027', '2028'].map(y => <option key={y} value={y} className="bg-[#12141a] text-white">{y}</option>)}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-1 px-2 py-0.5 text-xs text-white">
-                <span className="text-[10px] text-[#9496a1]">Month:</span>
-                <select 
-                  value={selectedMonth} 
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
-                >
-                  {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map(m => (
-                    <option key={m} value={m} className="bg-[#12141a] text-white">{m}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-1 px-2 py-0.5 text-xs text-white">
-                <span className="text-[10px] text-[#9496a1]">Week:</span>
-                <select 
-                  value={selectedWeek} 
-                  onChange={(e) => setSelectedWeek(e.target.value)}
-                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
-                >
-                  {['W1', 'W2', 'W3', 'W4', 'W5'].map(w => <option key={w} value={w} className="bg-[#12141a] text-white">{w.replace('W', 'Week ')}</option>)}
-                </select>
-              </div>
-
-              <div className={`flex items-center gap-1 px-2 py-0.5 text-xs rounded transition-colors ${
-                isTodayActive ? 'bg-emerald-500/20 text-emerald-300 font-semibold' : 'text-white'
-              }`}>
-                <span className="text-[10px] text-[#9496a1]">Day:</span>
-                <select 
-                  value={selectedDay} 
-                  onChange={(e) => setSelectedDay(e.target.value)}
-                  className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
-                >
-                  {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map(d => (
-                    <option key={d} value={d} className="bg-[#12141a] text-white">{d}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
+        {/* View Mode Switcher */}
+        <div className="flex items-center glass-pill-true p-1">
+          <button
+            onClick={() => setViewMode('board')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+              viewMode === 'board'
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-[#9496a1] hover:text-white'
+            }`}
+          >
+            <Kanban className="w-3.5 h-3.5" />
+            <span>Board</span>
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+              viewMode === 'table'
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-[#9496a1] hover:text-white'
+            }`}
+          >
+            <Table className="w-3.5 h-3.5" />
+            <span>Table</span>
+          </button>
+          <button
+            onClick={() => setViewMode('grouped')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+              viewMode === 'grouped'
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-[#9496a1] hover:text-white'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Grouped</span>
+          </button>
+          <button
+            onClick={() => setViewMode('calendar')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+              viewMode === 'calendar'
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-[#9496a1] hover:text-white'
+            }`}
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+            <span>Calendar</span>
+          </button>
+          <button
+            onClick={() => setViewMode('review')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+              viewMode === 'review'
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-[#9496a1] hover:text-white'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5 text-[#1591DC]" />
+            <span>Review Protocol</span>
+          </button>
         </div>
       </div>
 
-      {/* Main View Mode Rendering */}
-      {viewMode === 'columns' ? (
-        <>
-          {/* Columns Visibility Filters */}
-          <div className="flex flex-wrap items-center gap-3 mb-6 p-3 glass-card-true">
-            <span className="text-xs text-[#9496a1] font-medium">
-              Visible columns:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => toggleColumnVisibility('daily')}
-                className={`px-3 py-1 text-xs rounded-full transition-all ${
-                  visibleColumns.daily 
-                    ? 'bg-white/10 text-white font-medium border border-white/20' 
-                    : 'opacity-40 text-[#9496a1]'
-                }`}
-              >
-                Day
-              </button>
-              <button
-                onClick={() => toggleColumnVisibility('weekly')}
-                className={`px-3 py-1 text-xs rounded-full transition-all ${
-                  visibleColumns.weekly 
-                    ? 'bg-white/10 text-white font-medium border border-white/20' 
-                    : 'opacity-40 text-[#9496a1]'
-                }`}
-              >
-                Week
-              </button>
-              <button
-                onClick={() => toggleColumnVisibility('monthly')}
-                className={`px-3 py-1 text-xs rounded-full transition-all ${
-                  visibleColumns.monthly 
-                    ? 'bg-white/10 text-white font-medium border border-white/20' 
-                    : 'opacity-40 text-[#9496a1]'
-                }`}
-              >
-                Month
-              </button>
-              <button
-                onClick={() => toggleColumnVisibility('yearly')}
-                className={`px-3 py-1 text-xs rounded-full transition-all ${
-                  visibleColumns.yearly 
-                    ? 'bg-white/10 text-white font-medium border border-white/20' 
-                    : 'opacity-40 text-[#9496a1]'
-                }`}
-              >
-                Year
-              </button>
-            </div>
-          </div>
-
-          {/* Columns Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {visibleColumns.daily && renderColumn('daily', 'Day', 'text-sky-300', 'glow-sky', 'bg-sky-400', `${selectedYear}-${selectedMonth}-${selectedDay}`)}
-            {visibleColumns.weekly && renderColumn('weekly', 'Week', 'text-purple-300', 'glow-purple', 'bg-purple-400', `${selectedYear}-${selectedMonth}-${selectedWeek}`)}
-            {visibleColumns.monthly && renderColumn('monthly', 'Month', 'text-amber-300', 'glow-amber', 'bg-amber-400', `${selectedYear}-${selectedMonth}`)}
-            {visibleColumns.yearly && renderColumn('yearly', 'Year', 'text-emerald-300', 'glow-emerald', 'bg-emerald-400', `${selectedYear}`)}
-          </div>
-        </>
-      ) : viewMode === 'table' ? (
-        /* Notion Database View Mode: Multi-column Board (Today, This Week, This Month, This Year) + Table Toggle */
-        <div className="space-y-6 animate-fadeIn font-sans">
-          
-          {/* Unified Database Control Bar */}
-          <div className="glass-panel-true p-3.5 md:p-4 rounded-2xl border border-white/15 space-y-3">
-            {/* Row 1: Full-width Search & SubView Switcher */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      {/* Unified Action Bar & Filter Controls (Active in Board, Table, and Grouped views) */}
+      {(viewMode === 'board' || viewMode === 'table' || viewMode === 'grouped') && (
+        <div className="space-y-3 mb-6 animate-fadeIn font-sans">
+          <div className="glass-panel-true p-3 md:p-3.5 rounded-2xl border border-white/10 space-y-2.5">
+            {/* Row 1: Search + Quick Filter Dropdowns + Reset */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+              {/* Search */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-[#9496a1] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[#9496a1] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={databaseSearchQuery}
                   onChange={(e) => setDatabaseSearchQuery(e.target.value)}
-                  placeholder="Tìm kiếm nhiệm vụ theo tên, #tag, ghi chú..."
-                  className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#1591DC] pl-10 pr-9 py-2 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors"
+                  placeholder="Search tasks by title, #tag, notes..."
+                  className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#1591DC] pl-9 pr-8 py-1.5 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors font-sans"
                 />
                 {databaseSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setDatabaseSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-0.5 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-0.5 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* SubView Mode Switcher: Table vs Grouped vs Board */}
-              <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] shrink-0 self-end sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => setDatabaseSubView('table')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    databaseSubView === 'table'
-                      ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                      : 'text-[#9496a1] hover:text-white'
-                  }`}
-                  title="Dạng bảng chi tiết (Table)"
-                >
-                  <Table className="w-3.5 h-3.5" />
-                  <span>Bảng (Table)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDatabaseSubView('grouped')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    databaseSubView === 'grouped'
-                      ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                      : 'text-[#9496a1] hover:text-white'
-                  }`}
-                  title="Phân nhóm theo chu kỳ (Grouped)"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Phân nhóm</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDatabaseSubView('board')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    databaseSubView === 'board'
-                      ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
-                      : 'text-[#9496a1] hover:text-white'
-                  }`}
-                  title="Dạng cột Kanban (Board)"
-                >
-                  <Kanban className="w-3.5 h-3.5" />
-                  <span>Cột (Board)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Row 2: Unified Filter Bar (Timeframe tabs + Status + Priority + Sort + Reset) */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/[0.06] text-xs">
-              {/* Timeframe Quick Tabs */}
-              <div className="flex flex-wrap items-center gap-1">
-                {[
-                  { id: 'all', label: `Tất cả (${goals.length})` },
-                  { id: 'today', label: `Hôm nay (${todayDailyGoalsCount})` },
-                  { id: 'weekly', label: `Tuần này (${goals.filter(g => g.timeframe === 'weekly').length})` },
-                  { id: 'monthly', label: `Tháng này (${goals.filter(g => g.timeframe === 'monthly').length})` },
-                  { id: 'yearly', label: `Năm này (${goals.filter(g => g.timeframe === 'yearly').length})` }
-                ].map(f => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setDatabaseTimeframeFilter(f.id as any)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                      databaseTimeframeFilter === f.id
-                        ? 'bg-white text-black font-semibold shadow-sm'
-                        : 'text-[#9496a1] hover:text-white hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Status, Priority, Sort & Reset Dropdowns */}
+              {/* Filter Group: Status + Priority + Sort + Tags + Reset */}
               <div className="flex flex-wrap items-center gap-2">
                 {/* Status Segmented */}
                 <div className="flex items-center gap-0.5 bg-white/[0.03] p-0.5 rounded-lg border border-white/[0.06]">
@@ -1544,13 +1023,13 @@ export default function TodoHub({
                       key={st}
                       type="button"
                       onClick={() => setDatabaseStatusFilter(st)}
-                      className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                         databaseStatusFilter === st
                           ? 'bg-white/20 text-white font-semibold shadow-sm'
                           : 'text-[#9496a1] hover:text-white'
                       }`}
                     >
-                      {st === 'all' ? 'Tất cả' : st === 'active' ? 'Đang làm' : 'Đã xong'}
+                      {st === 'all' ? 'All' : st === 'active' ? 'Active' : 'Done'}
                     </button>
                   ))}
                 </div>
@@ -1562,13 +1041,13 @@ export default function TodoHub({
                     value={databasePriorityFilter}
                     onChange={(e) => setDatabasePriorityFilter(e.target.value as any)}
                     className="bg-transparent text-[11px] text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Lọc theo độ ưu tiên"
+                    title="Filter by priority"
                   >
-                    <option value="all" className="bg-[#12141a] text-white">Mọi ưu tiên</option>
+                    <option value="all" className="bg-[#12141a] text-white">All Priorities</option>
                     <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
-                    <option value="High" className="bg-[#12141a] text-rose-300">Cao</option>
-                    <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình</option>
-                    <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp</option>
+                    <option value="High" className="bg-[#12141a] text-rose-300">High</option>
+                    <option value="Medium" className="bg-[#12141a] text-sky-300">Medium</option>
+                    <option value="Low" className="bg-[#12141a] text-zinc-400">Low</option>
                   </select>
                 </div>
 
@@ -1579,15 +1058,15 @@ export default function TodoHub({
                     value={databaseSortBy}
                     onChange={(e) => setDatabaseSortBy(e.target.value as any)}
                     className="bg-transparent text-[11px] text-[#ededf3] focus:outline-none cursor-pointer"
-                    title="Sắp xếp danh sách"
+                    title="Sort tasks"
                   >
-                    <option value="manual" className="bg-[#12141a] text-white">Thứ tự kéo thả</option>
-                    <option value="priority-desc" className="bg-[#12141a] text-white">Ưu tiên: Cao → Thấp</option>
-                    <option value="priority-asc" className="bg-[#12141a] text-white">Ưu tiên: Thấp → Cao</option>
-                    <option value="created-desc" className="bg-[#12141a] text-white">Mới nhất trước</option>
-                    <option value="created-asc" className="bg-[#12141a] text-white">Cũ nhất trước</option>
-                    <option value="alpha-asc" className="bg-[#12141a] text-white">Tên: A → Z</option>
-                    <option value="estimate" className="bg-[#12141a] text-white">Ước tính thời gian</option>
+                    <option value="manual" className="bg-[#12141a] text-white">Manual Order</option>
+                    <option value="priority-desc" className="bg-[#12141a] text-white">Priority: High → Low</option>
+                    <option value="priority-asc" className="bg-[#12141a] text-white">Priority: Low → High</option>
+                    <option value="created-desc" className="bg-[#12141a] text-white">Newest First</option>
+                    <option value="created-asc" className="bg-[#12141a] text-white">Oldest First</option>
+                    <option value="alpha-asc" className="bg-[#12141a] text-white">Name: A → Z</option>
+                    <option value="estimate" className="bg-[#12141a] text-white">Time Estimate</option>
                   </select>
                 </div>
 
@@ -1599,9 +1078,9 @@ export default function TodoHub({
                       value={databaseContextFilter}
                       onChange={(e) => setDatabaseContextFilter(e.target.value)}
                       className="bg-transparent text-[11px] text-[#ededf3] focus:outline-none cursor-pointer max-w-[90px] truncate"
-                      title="Lọc theo tag"
+                      title="Filter by tag"
                     >
-                      <option value="all" className="bg-[#12141a] text-white">Mọi tag</option>
+                      <option value="all" className="bg-[#12141a] text-white">All Tags</option>
                       {availableContextTags.map(tag => (
                         <option key={tag} value={tag} className="bg-[#12141a] text-white">#{tag}</option>
                       ))}
@@ -1622,7 +1101,7 @@ export default function TodoHub({
                       setDatabaseSortBy('manual');
                     }}
                     className="px-2 py-1 rounded-lg text-[11px] text-[#9496a1] hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors cursor-pointer flex items-center gap-1"
-                    title="Đặt lại bộ lọc"
+                    title="Reset all filters"
                   >
                     <RefreshCw className="w-3 h-3" />
                     <span>Reset</span>
@@ -1630,78 +1109,106 @@ export default function TodoHub({
                 )}
               </div>
             </div>
+
+            {/* Row 2: Timeframe Quick Tabs */}
+            <div className="flex flex-wrap items-center gap-1 pt-2 border-t border-white/[0.06] text-xs">
+              {[
+                { id: 'all', label: `All (${goals.length})` },
+                { id: 'today', label: `Today (${todayDailyGoalsCount})` },
+                { id: 'weekly', label: `This Week (${goals.filter(g => g.timeframe === 'weekly').length})` },
+                { id: 'monthly', label: `This Month (${goals.filter(g => g.timeframe === 'monthly').length})` },
+                { id: 'yearly', label: `This Year (${goals.filter(g => g.timeframe === 'yearly').length})` }
+              ].map(f => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setDatabaseTimeframeFilter(f.id as any)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    databaseTimeframeFilter === f.id
+                      ? 'bg-white text-black font-semibold shadow-sm'
+                      : 'text-[#9496a1] hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Master Inline Quick-Add Row */}
-          <form 
-            onSubmit={handleMasterQuickAdd}
-            className="glass-panel-true p-2.5 rounded-2xl border border-white/10 flex flex-wrap items-center gap-2 focus-within:border-[#1591DC]/50 transition-colors"
-          >
-            <div className="flex items-center gap-2 flex-1 min-w-[220px]">
-              <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
-                <Plus className="w-3.5 h-3.5" />
+          {/* Master Inline Quick-Add (Only for Table and Grouped view) */}
+          {(viewMode === 'table' || viewMode === 'grouped') && (
+            <form 
+              onSubmit={handleMasterQuickAdd}
+              className="glass-panel-true p-2.5 rounded-2xl border border-white/10 flex flex-wrap items-center gap-2 focus-within:border-[#1591DC]/50 transition-colors"
+            >
+              <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+                <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
+                  <Plus className="w-3.5 h-3.5" />
+                </div>
+                <input
+                  type="text"
+                  value={dbMasterAddTitle}
+                  onChange={(e) => setDbMasterAddTitle(e.target.value)}
+                  placeholder="Quickly add a new task... (Press Enter)"
+                  className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none font-sans"
+                />
               </div>
-              <input
-                type="text"
-                value={dbMasterAddTitle}
-                onChange={(e) => setDbMasterAddTitle(e.target.value)}
-                placeholder="Thêm nhanh nhiệm vụ mới... (Nhấn Enter để lưu)"
-                className="w-full bg-transparent border-none text-xs text-white placeholder-zinc-500 focus:outline-none"
-              />
-            </div>
 
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <select
-                value={dbMasterAddTimeframe}
-                onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
-                className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                title="Khung thời gian"
-              >
-                <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Hôm nay</option>
-                <option value="weekly" className="bg-[#12141a] text-sky-300">📅 Tuần này</option>
-                <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 Tháng này</option>
-                <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ Năm này</option>
-              </select>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <select
+                  value={dbMasterAddTimeframe}
+                  onChange={(e) => setDbMasterAddTimeframe(e.target.value as TimeframeType)}
+                  className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                  title="Timeframe"
+                >
+                  <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Today</option>
+                  <option value="weekly" className="bg-[#12141a] text-sky-300">📅 This Week</option>
+                  <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 This Month</option>
+                  <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ This Year</option>
+                </select>
 
-              <select
-                value={dbMasterAddPriority}
-                onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
-                className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                title="Độ ưu tiên"
-              >
-                <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
-                <option value="High" className="bg-[#12141a] text-rose-300">Cao</option>
-                <option value="Medium" className="bg-[#12141a] text-sky-300">Trung bình</option>
-                <option value="Low" className="bg-[#12141a] text-zinc-400">Thấp</option>
-              </select>
+                <select
+                  value={dbMasterAddPriority}
+                  onChange={(e) => setDbMasterAddPriority(e.target.value as PriorityLevel)}
+                  className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                  title="Priority"
+                >
+                  <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                  <option value="High" className="bg-[#12141a] text-rose-300">High</option>
+                  <option value="Medium" className="bg-[#12141a] text-sky-300">Medium</option>
+                  <option value="Low" className="bg-[#12141a] text-zinc-400">Low</option>
+                </select>
 
-              <select
-                value={dbMasterAddEstimate || ''}
-                onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
-                className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
-                title="Thời gian ước tính"
-              >
-                <option value="" className="bg-[#12141a] text-zinc-400">Thời gian (Tùy chọn)</option>
-                <option value="15m" className="bg-[#12141a] text-white">15 phút</option>
-                <option value="30m" className="bg-[#12141a] text-white">30 phút</option>
-                <option value="1h" className="bg-[#12141a] text-white">1 giờ</option>
-                <option value="2h" className="bg-[#12141a] text-white">2 giờ</option>
-                <option value="half-day" className="bg-[#12141a] text-white">Nửa ngày</option>
-              </select>
+                <select
+                  value={dbMasterAddEstimate || ''}
+                  onChange={(e) => setDbMasterAddEstimate(e.target.value ? (e.target.value as TimeEstimate) : undefined)}
+                  className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
+                  title="Estimated Time"
+                >
+                  <option value="" className="bg-[#12141a] text-zinc-400">Estimate (Optional)</option>
+                  <option value="15m" className="bg-[#12141a] text-white">15 mins</option>
+                  <option value="30m" className="bg-[#12141a] text-white">30 mins</option>
+                  <option value="1h" className="bg-[#12141a] text-white">1 hour</option>
+                  <option value="2h" className="bg-[#12141a] text-white">2 hours</option>
+                  <option value="half-day" className="bg-[#12141a] text-white">Half day</option>
+                </select>
 
-              <button
-                type="submit"
-                disabled={!dbMasterAddTitle.trim()}
-                className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Thêm</span>
-              </button>
-            </div>
-          </form>
+                <button
+                  type="submit"
+                  disabled={!dbMasterAddTitle.trim()}
+                  className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Add</span>
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
 
-          {/* Database Board View: 4 Columns (Today, This Week, This Month, This Year) */}
-          {databaseSubView === 'board' ? (
+      {/* Main View Mode Rendering: Board vs Grouped vs Table vs Calendar vs Review */}
+      {viewMode === 'board' ? (
             <div className={`grid gap-5 ${
               databaseTimeframeFilter !== 'all'
                 ? 'grid-cols-1 max-w-2xl mx-auto'
@@ -1763,7 +1270,7 @@ export default function TodoHub({
                               </span>
                             </h4>
                             <p className="text-[10px] text-[#9496a1] font-normal">
-                              {isDailyCol ? (isTodayOnly ? 'Daily Priorities (Hôm nay)' : `Tất cả việc theo ngày (${allDailyGoalsCount})`) : col.sublabel}
+                              {isDailyCol ? (isTodayOnly ? 'Daily Priorities (Today)' : `All Daily Tasks (${allDailyGoalsCount})`) : col.sublabel}
                             </p>
                           </div>
                         </div>
@@ -1791,7 +1298,7 @@ export default function TodoHub({
                                   : 'text-[#9496a1] hover:text-white'
                               }`}
                             >
-                              Hôm nay ({todayDailyGoalsCount})
+                              Today ({todayDailyGoalsCount})
                             </button>
                             <button
                               type="button"
@@ -1802,7 +1309,7 @@ export default function TodoHub({
                                   : 'text-[#9496a1] hover:text-white'
                               }`}
                             >
-                              Tất cả ({allDailyGoalsCount})
+                              All Days ({allDailyGoalsCount})
                             </button>
                           </div>
                         </div>
@@ -1869,26 +1376,6 @@ export default function TodoHub({
 
                     {/* Task Cards Container */}
                     <div className="p-3 flex-1 overflow-y-auto max-h-[580px] space-y-2">
-                      {/* Overdue rollover banner for Today view */}
-                      {isTodayOnly && overdueIncompleteGoals.length > 0 && (
-                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2 text-xs">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                            <span className="text-[11px] text-amber-300 font-medium truncate">
-                              {overdueIncompleteGoals.length} việc từ ngày cũ
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleRolloverOverdueGoals}
-                            className="px-2 py-0.5 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[10px] font-semibold transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
-                            title="Chuyển tất cả việc ngày cũ sang hôm nay"
-                          >
-                            <RefreshCw className="w-2.5 h-2.5" />
-                            <span>Chuyển sang hôm nay</span>
-                          </button>
-                        </div>
-                      )}
 
                       {sortedColGoals.length === 0 ? (
                         <div className="py-12 px-3 text-center rounded-xl border border-dashed border-white/[0.08] text-[#9496a1] space-y-1">
@@ -1950,7 +1437,7 @@ export default function TodoHub({
                               <div className="flex items-start gap-2.5 w-full pr-1">
                                 <div 
                                   className="mt-0.5 text-zinc-600 group-hover:text-zinc-400 shrink-0 cursor-grab active:cursor-grabbing" 
-                                  title="Kéo thả để đổi thứ tự ưu tiên"
+                                  title="Drag to reorder priority"
                                 >
                                   <GripVertical className="w-3.5 h-3.5" />
                                 </div>
@@ -1969,7 +1456,7 @@ export default function TodoHub({
                                 </button>
 
                                 <div className="min-w-0 flex-1">
-                                  <span className={`text-xs font-medium block leading-snug break-words [word-break:break-word] ${
+                                  <span className={`text-xs font-medium block leading-relaxed [text-wrap:pretty] [overflow-wrap:break-word] [word-break:normal] ${
                                     g.completed ? 'line-through text-[#9496a1]' : 'text-white'
                                   }`}>
                                     {cleanText}
@@ -1984,42 +1471,27 @@ export default function TodoHub({
                                   const dateInfo = getGoalDateInfo(g);
                                   if (!dateInfo.displayDate) return null;
                                   return (
-                                    <span className={`px-1.5 py-0.5 rounded-full border flex items-center gap-1 font-mono text-[9px] ${
+                                    <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-medium ${
                                       dateInfo.isToday
                                         ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold'
                                         : dateInfo.isOverdue
                                           ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-medium'
                                           : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                                     }`}>
-                                      <Calendar className="w-2.5 h-2.5" />
-                                      <span>{dateInfo.displayDate}</span>
-                                      {dateInfo.isOverdue && <span className="text-[8px] opacity-80 font-sans">Trễ</span>}
+                                      {dateInfo.displayDate}
                                     </span>
                                   );
                                 })()}
 
                                 {/* Priority Badge */}
-                                {prio === 'The One Thing' && (
-                                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold flex items-center gap-1">
-                                    <Zap className="w-2.5 h-2.5" />
-                                    <span>The One Thing</span>
-                                  </span>
-                                )}
-                                {prio === 'High' && (
-                                  <span className="px-1.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
-                                    High
-                                  </span>
-                                )}
-                                {prio === 'Medium' && (
-                                  <span className="px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">
-                                    Medium
-                                  </span>
-                                )}
-                                {prio === 'Low' && (
-                                  <span className="px-1.5 py-0.5 rounded-full bg-white/[0.04] text-zinc-400 border border-white/[0.06] font-medium">
-                                    Low
-                                  </span>
-                                )}
+                                <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-semibold ${
+                                  prio === 'The One Thing' ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                    : prio === 'High' ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                                    : prio === 'Medium' ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                                    : 'bg-zinc-800/80 text-zinc-400 border-zinc-700/50'
+                                }`}>
+                                  {prio}
+                                </span>
 
                                 {/* Time Estimate Badge */}
                                 {estMeta && (
@@ -2062,7 +1534,7 @@ export default function TodoHub({
                                       handleStartFocus(g.id);
                                     }}
                                     className="p-1 rounded hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
-                                    title="Tập trung Pomodoro với task này"
+                                    title="Start Pomodoro Focus on this task"
                                   >
                                     <Flame className="w-3 h-3" />
                                   </button>
@@ -2077,7 +1549,7 @@ export default function TodoHub({
                 );
               })}
             </div>
-          ) : databaseSubView === 'grouped' ? (
+          ) : viewMode === 'grouped' ? (
             /* Database Grouped View Mode: Clean Collapsible Timeframe Groups */
             <div className="space-y-4">
               {/* Collapsible Timeframe Groups */}
@@ -2143,7 +1615,7 @@ export default function TodoHub({
                       <div className="p-2 sm:p-3">
                         {colGoals.length === 0 ? (
                           <div className="py-6 text-center text-xs text-[#9496a1]">
-                            Chưa có nhiệm vụ nào trong mục này.
+                            No tasks in this section.
                           </div>
                         ) : (
                           <div className="overflow-x-auto">
@@ -2152,12 +1624,12 @@ export default function TodoHub({
                                 <tr className="border-b border-white/[0.06] text-[11px] text-[#9496a1]">
                                   <th className="py-2 px-2 w-8 text-center"></th>
                                   <th className="py-2 px-3 w-12 text-center font-medium">Status</th>
-                                  <th className="py-2 px-3 font-medium">Nhiệm vụ</th>
-                                  <th className="py-2 px-3 w-28 font-medium">Ưu tiên</th>
-                                  <th className="py-2 px-3 w-24 font-medium">Thời gian</th>
+                                  <th className="py-2 px-3 font-medium">Task Name</th>
+                                  <th className="py-2 px-3 w-28 font-medium">Priority</th>
+                                  <th className="py-2 px-3 w-24 font-medium">Time Est</th>
                                   <th className="py-2 px-3 w-20 font-medium">Sub-tasks</th>
                                   <th className="py-2 px-3 w-20 text-center font-medium">Focus</th>
-                                  <th className="py-2 px-3 w-20 text-right font-medium">Thao tác</th>
+                                  <th className="py-2 px-3 w-20 text-right font-medium">Actions</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-white/[0.03] text-xs text-[#ededf3]">
@@ -2217,7 +1689,7 @@ export default function TodoHub({
                                           type="button"
                                           onClick={() => handleStartFocus(g.id)}
                                           className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
-                                          title="Bắt đầu Pomodoro Focus với task này"
+                                          title="Start Pomodoro Focus on this task"
                                         >
                                           <Flame className="w-3 h-3 text-amber-400 group-hover/btn:scale-110 transition-transform" />
                                           <span className="text-[10px] font-semibold">Focus</span>
@@ -2229,7 +1701,7 @@ export default function TodoHub({
                                             type="button"
                                             onClick={() => setActivePanelGoalId(g.id)}
                                             className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded cursor-pointer"
-                                            title="Chi tiết & Ghi chú"
+                                            title="Task Details & Notes"
                                           >
                                             <SlidersHorizontal className="w-3.5 h-3.5" />
                                           </button>
@@ -2237,7 +1709,7 @@ export default function TodoHub({
                                             type="button"
                                             onClick={() => handleDelete(g.id)}
                                             className="p-1 text-[#9496a1] hover:text-rose-400 glass-button-true rounded cursor-pointer"
-                                            title="Xoá task"
+                                            title="Delete task"
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
                                           </button>
@@ -2256,7 +1728,7 @@ export default function TodoHub({
                 );
               })}
             </div>
-          ) : (
+          ) : viewMode === 'table' ? (
             /* Database Master Table View Mode (High Density, Linear/Notion Style) */
             <div className="glass-panel-true border border-white/10 rounded-2xl overflow-hidden shadow-xl">
               {/* Master Spreadsheet Table */}
@@ -2280,7 +1752,7 @@ export default function TodoHub({
                     {filteredDatabaseGoals.length === 0 ? (
                       <tr>
                         <td colSpan={10} className="text-center py-10 text-[#9496a1] text-xs">
-                          Không có task nào khớp với bộ lọc. Sử dụng thanh thêm nhanh ở trên để thêm task mới.
+                          No tasks match the active filters. Use the quick-add bar above to add a new task.
                         </td>
                       </tr>
                     ) : (
@@ -2313,7 +1785,7 @@ export default function TodoHub({
                             <td className="py-3 px-2 text-center" onClick={e => e.stopPropagation()}>
                               <div 
                                 className="text-zinc-600 group-hover:text-zinc-400 cursor-grab active:cursor-grabbing flex justify-center" 
-                                title="Kéo thả để đổi thứ tự ưu tiên"
+                                title="Drag to reorder priority"
                               >
                                 <GripVertical className="w-3.5 h-3.5" />
                               </div>
@@ -2335,7 +1807,7 @@ export default function TodoHub({
                                   {cleanText}
                                 </span>
                                 {g.notes && (
-                                  <FileText className="w-3 h-3 text-[#9496a1]" title="Có ghi chú" />
+                                  <FileText className="w-3 h-3 text-[#9496a1]" title="Has notes" />
                                 )}
                               </div>
                             </td>
@@ -2392,7 +1864,7 @@ export default function TodoHub({
                                 type="button"
                                 onClick={() => handleStartFocus(g.id)}
                                 className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
-                                title="Bắt đầu Pomodoro Focus với task này"
+                                title="Start Pomodoro Focus on this task"
                               >
                                 <Flame className="w-3.5 h-3.5 text-amber-400 group-hover/btn:scale-110 transition-transform" />
                                 <span className="text-[10px] font-semibold">Focus</span>
@@ -2427,10 +1899,7 @@ export default function TodoHub({
                 </table>
               </div>
             </div>
-          )}
-
-        </div>
-      ) : viewMode === 'calendar' ? (
+          ) : viewMode === 'calendar' ? (
         /* Notion-Style Drag-and-Drop Calendar View Mode */
         <div className="space-y-4 animate-fadeIn font-sans">
           {/* Calendar Navigation & Quick Add Header */}

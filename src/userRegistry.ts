@@ -33,7 +33,7 @@ export const DEFAULT_ADMIN: UserAccount = {
   id: 'usr_admin_001',
   email: 'work.xuanphuc@gmail.com',
   password: 'toantin1',
-  name: 'Xuan Phuc',
+  name: 'Thomas Nguyen',
   role: 'admin',
   tier: 'VIP',
   status: 'active',
@@ -53,7 +53,7 @@ export const INITIAL_USERS: UserAccount[] = [
     tier: 'Standard',
     status: 'active',
     createdAt: 1724100000000,
-    pricePaid: 399000
+    pricePaid: 49
   }
 ];
 

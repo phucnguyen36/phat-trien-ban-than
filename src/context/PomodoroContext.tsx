@@ -380,10 +380,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const notifyUserOnComplete = (finishedMode: TimerMode) => {
     if ('Notification' in window && Notification.permission === 'granted') {
-      const title = finishedMode === 'focus' ? '🎯 Pomodoro Hoàn Thành!' : '⚡ Hết Giờ Nghỉ!';
+      const title = finishedMode === 'focus' ? '🎯 Pomodoro Completed!' : '⚡ Break Ended!';
       const body = finishedMode === 'focus'
-        ? 'Tuyệt vời! Bạn đã hoàn thành một phiên làm việc sâu. Hãy nghỉ ngơi 5 phút.'
-        : 'Thời gian nghỉ đã hết. Sẵn sàng cho phiên tập trung tiếp theo chưa?';
+        ? 'Great session! You completed a deep focus block. Take a well-deserved break.'
+        : 'Break is over. Ready for your next deep work session?';
       try {
         new Notification(title, {
           body,

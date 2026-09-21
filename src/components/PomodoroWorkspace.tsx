@@ -154,8 +154,7 @@ export default function PomodoroWorkspace({
   const deepWorkHabit = useMemo(() => {
     return habits.find(h => 
       h.habitName.toLowerCase().includes('deep work') || 
-      h.habitName.toLowerCase().includes('focus') ||
-      h.habitName.toLowerCase().includes('tập trung')
+      h.habitName.toLowerCase().includes('focus')
     ) || habits[0] || null;
   }, [habits]);
 

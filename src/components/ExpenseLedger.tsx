@@ -49,13 +49,13 @@ interface CurrencyMeta {
 }
 
 const CURRENCIES: Record<string, CurrencyMeta> = {
-  VND: { symbol: '₫', label: 'VND (Vietnamese Dong)', rate: 1, suffix: '₫' },
-  USD: { symbol: '$', label: 'USD (US Dollar)', rate: 25400, prefix: '$' },
-  EUR: { symbol: '€', label: 'EUR (Euro)', rate: 27500, prefix: '€' },
-  GBP: { symbol: '£', label: 'GBP (British Pound)', rate: 32000, prefix: '£' },
-  JPY: { symbol: '¥', label: 'JPY (Japanese Yen)', rate: 165, prefix: '¥' },
-  SGD: { symbol: 'S$', label: 'SGD (Singapore Dollar)', rate: 19000, prefix: 'S$' },
-  AUD: { symbol: 'A$', label: 'AUD (Australian Dollar)', rate: 16500, prefix: 'A$' },
+  USD: { symbol: '$', label: 'USD (US Dollar)', rate: 1, prefix: '$' },
+  EUR: { symbol: '€', label: 'EUR (Euro)', rate: 1.08, prefix: '€' },
+  GBP: { symbol: '£', label: 'GBP (British Pound)', rate: 1.26, prefix: '£' },
+  JPY: { symbol: '¥', label: 'JPY (Japanese Yen)', rate: 0.0065, prefix: '¥' },
+  SGD: { symbol: 'S$', label: 'SGD (Singapore Dollar)', rate: 0.74, prefix: 'S$' },
+  AUD: { symbol: 'A$', label: 'AUD (Australian Dollar)', rate: 0.65, prefix: 'A$' },
+  VND: { symbol: '₫', label: 'VND (Vietnamese Dong)', rate: 0.000039, suffix: '₫' },
 };
 
 type CurrencyCode = keyof typeof CURRENCIES;
@@ -75,7 +75,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
   const [noteInput, setNoteInput] = useState<string>('');
   const [dateInput, setDateInput] = useState<string>(todayStr);
 
-  const [currency, setCurrency] = useState<CurrencyCode>('VND');
+  const [currency, setCurrency] = useState<CurrencyCode>('USD');
   const [filterMode, setFilterMode] = useState<'all' | 'monthly'>('monthly');
 
   const currentMonthStr = useMemo(() => {

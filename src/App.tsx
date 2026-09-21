@@ -436,7 +436,7 @@ export default function App() {
       try { return JSON.parse(saved); } catch (e) { /* use default */ }
     }
     return {
-      name: 'Xuan Phuc',
+      name: 'Thomas Nguyen',
       role: 'Creative Director & Designer',
       bio: 'Focus, clean aesthetics, and deliberate consistency.',
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
@@ -1099,7 +1099,7 @@ export default function App() {
 
       {/* 1. CLEAN STICKY HEADER (Thomas Nguyen & Swiss Studio Standard) */}
       <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
-        <div className="max-w-[1240px] mx-auto w-full flex justify-between items-center gap-4">
+        <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto w-full flex justify-between items-center gap-4">
           
           {/* Studio Avatar & Brand Mark */}
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveSection('overview')}>
@@ -1230,7 +1230,7 @@ export default function App() {
       </header>
 
       {/* 2. MAIN WORKSPACE PANELS */}
-      <main className="flex-1 w-full max-w-[1240px] mx-auto px-4 sm:px-6 md:px-8 py-8 z-10 transition-all duration-300">
+      <main className="flex-1 w-full max-w-[1760px] 2xl:max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 py-6 z-10 transition-all duration-300">
 
         {/* Mobile Horizontal Quick Navigation Tabs */}
         {!isLoading && (
@@ -1263,7 +1263,7 @@ export default function App() {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
+        <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
           
           {/* Re-open Sidebar Button for Desktop when collapsed */}
           {!isLoading && !isSidebarOpen && (
@@ -1523,7 +1523,7 @@ export default function App() {
 
       {/* MINIMAL CLEAN STUDIO FOOTER (Thomas Nguyen Standard) */}
       <footer className="border-t border-white/[0.06] bg-[#0b0c10] py-8 px-6 md:px-12 mt-20 relative z-20">
-        <div className="max-w-[1240px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#9496a1] font-sans">
             &copy; 2026 Thomas Nguyen. All rights reserved.
           </p>
@@ -2127,7 +2127,7 @@ export default function App() {
               type="button"
               onClick={toggleTimer}
               className="p-1 rounded-lg hover:bg-white/10 text-white transition-colors cursor-pointer"
-              title="Tạm dừng / Tiếp tục"
+              title="Pause / Resume"
             >
               <Pause className="w-3.5 h-3.5" />
             </button>
@@ -2135,9 +2135,9 @@ export default function App() {
               type="button"
               onClick={() => setActiveSection('pomodoro-station')}
               className="px-2 py-1 rounded-lg bg-[#1591DC]/20 hover:bg-[#1591DC]/30 text-[#1591DC] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-              title="Mở Workspace Pomodoro"
+              title="Open Pomodoro Station"
             >
-              <span>Mở</span>
+              <span>Open</span>
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
