@@ -54,6 +54,7 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
     isRunning,
     durations,
     sessionsCompleted,
+    todaySessions,
     toggleTimer,
     resetTimer,
     switchMode,
@@ -198,11 +199,15 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
               <ModeIcon className="w-3.5 h-3.5 text-[#1591DC]" />
               <span className="text-xs font-semibold text-white">Focus Timer</span>
             </div>
-            {sessionsCompleted > 0 && (
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-medium">
-                {sessionsCompleted} pomodoros done
+            {todaySessions.filter(s => s.mode === 'focus').length > 0 ? (
+              <span className="text-[10px] text-[#1591DC] bg-[#1591DC]/15 px-2 py-0.5 rounded-full font-semibold">
+                {todaySessions.filter(s => s.mode === 'focus').length} today
               </span>
-            )}
+            ) : sessionsCompleted > 0 ? (
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-medium">
+                {sessionsCompleted} done
+              </span>
+            ) : null}
           </div>
 
           {/* Mode Switcher Buttons */}

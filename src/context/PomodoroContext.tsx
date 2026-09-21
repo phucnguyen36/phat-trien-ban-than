@@ -11,9 +11,19 @@ export type AmbientSoundType = 'off' | 'brown' | 'white' | 'rain' | 'binaural';
 export interface FocusSessionRecord {
   id: string;
   timestamp: number;
+  dateStr: string; // YYYY-MM-DD
   durationMinutes: number;
   taskTitle: string;
   mode: TimerMode;
+}
+
+export interface DailyFocusSummary {
+  dateStr: string;           // "YYYY-MM-DD"
+  displayDate: string;       // e.g. "Today (Sep 21)" or "Yesterday (Sep 20)"
+  dayOfWeek: string;         // "Mon", "Tue", etc.
+  totalSessions: number;     // number of focus sessions
+  totalFocusMinutes: number; // total duration in minutes
+  sessions: FocusSessionRecord[];
 }
 
 interface PomodoroContextType {
@@ -23,7 +33,10 @@ interface PomodoroContextType {
   totalSessionSeconds: number;
   durations: Record<TimerMode, number>;
   activeFocusGoalId: string | null;
+  activeTaskTitle: string | null;
+  allSessions: FocusSessionRecord[];
   todaySessions: FocusSessionRecord[];
+  dailyFocusSummaries: DailyFocusSummary[];
   ambientSound: AmbientSoundType;
   ambientVolume: number;
   isZenMode: boolean;
@@ -39,6 +52,16 @@ interface PomodoroContextType {
   switchMode: (newMode: TimerMode, customMins?: number) => void;
   setModeDuration: (newMode: TimerMode, minutes: number) => void;
   setActiveFocusGoalId: (id: string | null) => void;
+  setActiveTaskTitle: (title: string | null) => void;
+  addFocusSession: (session: {
+    dateStr?: string;
+    durationMinutes: number;
+    taskTitle?: string;
+    mode?: TimerMode;
+    timestamp?: number;
+  }) => void;
+  deleteFocusSession: (sessionId: string) => void;
+  clearFocusHistory: () => void;
   setAmbientSound: (type: AmbientSoundType) => void;
   setAmbientVolume: (vol: number) => void;
   setIsZenMode: (val: boolean | ((prev: boolean) => boolean)) => void;
@@ -107,9 +130,127 @@ export const playPomodoroAlarmChime = () => {
   }
 };
 
+// Helper: get local date string YYYY-MM-DD
+export const getLocalDateStr = (d: Date = new Date()): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper: format date for display
+export const formatDisplayDate = (dateStr: string, todayStr: string): { displayDate: string; dayOfWeek: string } => {
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const targetDate = new Date(year, month - 1, day);
+    
+    const today = new Date();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffDays = Math.round((todayDate.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthDay = targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    let displayDate = `${dayOfWeek}, ${monthDay}`;
+    if (diffDays === 0) {
+      displayDate = `Today (${monthDay})`;
+    } else if (diffDays === 1) {
+      displayDate = `Yesterday (${monthDay})`;
+    }
+
+    return { displayDate, dayOfWeek };
+  } catch (e) {
+    return { displayDate: dateStr, dayOfWeek: '' };
+  }
+};
+
+// Seed realistic recent past focus blocks so the user immediately sees a functional history
+const generateInitialSessions = (): FocusSessionRecord[] => {
+  const sessions: FocusSessionRecord[] = [];
+  const now = new Date();
+  
+  const pastDays = [
+    {
+      daysAgo: 0,
+      sessions: [
+        { task: 'Deep Focus OS Architecture Review', mins: 25, hour: 9, min: 30 },
+        { task: 'Executive Dashboard Widget Styling', mins: 25, hour: 11, min: 0 },
+        { task: 'Kanban Board Drag & Drop Polish', mins: 25, hour: 14, min: 15 },
+      ]
+    },
+    {
+      daysAgo: 1,
+      sessions: [
+        { task: 'Client Video Motion Delivery', mins: 45, hour: 9, min: 0 },
+        { task: 'Design Token System Definition', mins: 25, hour: 10, min: 30 },
+        { task: 'Audio Soundscape Synthesizer Tuning', mins: 25, hour: 14, min: 0 },
+        { task: 'Full English Localization Sweep', mins: 50, hour: 16, min: 15 },
+      ]
+    },
+    {
+      daysAgo: 2,
+      sessions: [
+        { task: 'Product Strategy & Revenue Model', mins: 25, hour: 10, min: 0 },
+        { task: 'Notion Database Sync Schema', mins: 45, hour: 13, min: 30 },
+        { task: 'Weekly Performance Review', mins: 25, hour: 16, min: 0 },
+      ]
+    },
+    {
+      daysAgo: 3,
+      sessions: [
+        { task: 'Landing Page Hero Copywriting', mins: 25, hour: 9, min: 15 },
+        { task: 'Habit Matrix Streaks Algorithm', mins: 25, hour: 10, min: 30 },
+        { task: 'High-Impact Client Milestone Delivery', mins: 50, hour: 13, min: 45 },
+        { task: 'Code Cleanup & Dead Code Removal', mins: 25, hour: 15, min: 30 },
+        { task: 'Speed & Bundle Optimization', mins: 25, hour: 17, min: 0 },
+      ]
+    },
+    {
+      daysAgo: 4,
+      sessions: [
+        { task: 'Morning Meditation & Diaphragmatic Prep', mins: 25, hour: 9, min: 0 },
+        { task: 'Personal Expense Ledger Integration', mins: 45, hour: 14, min: 30 },
+      ]
+    },
+    {
+      daysAgo: 5,
+      sessions: [
+        { task: 'Deep Work Protocol Planning', mins: 25, hour: 10, min: 0 },
+        { task: 'Multi-device Responsiveness Audit', mins: 50, hour: 11, min: 30 },
+        { task: 'Swiss Dark Theme Typography Tokens', mins: 25, hour: 15, min: 0 },
+      ]
+    },
+    {
+      daysAgo: 6,
+      sessions: [
+        { task: 'Weekly Sprint Backlog Grooming', mins: 25, hour: 10, min: 30 },
+        { task: 'System Architecture Documentation', mins: 45, hour: 14, min: 0 },
+      ]
+    }
+  ];
+
+  pastDays.forEach(({ daysAgo, sessions: daySessions }) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo);
+    const dateStr = getLocalDateStr(d);
+    daySessions.forEach((s, idx) => {
+      const ts = new Date(d.getFullYear(), d.getMonth(), d.getDate(), s.hour, s.min).getTime();
+      sessions.push({
+        id: `sess_${dateStr}_${idx}`,
+        timestamp: ts,
+        dateStr,
+        durationMinutes: s.mins,
+        taskTitle: s.task,
+        mode: 'focus'
+      });
+    });
+  });
+
+  return sessions;
+};
+
 export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Today date string
-  const todayDateStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  // Today date string in local timezone
+  const todayDateStr = useMemo(() => getLocalDateStr(), []);
 
   // Mode & Durations with Persistence across reloads
   const [mode, setMode] = useState<TimerMode>(() => {
@@ -181,15 +322,89 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     return localStorage.getItem('df_active_focus_goal_id') || null;
   });
 
-  // Today sessions history
-  const [todaySessions, setTodaySessions] = useState<FocusSessionRecord[]>(() => {
+  // Active task title (for auto labeling completed sessions)
+  const [activeTaskTitle, setActiveTaskTitle] = useState<string | null>(null);
+  const activeTaskTitleRef = useRef<string | null>(null);
+  useEffect(() => {
+    activeTaskTitleRef.current = activeTaskTitle;
+  }, [activeTaskTitle]);
+
+  // All historical sessions across all dates with fallback & migration
+  const [allSessions, setAllSessions] = useState<FocusSessionRecord[]>(() => {
     try {
-      const saved = localStorage.getItem(`df_focus_history_${todayDateStr}`);
-      return saved ? JSON.parse(saved) : [];
+      const savedAll = localStorage.getItem('df_all_focus_sessions');
+      if (savedAll) {
+        const parsed = JSON.parse(savedAll);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((s: any) => ({
+            ...s,
+            dateStr: s.dateStr || getLocalDateStr(new Date(s.timestamp || Date.now()))
+          }));
+        }
+      }
+      // Check legacy single-day key
+      const legacyKey = `df_focus_history_${getLocalDateStr()}`;
+      const savedLegacy = localStorage.getItem(legacyKey);
+      if (savedLegacy) {
+        const parsedLegacy = JSON.parse(savedLegacy);
+        if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
+          const withDate = parsedLegacy.map((s: any) => ({
+            ...s,
+            dateStr: s.dateStr || getLocalDateStr()
+          }));
+          return withDate;
+        }
+      }
+      return generateInitialSessions();
     } catch (e) {
-      return [];
+      return generateInitialSessions();
     }
   });
+
+  // Derived today's sessions list
+  const todaySessions = useMemo(() => {
+    return allSessions.filter(s => (s.dateStr || getLocalDateStr(new Date(s.timestamp))) === todayDateStr);
+  }, [allSessions, todayDateStr]);
+
+  // Derived daily focus summaries (aggregated by date, sorted newest first)
+  const dailyFocusSummaries = useMemo<DailyFocusSummary[]>(() => {
+    const map = new Map<string, FocusSessionRecord[]>();
+
+    allSessions.forEach(session => {
+      const d = session.dateStr || getLocalDateStr(new Date(session.timestamp));
+      if (!map.has(d)) {
+        map.set(d, []);
+      }
+      map.get(d)!.push(session);
+    });
+
+    if (!map.has(todayDateStr)) {
+      map.set(todayDateStr, []);
+    }
+
+    const summaries: DailyFocusSummary[] = [];
+    const sortedDates = Array.from(map.keys()).sort((a, b) => b.localeCompare(a));
+
+    sortedDates.forEach(dateStr => {
+      const sessions = map.get(dateStr)!;
+      sessions.sort((a, b) => b.timestamp - a.timestamp);
+      const focusSessions = sessions.filter(s => s.mode === 'focus');
+      const totalSessions = focusSessions.length;
+      const totalFocusMinutes = focusSessions.reduce((sum, s) => sum + s.durationMinutes, 0);
+      const { displayDate, dayOfWeek } = formatDisplayDate(dateStr, todayDateStr);
+
+      summaries.push({
+        dateStr,
+        displayDate,
+        dayOfWeek,
+        totalSessions,
+        totalFocusMinutes,
+        sessions
+      });
+    });
+
+    return summaries;
+  }, [allSessions, todayDateStr]);
 
   // Sessions count
   const [sessionsCompleted, setSessionsCompleted] = useState<number>(() => {
@@ -233,12 +448,13 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, [activeFocusGoalId]);
 
-  // Sync todaySessions to localStorage
+  // Sync allSessions & todaySessions to localStorage
   useEffect(() => {
     try {
+      localStorage.setItem('df_all_focus_sessions', JSON.stringify(allSessions));
       localStorage.setItem(`df_focus_history_${todayDateStr}`, JSON.stringify(todaySessions));
     } catch (e) {}
-  }, [todaySessions, todayDateStr]);
+  }, [allSessions, todaySessions, todayDateStr]);
 
   // Ambient sound volume sync
   useEffect(() => {
@@ -417,13 +633,14 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         // Record history
         const completedMins = Math.round(totalSessionSeconds / 60);
         const newRecord: FocusSessionRecord = {
-          id: 's_' + Math.random().toString(36).substring(2, 9),
+          id: 's_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
           timestamp: Date.now(),
+          dateStr: getLocalDateStr(),
           durationMinutes: completedMins,
-          taskTitle: 'Deep Work Session',
+          taskTitle: activeTaskTitleRef.current || 'Deep Work Session',
           mode
         };
-        setTodaySessions(prev => [newRecord, ...prev]);
+        setAllSessions(prev => [newRecord, ...prev]);
 
         // Auto transition to next mode
         if (mode === 'focus') {
@@ -453,6 +670,42 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     const interval = setInterval(checkTime, 250);
     return () => clearInterval(interval);
   }, [isRunning, targetEndTime, mode, totalSessionSeconds, durations, sessionsCompleted]);
+
+  // Manual session actions
+  const addFocusSession = (data: {
+    dateStr?: string;
+    durationMinutes: number;
+    taskTitle?: string;
+    mode?: TimerMode;
+    timestamp?: number;
+  }) => {
+    const targetDate = data.dateStr || getLocalDateStr();
+    const ts = data.timestamp || Date.now();
+    const newRecord: FocusSessionRecord = {
+      id: 'manual_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+      timestamp: ts,
+      dateStr: targetDate,
+      durationMinutes: data.durationMinutes || 25,
+      taskTitle: data.taskTitle?.trim() || 'Deep Work Session',
+      mode: data.mode || 'focus'
+    };
+    setAllSessions(prev => [newRecord, ...prev]);
+    if (data.mode !== 'short_break' && data.mode !== 'long_break') {
+      const updatedCount = sessionsCompleted + 1;
+      setSessionsCompleted(updatedCount);
+      try {
+        localStorage.setItem('df_pomo_sessions', String(updatedCount));
+      } catch (e) {}
+    }
+  };
+
+  const deleteFocusSession = (sessionId: string) => {
+    setAllSessions(prev => prev.filter(s => s.id !== sessionId));
+  };
+
+  const clearFocusHistory = () => {
+    setAllSessions([]);
+  };
 
   // Tab Title updates
   useEffect(() => {
@@ -543,7 +796,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         totalSessionSeconds,
         durations,
         activeFocusGoalId,
+        activeTaskTitle,
+        allSessions,
         todaySessions,
+        dailyFocusSummaries,
         ambientSound,
         ambientVolume,
         isZenMode,
@@ -556,6 +812,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         switchMode,
         setModeDuration,
         setActiveFocusGoalId,
+        setActiveTaskTitle,
+        addFocusSession,
+        deleteFocusSession,
+        clearFocusHistory,
         setAmbientSound: handleSetAmbientSound,
         setAmbientVolume,
         setIsZenMode,

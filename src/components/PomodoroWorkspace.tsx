@@ -18,6 +18,7 @@ import {
   AmbientSoundType, 
   FocusSessionRecord 
 } from '../context/PomodoroContext';
+import { DailyFocusHistoryTracker } from './DailyFocusHistoryTracker';
 import { 
   Flame, 
   Play, 
@@ -108,6 +109,7 @@ export default function PomodoroWorkspace({
     addSeconds,
     switchMode,
     setModeDuration,
+    setActiveTaskTitle,
     setAmbientSound,
     setAmbientVolume,
     setIsZenMode
@@ -144,6 +146,15 @@ export default function PomodoroWorkspace({
     if (!currentActiveGoalId) return null;
     return goals.find(g => g.id === currentActiveGoalId) || null;
   }, [currentActiveGoalId, goals]);
+
+  // Synchronize active goal title with PomodoroContext for auto-tagging completed sessions
+  useEffect(() => {
+    if (activeGoal) {
+      setActiveTaskTitle(cleanGoalText(activeGoal.text));
+    } else {
+      setActiveTaskTitle(null);
+    }
+  }, [activeGoal, setActiveTaskTitle]);
 
   // Filter available candidate tasks
   const candidateTasks = useMemo(() => {
@@ -898,51 +909,8 @@ export default function PomodoroWorkspace({
             </div>
           )}
 
-          {/* DAILY FOCUS SESSION LOG */}
-          <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-3 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Today's Session Log
-                </h3>
-              </div>
-              <span className="text-[11px] text-[#9496a1] tabular-nums font-semibold">
-                {todaySessions.length} total
-              </span>
-            </div>
-
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {todaySessions.length === 0 ? (
-                <div className="text-xs text-[#9496a1] py-6 text-center border border-dashed border-white/[0.06] rounded-xl">
-                  No completed sessions yet today. Start the timer to log your first block!
-                </div>
-              ) : (
-                todaySessions.map(session => (
-                  <div
-                    key={session.id}
-                    className="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between gap-2 text-xs"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className={`w-2 h-2 rounded-full ${
-                        session.mode === 'focus' ? 'bg-[#1591DC]' : 'bg-emerald-400'
-                      }`} />
-                      <span className="text-white font-medium truncate">
-                        {session.taskTitle}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 text-[#9496a1] tabular-nums text-[11px]">
-                      <span>{session.durationMinutes}m</span>
-                      <span>•</span>
-                      <span>
-                        {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          {/* PERSISTENT DAILY FOCUS SESSION HISTORY & TRACKER */}
+          <DailyFocusHistoryTracker candidateTasks={candidateTasks} />
 
         </div>
 
