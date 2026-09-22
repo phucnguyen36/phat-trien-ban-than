@@ -8,9 +8,12 @@ import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronD
 
 import { usePomodoro, TimerMode } from '../context/PomodoroContext';
 
+import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
+
 interface DeepWorkTimerProps {
   isLightMode?: boolean;
   onOpenWorkspace?: () => void;
+  accentColor?: string;
 }
 
 const MODE_CONFIGS: Record<TimerMode, { label: string; defaultMinutes: number; color: string; bg: string; border: string; icon: any }> = {
@@ -47,7 +50,11 @@ const FOCUS_PRESETS = [
   { label: '90 min', minutes: 90, desc: 'Ultradian Cycle' },
 ];
 
-export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpenWorkspace }) => {
+export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ 
+  isLightMode, 
+  onOpenWorkspace,
+  accentColor = SIGNATURE_ACCENT_COLOR 
+}) => {
   const {
     mode,
     timeLeft,
@@ -108,7 +115,11 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
     }
   };
 
-  const currentConfig = MODE_CONFIGS[mode];
+  const baseConfig = MODE_CONFIGS[mode];
+  const currentConfig = {
+    ...baseConfig,
+    color: mode === 'focus' ? accentColor : baseConfig.color
+  };
   const ModeIcon = currentConfig.icon;
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

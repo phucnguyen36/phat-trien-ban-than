@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { DailyJournal } from '../types';
+import { SIGNATURE_ACCENT_COLOR, hexToRgba } from '../utils/themeColors';
 import { Line } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -14,11 +15,12 @@ import {
   LineElement, 
   Title, 
   Tooltip, 
-  Legend 
+  Legend, 
+  Filler 
 } from 'chart.js';
-import { BookOpen, Calendar, Zap, Sparkles, History, ChevronDown, ChevronUp, Edit3, Trash2, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Calendar, Save, History, Sparkles, Check, ChevronDown, ChevronUp, Trash2, CheckCircle2, Edit3 } from 'lucide-react';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 interface DailyJournalProps {
   journalEntries?: DailyJournal[];
@@ -27,6 +29,7 @@ interface DailyJournalProps {
   onSaveEntry?: (entry: DailyJournal) => void;
   onDeleteJournal?: (id: string) => void;
   isLightMode?: boolean;
+  accentColor?: string;
 }
 
 export default function DailyJournalPanel({ 
@@ -35,7 +38,8 @@ export default function DailyJournalPanel({
   onSaveJournal, 
   onSaveEntry, 
   onDeleteJournal,
-  isLightMode 
+  isLightMode,
+  accentColor = SIGNATURE_ACCENT_COLOR
 }: DailyJournalProps) {
   const activeEntries = useMemo(() => {
     return journalEntries || entries || [];
@@ -99,19 +103,20 @@ export default function DailyJournalPanel({
         {
           label: 'Energy Level (1-5)',
           data: sortedEntries.map(e => Number(e.energy) || 1),
-          borderColor: '#ffffff',
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
+          borderColor: accentColor,
+          backgroundColor: hexToRgba(accentColor, 0.12),
           borderWidth: 2,
           tension: 0.4,
-          pointBackgroundColor: '#ffffff',
+          pointBackgroundColor: accentColor,
           pointBorderColor: '#ffffff',
+          pointBorderWidth: 1.5,
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: true
         }
       ]
     };
-  }, [sortedEntries]);
+  }, [sortedEntries, accentColor]);
 
   const chartOptions = {
     responsive: true,

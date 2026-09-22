@@ -5,6 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { HabitData, GoalTodo } from '../types';
+import { SIGNATURE_ACCENT_COLOR, hexToRgba } from '../utils/themeColors';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -43,6 +44,7 @@ interface HabitTrackerProps {
   onDeleteHabit: (habitId: string) => void;
   onEditHabit?: (id: string, newName: string) => void;
   isLightMode?: boolean;
+  accentColor?: string;
 }
 
 // Helper: Calculate streak for a habit
@@ -83,7 +85,8 @@ export default function HabitTracker({
   onToggleHabitDay,
   onDeleteHabit,
   onEditHabit,
-  isLightMode
+  isLightMode,
+  accentColor = SIGNATURE_ACCENT_COLOR
 }: HabitTrackerProps) {
   const [newHabitName, setNewHabitName] = useState('');
 
@@ -301,15 +304,15 @@ export default function HabitTracker({
         {
           label: 'Completed habits',
           data: stats.dailyCounts,
-          backgroundColor: '#ffffff',
-          borderColor: '#ffffff',
-          borderRadius: 2,
+          backgroundColor: accentColor,
+          borderColor: accentColor,
+          borderRadius: 3,
           borderWidth: 0,
-          hoverBackgroundColor: '#e4e4e7'
+          hoverBackgroundColor: hexToRgba(accentColor, 0.85)
         }
       ]
     };
-  }, [daysArray, stats]);
+  }, [daysArray, stats, accentColor]);
 
   const barChartOptions = {
     responsive: true,
@@ -343,13 +346,13 @@ export default function HabitTracker({
       datasets: [
         {
           data: [stats.consistency, Math.max(0, 100 - stats.consistency)],
-          backgroundColor: ['#ffffff', 'rgba(255, 255, 255, 0.06)'],
-          borderColor: ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.06)'],
+          backgroundColor: [accentColor, 'rgba(255, 255, 255, 0.06)'],
+          borderColor: [accentColor, 'rgba(255, 255, 255, 0.06)'],
           borderWidth: 1,
         }
       ]
     };
-  }, [stats]);
+  }, [stats, accentColor]);
 
   const doughnutChartOptions = {
     responsive: true,
@@ -721,8 +724,8 @@ export default function HabitTracker({
               </div>
               <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
                 <div 
-                  className="h-full rounded-full bg-white/60"
-                  style={{ width: `${wb.rate}%` }}
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${wb.rate}%`, backgroundColor: accentColor }}
                 />
               </div>
               <div className="flex justify-between text-[10px] text-[#9496a1]">
@@ -734,14 +737,14 @@ export default function HabitTracker({
         </div>
       </div>
 
-      {/* 📈 4. CHARTS SECTION (CLEAN SWISS MONOCHROME) */}
+      {/* 📈 4. CHARTS SECTION (ACCENT HIGHLIGHT) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 border-t border-white/[0.08] pt-6">
         
         {/* Left Column (2 Cols): Daily completion volume bar chart */}
         <div className="lg:col-span-2 space-y-3 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/[0.08] pb-6 lg:pb-0">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5 text-zinc-300" />
+              <BarChart3 className="w-3.5 h-3.5" style={{ color: accentColor }} />
               Daily Completion Volume
             </h4>
             <span className="text-[10px] text-[#9496a1]">30-Day Activity Curve</span>
@@ -750,7 +753,7 @@ export default function HabitTracker({
             <Bar data={barChartData} options={barChartOptions} />
           </div>
 
-          {/* Day of Week Performance Meter (Clean Monochrome) */}
+          {/* Day of Week Performance Meter */}
           <div className="pt-3 border-t border-white/[0.06] space-y-2">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-semibold text-white">Day of Week Performance</span>
@@ -765,8 +768,8 @@ export default function HabitTracker({
                   </span>
                   <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
                     <div 
-                      className="h-full rounded-full bg-white/60"
-                      style={{ width: `${dow.rate}%` }}
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ width: `${dow.rate}%`, backgroundColor: accentColor }}
                     />
                   </div>
                 </div>

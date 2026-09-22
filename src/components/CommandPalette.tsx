@@ -10,8 +10,7 @@ import {
   Compass, 
   X, 
   ArrowRight,
-  Sun,
-  Moon,
+  Settings,
   Flame
 } from 'lucide-react';
 import { GoalTodo, HabitData, PersonalExpense } from '../types';
@@ -23,8 +22,7 @@ interface CommandPaletteProps {
   goals: GoalTodo[];
   habits: HabitData[];
   expenses: PersonalExpense[];
-  isLightMode: boolean;
-  onToggleThemeMode: () => void;
+  onOpenSettings?: () => void;
 }
 
 export default function CommandPalette({
@@ -34,8 +32,7 @@ export default function CommandPalette({
   goals,
   habits,
   expenses,
-  isLightMode,
-  onToggleThemeMode
+  onOpenSettings
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
 
@@ -201,17 +198,17 @@ export default function CommandPalette({
             </span>
             <button
               onClick={() => {
-                onToggleThemeMode();
+                if (onOpenSettings) onOpenSettings();
                 onClose();
               }}
-              className="w-full flex items-center justify-between p-2.5 rounded-none glass-card glass-card-hover text-left transition-colors"
+              className="w-full flex items-center justify-between p-2.5 rounded-xl glass-card-true text-left transition-colors cursor-pointer hover:bg-white/[0.04]"
             >
               <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-none glass-button text-zinc-300">
-                  {isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                <div className="p-1.5 rounded-lg bg-white/[0.06] text-zinc-300">
+                  <Settings className="w-4 h-4" />
                 </div>
-                <span className="font-medium text-zinc-200">
-                  Switch to {isLightMode ? 'Dark Mode' : 'Light Mode'}
+                <span className="text-xs font-medium text-zinc-200">
+                  Open Settings & Accent Color
                 </span>
               </div>
             </button>

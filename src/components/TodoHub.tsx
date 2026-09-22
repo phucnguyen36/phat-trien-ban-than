@@ -443,11 +443,6 @@ export default function TodoHub({
   // Calendar Quick-Add Input state
   const [calendarInputText, setCalendarInputText] = useState('');
 
-  // Column Toggle Handler
-  const toggleColumnVisibility = (tf: TimeframeType) => {
-    setVisibleColumns(prev => ({ ...prev, [tf]: !prev[tf] }));
-  };
-
   // Context Key Formatting
   const getContextKey = (timeframe: TimeframeType): string => {
     if (timeframe === 'daily') return `${selectedYear}-${selectedMonth}-${selectedDay}`;
@@ -523,25 +518,6 @@ export default function TodoHub({
       await onAddGoal(`[D:${todayCtxKey}] ${cleanText}`, g.timeframe);
       await onDeleteGoal(g.id);
     }
-  };
-
-  // Submit Goal
-  const handleAdd = (e: React.FormEvent, timeframe: TimeframeType) => {
-    e.preventDefault();
-    const val = inputs[timeframe].trim();
-    if (!val) return;
-
-    const ctxKey = getContextKey(timeframe);
-    let tag = '';
-    if (timeframe === 'daily') tag = `[D:${ctxKey}] `;
-    if (timeframe === 'weekly') tag = `[W:${ctxKey}] `;
-    if (timeframe === 'monthly') tag = `[M:${ctxKey}] `;
-    if (timeframe === 'yearly') tag = `[Y:${ctxKey}] `;
-
-    const est = estimates[timeframe] || undefined;
-    onAddGoal(`${tag}${val}`, timeframe, est as TimeEstimate | undefined);
-    setInputs(prev => ({ ...prev, [timeframe]: '' }));
-    setEstimates(prev => ({ ...prev, [timeframe]: '' }));
   };
 
   // Calendar Add Goal

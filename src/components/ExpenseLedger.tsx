@@ -17,6 +17,7 @@ import {
   PointElement,
   LineElement
 } from 'chart.js';
+import { SIGNATURE_ACCENT_COLOR, hexToRgba } from '../utils/themeColors';
 import { 
   Plus, 
   Trash2, 
@@ -27,8 +28,15 @@ import {
   PieChart,
   Wallet,
   ArrowUpRight,
-  Receipt,
-  Filter
+  Tag, 
+  ChevronDown, 
+  X, 
+  FileSpreadsheet, 
+  BarChart3, 
+  CreditCard, 
+  Layers, 
+  Receipt, 
+  Filter 
 } from 'lucide-react';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
@@ -38,6 +46,7 @@ interface ExpenseLedgerProps {
   onAddExpense: (amount: number, category: ExpenseCategory, note: string, date: string) => void;
   onDeleteExpense: (id: string) => void;
   isLightMode?: boolean;
+  accentColor?: string;
 }
 
 interface CurrencyMeta {
@@ -68,7 +77,13 @@ const CATEGORY_COLORS: Record<ExpenseCategory, { bg: string; border: string; tex
   Others: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', text: 'text-zinc-400', hex: '#71717a' }
 };
 
-export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense, isLightMode }: ExpenseLedgerProps) {
+export default function ExpenseLedger({ 
+  expenses, 
+  onAddExpense, 
+  onDeleteExpense, 
+  isLightMode,
+  accentColor = SIGNATURE_ACCENT_COLOR 
+}: ExpenseLedgerProps) {
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [amountInput, setAmountInput] = useState<string>('');
   const [categoryInput, setCategoryInput] = useState<ExpenseCategory>('Eating');
@@ -180,8 +195,9 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
     let topCat: ExpenseCategory = 'Others';
     let topAmt = 0;
     Object.entries(categorySummary).forEach(([c, amt]) => {
-      if (amt > topAmt) {
-        topAmt = amt;
+      const numAmt = Number(amt) || 0;
+      if (numAmt > topAmt) {
+        topAmt = numAmt;
         topCat = c as ExpenseCategory;
       }
     });
@@ -245,15 +261,15 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         {
           label: 'Outflow',
           data: timelineData.values,
-          backgroundColor: 'rgba(255, 255, 255, 0.75)',
-          hoverBackgroundColor: '#ffffff',
-          borderColor: '#ffffff',
+          backgroundColor: hexToRgba(accentColor, 0.75),
+          hoverBackgroundColor: accentColor,
+          borderColor: accentColor,
           borderWidth: 1,
           borderRadius: 6,
         }
       ]
     };
-  }, [timelineData]);
+  }, [timelineData, accentColor]);
 
   const timelineChartOptions = {
     responsive: true,

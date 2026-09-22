@@ -54,6 +54,12 @@ import ExecutiveDashboard from './components/ExecutiveDashboard';
 import CommandPalette from './components/CommandPalette';
 import AdminDashboard from './components/AdminDashboard';
 import { UserAccount, logoutUserSession } from './userRegistry';
+import { 
+  SIGNATURE_ACCENT_COLOR, 
+  PRESET_ACCENT_COLORS, 
+  applyThemeAccent, 
+  hexToRgba 
+} from './utils/themeColors';
 
 import { 
   Database, 
@@ -73,8 +79,8 @@ import {
   Download,
   Upload,
   Palette,
+  Check,
   Sun,
-  Moon,
   Trash2,
   CheckSquare,
   Activity,
@@ -87,11 +93,6 @@ import {
   Search,
   Trophy,
   Sparkles,
-  Twitter,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Mail,
   Flame,
   Play,
   Pause,
@@ -120,14 +121,14 @@ export interface UITheme {
 export const THEMES: UITheme[] = [
   { 
     id: 'blue', 
-    name: 'Cosmic Blue', 
-    accent: '#3b82f6', 
-    text: 'text-[#3b82f6]', 
-    border: 'border-[#3b82f6]', 
-    borderMuted: 'border-[#3b82f6]/20', 
-    bgMuted: 'bg-[#3b82f6]/10', 
-    hoverBorder: 'hover:border-[#3b82f6]',
-    shadowGlow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+    name: 'DeepFocus Blue', 
+    accent: SIGNATURE_ACCENT_COLOR, 
+    text: 'text-[#1591DC]', 
+    border: 'border-[#1591DC]', 
+    borderMuted: 'border-[#1591DC]/20', 
+    bgMuted: 'bg-[#1591DC]/10', 
+    hoverBorder: 'hover:border-[#1591DC]',
+    shadowGlow: 'shadow-[0_0_15px_rgba(21,145,220,0.18)]'
   },
   { 
     id: 'emerald', 
@@ -312,14 +313,9 @@ export default function App() {
     return localStorage.getItem('df_active_theme_id') || 'blue';
   });
 
-  // Light/Dark mode state
-  const [isLightMode, setIsLightMode] = useState<boolean>(() => {
-    return localStorage.getItem('df_is_light_mode') === 'true';
-  });
-
-  // Custom Accent Color
+  // Custom Accent Color (Defaults to DeepFocus Signature Blue #1591DC)
   const [customAccentColor, setCustomAccentColor] = useState<string>(() => {
-    return localStorage.getItem('df_custom_accent_color') || '#3b82f6';
+    return localStorage.getItem('df_custom_accent_color') || SIGNATURE_ACCENT_COLOR;
   });
 
   // Dynamic Theme Mapping
@@ -436,7 +432,7 @@ export default function App() {
       try { return JSON.parse(saved); } catch (e) { /* use default */ }
     }
     return {
-      name: 'Thomas Nguyen',
+      name: 'DeepFocus Pro',
       role: 'Creative Director & Designer',
       bio: 'Focus, clean aesthetics, and deliberate consistency.',
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
@@ -446,28 +442,17 @@ export default function App() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [tempProfile, setTempProfile] = useState<UserProfile>({ ...profile });
 
-  // Update theme config in browser context
+  // Update theme config in browser context (Force Dark Mode & Apply Accent)
   useEffect(() => {
-    const root = document.documentElement;
-    if (isLightMode) {
-      root.classList.add('light-mode');
-    } else {
-      root.classList.remove('light-mode');
-    }
+    // Purge light-mode class and settings
+    localStorage.removeItem('df_is_light_mode');
+    document.documentElement.classList.remove('light-mode');
 
     localStorage.setItem('df_active_theme_id', activeThemeId);
-    localStorage.setItem('df_is_light_mode', String(isLightMode));
     localStorage.setItem('df_custom_accent_color', customAccentColor);
 
-    root.style.setProperty('--theme-accent', customAccentColor);
-    
-    const hex = customAccentColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16) || 0;
-    const g = parseInt(hex.substring(2, 4), 16) || 0;
-    const b = parseInt(hex.substring(4, 6), 16) || 0;
-    root.style.setProperty('--theme-accent-rgb', `${r}, ${g}, ${b}`);
-    root.style.setProperty('--theme-color-primary', customAccentColor);
-  }, [activeThemeId, isLightMode, customAccentColor]);
+    applyThemeAccent(customAccentColor);
+  }, [activeThemeId, customAccentColor]);
 
   // Smooth scroll handler
   const scrollToSection = (id: string) => {
@@ -1087,17 +1072,20 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen text-zinc-100 font-sans antialiased flex flex-col relative selection:bg-white/20 selection:text-white ${isLightMode ? 'light-mode' : ''}`}>
+    <div className="min-h-screen text-zinc-100 font-sans antialiased flex flex-col relative selection:bg-white/20 selection:text-white">
       
       {/* Film Grain Noise Overlay */}
       <div className="noise-overlay" aria-hidden="true" />
 
       {/* Atmospheric Ambient Glow */}
       <div className="ambient-glow fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-white/[0.04] via-white/[0.01] to-transparent blur-[120px]" />
+        <div 
+          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[450px] blur-[120px] transition-all duration-700 opacity-60"
+          style={{ background: `radial-gradient(ellipse at center, ${hexToRgba(customAccentColor, 0.08)}, transparent 70%)` }}
+        />
       </div>
 
-      {/* 1. CLEAN STICKY HEADER (Thomas Nguyen & Swiss Studio Standard) */}
+      {/* 1. CLEAN STICKY HEADER (DeepFocus Standard) */}
       <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto w-full flex justify-between items-center gap-4">
           
@@ -1115,53 +1103,35 @@ export default function App() {
               <span className="font-semibold text-sm tracking-tight text-white leading-none">
                 Deep Focus
               </span>
-              <span className="text-xs text-[#9496a1] leading-none mt-1 font-sans flex items-center gap-1.5">
-                <span>{currentUser ? currentUser.name : profile.name}</span>
-                {currentUser?.role === 'admin' && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/10 text-zinc-200 border border-white/15 font-medium leading-none">
-                    Admin
-                  </span>
-                )}
+              <span className="text-[10px] text-[#9496a1] font-mono leading-none mt-1">
+                OS • v5.0.0
               </span>
             </div>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-[#9496a1] tracking-tight">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'todo-hub', label: 'Tasks' },
-              { id: 'pomodoro-station', label: 'Pomodoro' },
-              { id: 'habit-matrix', label: 'Habits' },
-              { id: 'daily-journal', label: 'Journal' },
-              { id: 'expense-ledger', label: 'Expenses' },
-              ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin' }] : [])
-            ].map(item => {
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`transition-colors relative py-1 ${
-                    isActive ? 'text-white font-semibold' : 'hover:text-white'
-                  }`}
-                >
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+          {/* Real-time Focus Clock & Active Metric Indicator */}
+          <div className="hidden xl:flex items-center gap-6 px-4 py-1.5 rounded-full bg-white/[0.02] border border-white/[0.05]">
+            <div className="flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-xs font-mono text-zinc-300 font-medium">{currentTime || '00:00:00'}</span>
+            </div>
+            <div className="h-3 w-px bg-white/10" />
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: customAccentColor }} />
+              <span className="text-xs text-zinc-400 font-medium">Completed Tasks:</span>
+              <span className="text-xs font-bold text-white font-mono">
+                {goals.filter(g => g.completed).length}/{goals.length}
+              </span>
+            </div>
+          </div>
 
-          {/* Right Action Tools */}
+          {/* Quick Header Actions */}
           <div className="flex items-center gap-2.5">
             
             {/* Minimal Deep Work Timer (Pomodoro) */}
             <DeepWorkTimer 
-              isLightMode={isLightMode} 
               onOpenWorkspace={() => setActiveSection('pomodoro-station')}
+              accentColor={customAccentColor}
             />
 
             {/* Quick Command Search */}
@@ -1174,23 +1144,17 @@ export default function App() {
               <kbd className="px-1.5 py-0.2 text-[9px] font-mono bg-white/10 rounded">⌘K</kbd>
             </button>
 
-            {/* 1-Click Theme Switcher (Light / Dark Mode) */}
+            {/* Quick Accent Color / Palette Trigger */}
             <button
-              onClick={() => setIsLightMode(prev => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all"
-              title={isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 glass-button-true text-xs font-mono transition-all cursor-pointer hover:border-white/30"
+              title="Accent Color & Preferences"
             >
-              {isLightMode ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-900">LIGHT</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-zinc-300" />
-                  <span className="font-bold text-[10px] tracking-wider uppercase text-zinc-300">DARK</span>
-                </>
-              )}
+              <span 
+                className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/20 shadow-sm" 
+                style={{ backgroundColor: customAccentColor }}
+              />
+              <span className="text-[10px] tracking-wider uppercase font-semibold text-zinc-200">COLOR</span>
             </button>
 
             {/* Cloud Sync Status */}
@@ -1443,7 +1407,6 @@ export default function App() {
                         setActiveFocusGoalId(goalId);
                         setActiveSection('pomodoro-station');
                       }}
-                      isLightMode={isLightMode}
                     />
                   </section>
                 )}
@@ -1472,7 +1435,7 @@ export default function App() {
                         else if (sec === 'overview') setActiveSection('overview');
                         else setActiveSection(sec);
                       }}
-                      isLightMode={isLightMode}
+                      accentColor={customAccentColor}
                     />
                   </section>
                 )}
@@ -1487,7 +1450,7 @@ export default function App() {
                       onToggleHabitDay={handleToggleHabitDay}
                       onDeleteHabit={handleDeleteHabit}
                       onEditHabit={handleEditHabit}
-                      isLightMode={isLightMode}
+                      accentColor={customAccentColor}
                     />
                   </section>
                 )}
@@ -1499,6 +1462,7 @@ export default function App() {
                       journalEntries={journalEntries}
                       onSaveJournal={handleSaveJournal}
                       onDeleteJournal={handleDeleteJournal}
+                      accentColor={customAccentColor}
                     />
                   </section>
                 )}
@@ -1510,7 +1474,7 @@ export default function App() {
                       expenses={expenses}
                       onAddExpense={handleAddExpense}
                       onDeleteExpense={handleDeleteExpense}
-                      isLightMode={isLightMode}
+                      accentColor={customAccentColor}
                     />
                   </section>
                 )}
@@ -1521,61 +1485,27 @@ export default function App() {
 
         </div>
 
-      {/* MINIMAL CLEAN STUDIO FOOTER (Thomas Nguyen Standard) */}
+      {/* MINIMAL CLEAN STUDIO FOOTER (DeepFocus Standard) */}
       <footer className="border-t border-white/[0.06] bg-[#0b0c10] py-8 px-6 md:px-12 mt-20 relative z-20">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[#9496a1] font-sans">
-            &copy; 2026 Thomas Nguyen. All rights reserved.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+            <span className="text-xs font-bold text-white tracking-wider uppercase font-mono">
+              DeepFocus OS
+            </span>
+            <span className="hidden sm:inline text-zinc-700">•</span>
+            <p className="text-xs text-[#9496a1] font-sans">
+              &copy; 2026 DeepFocus. All rights reserved.
+            </p>
+          </div>
 
-          <div className="flex items-center gap-2">
-            <a 
-              href="https://x.com/thomaseditor_vn" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
-              title="X / Twitter"
-            >
-              <Twitter size={14} />
-            </a>
-
-            <a 
-              href="https://www.instagram.com/thomasvisualeditor/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
-              title="Instagram"
-            >
-              <Instagram size={14} />
-            </a>
-
-            <a 
-              href="https://www.facebook.com/profile.php?id=100063990921099" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
-              title="Facebook"
-            >
-              <Facebook size={14} />
-            </a>
-
-            <a 
-              href="https://www.linkedin.com/in/phucxuannguyen/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
-              title="LinkedIn"
-            >
-              <Linkedin size={14} />
-            </a>
-
-            <a 
-              href="mailto:thomasnguyen.editor@gmail.com" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
-              title="Email"
-            >
-              <Mail size={14} />
-            </a>
+          <div className="flex items-center gap-3">
+            <span className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono text-zinc-400">
+              v5.0.0
+            </span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>System Operational</span>
+            </div>
           </div>
         </div>
       </footer>
@@ -1729,48 +1659,106 @@ export default function App() {
               Settings & Preferences
             </h3>
             <p className="text-xs text-[#9496a1] mb-6 border-b border-white/[0.08] pb-3">
-              Theme mode, storage status, and workspace backup
+              Accent colors, data backup, and system configuration
             </p>
 
-            {/* Section 0: Theme Mode (Light / Dark) */}
+            {/* Section 1: Highlight & Graph Accent Color */}
             <div className="mb-6">
-              <h4 className="text-xs font-medium text-[#9496a1] mb-3 flex items-center gap-1.5">
-                {isLightMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-300" />}
-                <span>Theme Mode</span>
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLightMode(false);
-                    document.documentElement.classList.remove('light-mode');
-                    localStorage.setItem('df_is_light_mode', 'false');
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-medium text-[#9496a1] flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 text-zinc-300" />
+                  <span>Highlight & Graph Accent Color</span>
+                </h4>
+                {customAccentColor.toLowerCase() !== SIGNATURE_ACCENT_COLOR.toLowerCase() && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomAccentColor(SIGNATURE_ACCENT_COLOR);
+                      applyThemeAccent(SIGNATURE_ACCENT_COLOR);
+                      localStorage.setItem('df_custom_accent_color', SIGNATURE_ACCENT_COLOR);
+                    }}
+                    className="text-[10px] text-sky-400 hover:text-sky-300 font-medium cursor-pointer"
+                  >
+                    Reset to Signature Blue
+                  </button>
+                )}
+              </div>
+
+              {/* Preset Palette Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+                {PRESET_ACCENT_COLORS.map(preset => {
+                  const isSelected = customAccentColor.toLowerCase() === preset.hex.toLowerCase();
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        setCustomAccentColor(preset.hex);
+                        applyThemeAccent(preset.hex);
+                        localStorage.setItem('df_custom_accent_color', preset.hex);
+                      }}
+                      className={`flex items-center gap-2 p-2.5 rounded-xl text-left transition-all border cursor-pointer ${
+                        isSelected 
+                          ? 'bg-white/[0.08] border-white/40 shadow-sm' 
+                          : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/20'
+                      }`}
+                    >
+                      <span 
+                        className="w-3.5 h-3.5 rounded-full shrink-0 border border-white/20 shadow-sm" 
+                        style={{ backgroundColor: preset.hex }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-medium text-white block truncate leading-tight">
+                          {preset.name}
+                        </span>
+                        {preset.isSignature && (
+                          <span className="text-[9px] text-sky-400 font-mono leading-none">
+                            Signature
+                          </span>
+                        )}
+                      </div>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white shrink-0 ml-auto" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom Hex Color Picker */}
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                <input 
+                  type="color"
+                  value={customAccentColor.startsWith('#') ? customAccentColor : SIGNATURE_ACCENT_COLOR}
+                  onChange={(e) => {
+                    const color = e.target.value;
+                    setCustomAccentColor(color);
+                    applyThemeAccent(color);
+                    localStorage.setItem('df_custom_accent_color', color);
                   }}
-                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium transition-all ${
-                    !isLightMode 
-                      ? 'bg-white text-black shadow-md font-semibold' 
-                      : 'glass-button-true text-[#9496a1] hover:text-white'
-                  }`}
-                >
-                  <Moon className="w-4 h-4" />
-                  <span>Dark Mode {!isLightMode && '✓'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLightMode(true);
-                    document.documentElement.classList.add('light-mode');
-                    localStorage.setItem('df_is_light_mode', 'true');
-                  }}
-                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium transition-all ${
-                    isLightMode 
-                      ? 'bg-white text-zinc-900 shadow-md font-semibold' 
-                      : 'glass-button-true text-[#9496a1] hover:text-white'
-                  }`}
-                >
-                  <Sun className="w-4 h-4" />
-                  <span>Light Mode {isLightMode && '✓'}</span>
-                </button>
+                  className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
+                  title="Pick Custom Color"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] text-[#9496a1] block font-medium">Custom Color Picker / Hex</span>
+                  <input
+                    type="text"
+                    value={customAccentColor}
+                    onChange={(e) => {
+                      const color = e.target.value;
+                      setCustomAccentColor(color);
+                      if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                        applyThemeAccent(color);
+                        localStorage.setItem('df_custom_accent_color', color);
+                      }
+                    }}
+                    className="bg-transparent text-xs font-mono font-bold text-white uppercase focus:outline-none w-28"
+                    maxLength={7}
+                    placeholder="#1591DC"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: customAccentColor }} />
+                  <span className="text-[10px] text-zinc-300 font-mono">Live</span>
+                </div>
               </div>
             </div>
 
@@ -1909,8 +1897,7 @@ export default function App() {
         goals={goals}
         habits={habits}
         expenses={expenses}
-        isLightMode={isLightMode}
-        onToggleThemeMode={() => setIsLightMode(prev => !prev)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* A4 — MORNING PRIORITY PROMPT MODAL */}

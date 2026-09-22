@@ -53,6 +53,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
+
 interface PomodoroWorkspaceProps {
   goals: GoalTodo[];
   habits: HabitData[];
@@ -68,6 +70,7 @@ interface PomodoroWorkspaceProps {
   setActiveFocusGoalId?: (id: string | null) => void;
   onNavigate: (section: string) => void;
   isLightMode?: boolean;
+  accentColor?: string;
 }
 
 export default function PomodoroWorkspace({
@@ -84,7 +87,8 @@ export default function PomodoroWorkspace({
   activeFocusGoalId,
   setActiveFocusGoalId,
   onNavigate,
-  isLightMode
+  isLightMode,
+  accentColor = SIGNATURE_ACCENT_COLOR
 }: PomodoroWorkspaceProps) {
   // Today's date keys
   const today = useMemo(() => new Date(), []);
@@ -489,7 +493,8 @@ export default function PomodoroWorkspace({
                   cx="50"
                   cy="50"
                   r="44"
-                  className="transition-all duration-1000 stroke-white/80"
+                  className="transition-all duration-1000"
+                  style={{ stroke: accentColor }}
                   strokeWidth="4"
                   strokeDasharray={276.46}
                   strokeDashoffset={276.46 * (1 - progressRatio)}
@@ -908,7 +913,7 @@ export default function PomodoroWorkspace({
           )}
 
           {/* PERSISTENT DAILY FOCUS SESSION HISTORY & TRACKER */}
-          <DailyFocusHistoryTracker candidateTasks={candidateTasks} />
+          <DailyFocusHistoryTracker candidateTasks={candidateTasks} accentColor={accentColor} />
 
         </div>
 

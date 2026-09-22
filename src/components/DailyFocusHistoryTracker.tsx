@@ -26,12 +26,17 @@ import {
   Sparkles
 } from 'lucide-react';
 import { GoalTodo } from '../types';
+import { SIGNATURE_ACCENT_COLOR, hexToRgba } from '../utils/themeColors';
 
 interface DailyFocusHistoryTrackerProps {
   candidateTasks?: GoalTodo[];
+  accentColor?: string;
 }
 
-export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> = ({ candidateTasks = [] }) => {
+export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> = ({ 
+  candidateTasks = [],
+  accentColor = SIGNATURE_ACCENT_COLOR
+}) => {
   const {
     allSessions,
     todaySessions,
@@ -582,14 +587,18 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                     {/* Bar */}
                   <div className="w-full bg-white/[0.04] rounded-t-md h-full flex items-end overflow-hidden p-0.5">
                     <div 
-                      className={`w-full rounded-t transition-all duration-500 ${
-                        day.count === 0 
-                          ? 'bg-zinc-800' 
-                          : day.isToday
-                            ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.3)]' 
-                            : 'bg-white/60 group-hover:bg-white'
-                      }`}
-                      style={{ height: `${heightPct}%` }}
+                      className="w-full rounded-t transition-all duration-500"
+                      style={{ 
+                        height: `${heightPct}%`,
+                        backgroundColor: day.count === 0 
+                          ? '#27272a' 
+                          : day.isToday 
+                            ? accentColor 
+                            : hexToRgba(accentColor, 0.55),
+                        boxShadow: day.isToday && day.count > 0 
+                          ? `0 0 12px ${hexToRgba(accentColor, 0.45)}` 
+                          : undefined
+                      }}
                     />
                   </div>
 
