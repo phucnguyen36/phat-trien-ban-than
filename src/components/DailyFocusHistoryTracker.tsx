@@ -167,7 +167,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
       {/* 1. HEADER & ACTION BAR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC]">
+          <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/15 flex items-center justify-center text-white">
             <History className="w-4 h-4" />
           </div>
           <div>
@@ -175,7 +175,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                 Focus History & Logs
               </h3>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1591DC]/20 text-[#1591DC] font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/10 text-zinc-200 font-semibold">
                 {totalFocusSessionsCount} Sessions
               </span>
             </div>
@@ -228,7 +228,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
           <button
             type="button"
             onClick={() => setIsManualModalOpen(prev => !prev)}
-            className="px-2.5 py-1 rounded-lg bg-[#1591DC]/20 hover:bg-[#1591DC]/30 text-[#1591DC] border border-[#1591DC]/40 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-white text-black hover:bg-zinc-200 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
             title="Manually log a focus block for any date"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -251,7 +251,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
           <span className="text-[10px] text-[#9496a1] uppercase tracking-wider block font-medium">
             Total Hours
           </span>
-          <span className="text-sm font-bold text-[#1591DC] tabular-nums">
+          <span className="text-sm font-bold text-white tabular-nums">
             {(totalFocusMinutesAll / 60).toFixed(1)}h
           </span>
         </div>
@@ -278,11 +278,11 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
       {isManualModalOpen && (
         <form 
           onSubmit={handleSaveManualSession}
-          className="p-3.5 rounded-xl bg-[#0e1015] border border-[#1591DC]/40 space-y-3 animate-fadeIn"
+          className="p-3.5 rounded-xl bg-[#0e1015] border border-white/20 space-y-3 animate-fadeIn"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Plus className="w-3.5 h-3.5 text-[#1591DC]" />
+              <Plus className="w-3.5 h-3.5 text-zinc-300" />
               <span>Record Completed Focus Block</span>
             </span>
             <button
@@ -304,7 +304,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                 type="date"
                 value={manualDate}
                 onChange={(e) => setManualDate(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-[#1591DC] focus:outline-none"
+                className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-white/40 focus:outline-none"
               />
             </div>
 
@@ -328,7 +328,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                     }}
                     className={`flex-1 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                       !isCustomDuration && manualMinutes === p.mins
-                        ? 'bg-[#1591DC] text-white font-semibold'
+                        ? 'bg-white text-black font-semibold'
                         : 'bg-white/[0.04] text-[#9496a1] hover:text-white border border-white/[0.06]'
                     }`}
                   >
@@ -340,7 +340,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   onClick={() => setIsCustomDuration(true)}
                   className={`px-2 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                     isCustomDuration
-                      ? 'bg-[#1591DC] text-white font-semibold'
+                      ? 'bg-white text-black font-semibold'
                       : 'bg-white/[0.04] text-[#9496a1] hover:text-white border border-white/[0.06]'
                   }`}
                 >
@@ -354,7 +354,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   max="360"
                   value={customDurationInput}
                   onChange={(e) => setCustomDurationInput(e.target.value)}
-                  className="w-full mt-1.5 bg-white/[0.04] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-white focus:border-[#1591DC] focus:outline-none"
+                  className="w-full mt-1.5 bg-white/[0.04] border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-white focus:border-white/40 focus:outline-none"
                   placeholder="Minutes..."
                 />
               )}
@@ -371,7 +371,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
               value={manualTaskTitle}
               onChange={(e) => setManualTaskTitle(e.target.value)}
               placeholder="e.g. Video motion delivery, Database refactoring..."
-              className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-[#1591DC] focus:outline-none"
+              className="w-full bg-white/[0.04] border border-white/[0.1] rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-white/40 focus:outline-none"
             />
             {candidateTasks.length > 0 && (
               <div className="flex flex-wrap items-center gap-1 mt-1.5">
@@ -403,7 +403,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
             </button>
             <button
               type="submit"
-              className="btn-primary-cyan px-4 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer shadow-md"
+              className="btn-primary-cyan px-4 py-1.5 rounded-lg text-xs font-semibold cursor-pointer shadow-md"
             >
               Save Focus Block
             </button>
@@ -431,7 +431,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   key={summary.dateStr}
                   className={`rounded-xl border transition-all ${
                     isExpanded 
-                      ? 'bg-[#0e1015] border-[#1591DC]/40 shadow-sm' 
+                      ? 'bg-[#0e1015] border-white/20 shadow-sm' 
                       : 'bg-[#0e1015]/60 hover:bg-[#0e1015] border-white/[0.06]'
                   }`}
                 >
@@ -442,7 +442,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className={`w-2 h-2 rounded-full shrink-0 ${
-                        hasFocus ? 'bg-[#1591DC]' : 'bg-zinc-600'
+                        hasFocus ? 'bg-white' : 'bg-zinc-600'
                       }`} />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
@@ -450,7 +450,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                             {summary.displayDate}
                           </span>
                           {isToday && (
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#1591DC]/20 text-[#1591DC] font-semibold uppercase tracking-wider">
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-200 border border-sky-500/20 font-semibold uppercase tracking-wider">
                               Today
                             </span>
                           )}
@@ -465,7 +465,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                       {/* Session Count Pill */}
                       <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold tabular-nums ${
                         summary.totalSessions > 0
-                          ? 'bg-[#1591DC]/15 text-[#1591DC] border border-[#1591DC]/30'
+                          ? 'bg-white/10 text-zinc-200 border border-white/15'
                           : 'bg-white/[0.04] text-zinc-500'
                       }`}>
                         {summary.totalSessions} {summary.totalSessions === 1 ? 'block' : 'blocks'}
@@ -495,7 +495,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                session.mode === 'focus' ? 'bg-[#1591DC]' : 'bg-emerald-400'
+                                session.mode === 'focus' ? 'bg-white' : 'bg-zinc-400'
                               }`} />
                               <span className="text-white truncate font-medium">
                                 {session.taskTitle}
@@ -579,15 +579,15 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                     {day.count > 0 ? day.count : ''}
                   </span>
                   
-                  {/* Bar */}
+                    {/* Bar */}
                   <div className="w-full bg-white/[0.04] rounded-t-md h-full flex items-end overflow-hidden p-0.5">
                     <div 
                       className={`w-full rounded-t transition-all duration-500 ${
                         day.count === 0 
                           ? 'bg-zinc-800' 
                           : day.isToday
-                            ? 'bg-[#1591DC] shadow-[0_0_10px_rgba(21,145,220,0.5)]' 
-                            : 'bg-[#1591DC]/70 group-hover:bg-[#1591DC]'
+                            ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.3)]' 
+                            : 'bg-white/60 group-hover:bg-white'
                       }`}
                       style={{ height: `${heightPct}%` }}
                     />
@@ -596,7 +596,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   {/* Day Label */}
                   <div className="text-center">
                     <span className={`text-[10px] block font-bold leading-none ${
-                      day.isToday ? 'text-[#1591DC]' : 'text-zinc-400'
+                      day.isToday ? 'text-white' : 'text-zinc-400'
                     }`}>
                       {day.dayLabel}
                     </span>
@@ -630,7 +630,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`w-2 h-2 rounded-full shrink-0 ${
-                    session.mode === 'focus' ? 'bg-[#1591DC]' : 'bg-emerald-400'
+                    session.mode === 'focus' ? 'bg-white' : 'bg-zinc-400'
                   }`} />
                   <span className="text-white font-medium truncate">
                     {session.taskTitle}

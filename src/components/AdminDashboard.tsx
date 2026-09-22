@@ -219,7 +219,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
         <div className="kuldeep-card p-5 space-y-1.5">
           <div className="flex justify-between items-center text-xs text-[#9496a1] font-medium">
             <span>Total customers</span>
-            <Users className="w-4 h-4 text-[#1591DC]" />
+            <Users className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
             {customerList.length} <span className="text-xs text-[#9496a1] font-normal">users</span>
@@ -232,7 +232,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
         <div className="kuldeep-card p-5 space-y-1.5">
           <div className="flex justify-between items-center text-xs text-[#9496a1] font-medium">
             <span>Total revenue</span>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <DollarSign className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tracking-tight">
             ${totalRevenue.toLocaleString('en-US')}
@@ -245,7 +245,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
         <div className="kuldeep-card p-5 space-y-1.5">
           <div className="flex justify-between items-center text-xs text-[#9496a1] font-medium">
             <span>Default admin identity</span>
-            <ShieldCheck className="w-4 h-4 text-[#1591DC]" />
+            <ShieldCheck className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-xs font-mono font-semibold text-white truncate">
             {DEFAULT_ADMIN.email}
@@ -260,7 +260,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
       <div className="kuldeep-card p-6 space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/[0.08] pb-4">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#1591DC]" />
+            <Users className="w-4 h-4 text-zinc-300" />
             <h2 className="text-sm font-semibold text-white">
               Customer Registry ({customerList.length})
             </h2>
@@ -358,13 +358,13 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                             setTimeout(() => setCopiedId(null), 2500);
                             onNotice("Link Copied", `Instant access link for ${cust.name} copied to clipboard.`);
                           }}
-                          className="px-2.5 py-1 glass-button-true text-[#1591DC] hover:text-white text-xs flex items-center gap-1 transition-all rounded-full"
+                          className="px-2.5 py-1 glass-button-true text-zinc-200 hover:text-white text-xs flex items-center gap-1 transition-all rounded-full"
                           title="Copy 1-Click Instant Login Link"
                         >
                           {copiedId === ('link_' + cust.id) ? (
                             <Check className="w-3 h-3 text-emerald-400" />
                           ) : (
-                            <LinkIcon className="w-3 h-3 text-[#1591DC]" />
+                            <LinkIcon className="w-3 h-3 text-zinc-300" />
                           )}
                           <span>{copiedId === ('link_' + cust.id) ? 'Copied' : '1-Click link'}</span>
                         </button>
@@ -416,7 +416,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
           <div className="w-full max-w-md kuldeep-card p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-[#1591DC]" />
+                <UserPlus className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-sm font-semibold text-white">
                   Issue New Customer Account
                 </h3>
@@ -466,7 +466,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
                   <button 
                     type="button" 
                     onClick={generatePassword}
-                    className="text-[10px] text-[#1591DC] hover:underline"
+                    className="text-[10px] text-zinc-400 hover:text-white hover:underline cursor-pointer"
                   >
                     Regenerate
                   </button>

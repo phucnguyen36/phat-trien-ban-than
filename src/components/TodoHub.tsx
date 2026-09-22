@@ -417,11 +417,11 @@ export default function TodoHub({
 
   // Time Estimate presets
   const TIME_ESTIMATES: { value: TimeEstimate; label: string; color: string }[] = [
-    { value: '15m', label: '15m', color: 'text-emerald-400' },
-    { value: '30m', label: '30m', color: 'text-emerald-400' },
-    { value: '1h', label: '1h', color: 'text-sky-400' },
-    { value: '2h', label: '2h', color: 'text-sky-400' },
-    { value: 'half-day', label: '4h', color: 'text-amber-400' },
+    { value: '15m', label: '15m', color: 'text-zinc-400' },
+    { value: '30m', label: '30m', color: 'text-zinc-400' },
+    { value: '1h', label: '1h', color: 'text-zinc-400' },
+    { value: '2h', label: '2h', color: 'text-zinc-400' },
+    { value: 'half-day', label: '4h', color: 'text-zinc-400' },
   ];
 
   // Inline Editing Goal State
@@ -713,40 +713,40 @@ export default function TodoHub({
       label: 'Today',
       sublabel: 'Daily Priorities',
       icon: Sun,
-      color: 'text-emerald-400',
-      bgAccent: 'bg-emerald-500/10',
-      borderAccent: 'border-emerald-500/30',
-      progressBar: 'bg-emerald-400'
+      color: 'text-zinc-200',
+      bgAccent: 'bg-white/[0.04]',
+      borderAccent: 'border-white/[0.08]',
+      progressBar: 'bg-white/40'
     },
     {
       id: 'weekly',
       label: 'This Week',
       sublabel: 'Weekly Sprint',
       icon: Calendar,
-      color: 'text-sky-400',
-      bgAccent: 'bg-sky-500/10',
-      borderAccent: 'border-sky-500/30',
-      progressBar: 'bg-sky-400'
+      color: 'text-zinc-200',
+      bgAccent: 'bg-white/[0.04]',
+      borderAccent: 'border-white/[0.08]',
+      progressBar: 'bg-white/40'
     },
     {
       id: 'monthly',
       label: 'This Month',
       sublabel: 'Monthly Objectives',
       icon: Target,
-      color: 'text-purple-400',
-      bgAccent: 'bg-purple-500/10',
-      borderAccent: 'border-purple-500/30',
-      progressBar: 'bg-purple-400'
+      color: 'text-zinc-200',
+      bgAccent: 'bg-white/[0.04]',
+      borderAccent: 'border-white/[0.08]',
+      progressBar: 'bg-white/40'
     },
     {
       id: 'yearly',
       label: 'This Year',
       sublabel: 'Annual Vision',
       icon: Trophy,
-      color: 'text-amber-400',
-      bgAccent: 'bg-amber-500/10',
-      borderAccent: 'border-amber-500/30',
-      progressBar: 'bg-amber-400'
+      color: 'text-zinc-200',
+      bgAccent: 'bg-white/[0.04]',
+      borderAccent: 'border-white/[0.08]',
+      progressBar: 'bg-white/40'
     }
   ];
 
@@ -888,10 +888,10 @@ export default function TodoHub({
       
       {/* Overdue / Incomplete Target Reminder Banner (Slim & Compact) */}
       {!isOverdueBannerDismissed && overdueIncompleteGoals.length > 0 && (
-        <div className="mb-4 px-3.5 py-2 glass-card-true border border-amber-500/25 rounded-xl flex items-center justify-between gap-3 bg-amber-500/10 text-xs animate-fadeIn">
+        <div className="mb-4 px-3.5 py-2 glass-card-true border border-rose-500/20 rounded-xl flex items-center justify-between gap-3 bg-rose-500/10 text-xs animate-fadeIn">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="text-amber-200 font-medium">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+            <span className="text-rose-200 font-medium">
               You have {overdueIncompleteGoals.length} overdue tasks from previous days
             </span>
           </div>
@@ -899,7 +899,7 @@ export default function TodoHub({
             <button
               type="button"
               onClick={handleRolloverOverdueGoals}
-              className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1 bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/10 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
               <span>Roll over to Today</span>
@@ -981,7 +981,7 @@ export default function TodoHub({
                 : 'text-[#9496a1] hover:text-white'
             }`}
           >
-            <Trophy className="w-3.5 h-3.5 text-[#1591DC]" />
+            <Trophy className="w-3.5 h-3.5 text-zinc-400" />
             <span>Review Protocol</span>
           </button>
         </div>
@@ -1001,7 +1001,7 @@ export default function TodoHub({
                   value={databaseSearchQuery}
                   onChange={(e) => setDatabaseSearchQuery(e.target.value)}
                   placeholder="Search tasks by title, #tag, notes..."
-                  className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-[#1591DC] pl-9 pr-8 py-1.5 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors font-sans"
+                  className="w-full bg-white/[0.04] border border-white/[0.08] focus:border-white/30 pl-9 pr-8 py-1.5 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors font-sans"
                 />
                 {databaseSearchQuery && (
                   <button
@@ -1044,16 +1044,16 @@ export default function TodoHub({
                     title="Filter by priority"
                   >
                     <option value="all" className="bg-[#12141a] text-white">All Priorities</option>
-                    <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                    <option value="The One Thing" className="bg-[#12141a] text-rose-300">★ The One Thing</option>
                     <option value="High" className="bg-[#12141a] text-rose-300">High</option>
-                    <option value="Medium" className="bg-[#12141a] text-sky-300">Medium</option>
+                    <option value="Medium" className="bg-[#12141a] text-zinc-300">Medium</option>
                     <option value="Low" className="bg-[#12141a] text-zinc-400">Low</option>
                   </select>
                 </div>
 
                 {/* Sort Select */}
                 <div className="flex items-center gap-1 bg-white/[0.03] px-2 py-1 rounded-lg border border-white/[0.06]">
-                  <ArrowUpDown className="w-3 h-3 text-[#1591DC]" />
+                  <ArrowUpDown className="w-3 h-3 text-zinc-400" />
                   <select
                     value={databaseSortBy}
                     onChange={(e) => setDatabaseSortBy(e.target.value as any)}
@@ -1139,10 +1139,10 @@ export default function TodoHub({
           {(viewMode === 'table' || viewMode === 'grouped') && (
             <form 
               onSubmit={handleMasterQuickAdd}
-              className="glass-panel-true p-2.5 rounded-2xl border border-white/10 flex flex-wrap items-center gap-2 focus-within:border-[#1591DC]/50 transition-colors"
+              className="glass-panel-true p-2.5 rounded-2xl border border-white/10 flex flex-wrap items-center gap-2 focus-within:border-white/25 transition-colors"
             >
               <div className="flex items-center gap-2 flex-1 min-w-[220px]">
-                <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
+                <div className="w-6 h-6 rounded-lg bg-white/[0.08] border border-white/[0.12] flex items-center justify-center text-white shrink-0">
                   <Plus className="w-3.5 h-3.5" />
                 </div>
                 <input
@@ -1161,10 +1161,10 @@ export default function TodoHub({
                   className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
                   title="Timeframe"
                 >
-                  <option value="daily" className="bg-[#12141a] text-emerald-300">⚡ Today</option>
-                  <option value="weekly" className="bg-[#12141a] text-sky-300">📅 This Week</option>
-                  <option value="monthly" className="bg-[#12141a] text-purple-300">🎯 This Month</option>
-                  <option value="yearly" className="bg-[#12141a] text-amber-300">🏔️ This Year</option>
+                  <option value="daily" className="bg-[#12141a] text-white">⚡ Today</option>
+                  <option value="weekly" className="bg-[#12141a] text-white">📅 This Week</option>
+                  <option value="monthly" className="bg-[#12141a] text-white">🎯 This Month</option>
+                  <option value="yearly" className="bg-[#12141a] text-white">🏔️ This Year</option>
                 </select>
 
                 <select
@@ -1173,9 +1173,9 @@ export default function TodoHub({
                   className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#ededf3] focus:outline-none cursor-pointer"
                   title="Priority"
                 >
-                  <option value="The One Thing" className="bg-[#12141a] text-amber-300">★ The One Thing</option>
+                  <option value="The One Thing" className="bg-[#12141a] text-rose-300">★ The One Thing</option>
                   <option value="High" className="bg-[#12141a] text-rose-300">High</option>
-                  <option value="Medium" className="bg-[#12141a] text-sky-300">Medium</option>
+                  <option value="Medium" className="bg-[#12141a] text-zinc-300">Medium</option>
                   <option value="Low" className="bg-[#12141a] text-zinc-400">Low</option>
                 </select>
 
@@ -1196,7 +1196,7 @@ export default function TodoHub({
                 <button
                   type="submit"
                   disabled={!dbMasterAddTitle.trim()}
-                  className="px-3 py-1 rounded-lg bg-[#1591DC] hover:bg-[#1591DC]/80 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                  className="px-3 py-1 rounded-lg bg-white hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed text-black text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 shadow-sm"
                 >
                   <Plus className="w-3 h-3" />
                   <span>Add</span>
@@ -1251,7 +1251,7 @@ export default function TodoHub({
                     onDrop={(e) => handleDbDropOnColumn(e, col.id)}
                     className={`flex flex-col rounded-2xl transition-all duration-200 border ${
                       isDragOver 
-                        ? 'border-[#1591DC] bg-[#1591DC]/[0.05] shadow-[0_0_25px_rgba(21,145,220,0.15)]' 
+                        ? 'border-white/30 bg-white/[0.03] shadow-[0_0_25px_rgba(255,255,255,0.05)]' 
                         : 'border-white/[0.08] bg-[#0e1015] hover:border-white/[0.14]'
                     }`}
                   >
@@ -1276,7 +1276,7 @@ export default function TodoHub({
                         </div>
 
                         <div className="text-right">
-                          <span className={`text-xs font-bold tabular-nums ${col.color}`}>
+                          <span className="text-xs font-bold tabular-nums text-white">
                             {rate}%
                           </span>
                           <span className="block text-[9px] text-[#9496a1] tabular-nums">
@@ -1294,7 +1294,7 @@ export default function TodoHub({
                               onClick={() => setDbDailyViewScope('today')}
                               className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
                                 isTodayOnly
-                                  ? 'bg-[#1591DC] text-white shadow-sm'
+                                  ? 'bg-white text-black shadow-sm font-semibold'
                                   : 'text-[#9496a1] hover:text-white'
                               }`}
                             >
@@ -1305,7 +1305,7 @@ export default function TodoHub({
                               onClick={() => setDbDailyViewScope('all')}
                               className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
                                 !isTodayOnly
-                                  ? 'bg-[#1591DC] text-white shadow-sm'
+                                  ? 'bg-white text-black shadow-sm font-semibold'
                                   : 'text-[#9496a1] hover:text-white'
                               }`}
                             >
@@ -1334,11 +1334,11 @@ export default function TodoHub({
                               setDbQuickAddInputs(prev => ({ ...prev, [col.id]: val }));
                             }}
                             placeholder={`+ Add task for ${col.label.toLowerCase()}...`}
-                            className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] px-3 py-1.5 text-xs text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors"
+                            className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-white/30 px-3 py-1.5 text-xs text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors font-sans"
                           />
                           <button
                             type="submit"
-                            className="p-1.5 btn-primary-cyan text-white rounded-xl shrink-0 transition-transform active:scale-95 cursor-pointer"
+                            className="p-1.5 bg-white text-black hover:bg-zinc-200 rounded-xl shrink-0 transition-transform active:scale-95 cursor-pointer font-semibold shadow-sm"
                             title="Add task"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -1362,7 +1362,7 @@ export default function TodoHub({
                                 }}
                                 className={`px-1.5 py-0.5 rounded-full text-[9px] tabular-nums font-medium transition-all cursor-pointer ${
                                   isSelected
-                                    ? 'bg-[#1591DC] text-white font-bold shadow-sm'
+                                    ? 'bg-white text-black font-bold shadow-sm'
                                     : 'bg-white/[0.02] border border-white/[0.06] text-[#9496a1] hover:text-white'
                                 }`}
                               >
@@ -1402,7 +1402,7 @@ export default function TodoHub({
                               onClick={() => setActivePanelGoalId(g.id)}
                               className={`relative p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing group select-none ${
                                 isDragOver 
-                                  ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' 
+                                  ? 'border-t-2 border-white/40 bg-white/[0.04]' 
                                   : ''
                               } ${
                                 g.completed
@@ -1449,7 +1449,7 @@ export default function TodoHub({
                                     handleToggle(g.id, !g.completed);
                                   }}
                                   className={`mt-0.5 shrink-0 transition-transform active:scale-90 cursor-pointer ${
-                                    g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
+                                    g.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'
                                   }`}
                                 >
                                   {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
@@ -1473,9 +1473,9 @@ export default function TodoHub({
                                   return (
                                     <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-medium ${
                                       dateInfo.isToday
-                                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold'
+                                        ? 'bg-sky-500/10 text-sky-200 border-sky-500/20 font-semibold'
                                         : dateInfo.isOverdue
-                                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-medium'
+                                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/20 font-medium'
                                           : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                                     }`}>
                                       {dateInfo.displayDate}
@@ -1485,10 +1485,11 @@ export default function TodoHub({
 
                                 {/* Priority Badge */}
                                 <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-semibold ${
-                                  prio === 'The One Thing' ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                                    : prio === 'High' ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                                    : prio === 'Medium' ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
-                                    : 'bg-zinc-800/80 text-zinc-400 border-zinc-700/50'
+                                  prio === 'The One Thing' || prio === 'High'
+                                    ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                                    : prio === 'Medium' 
+                                      ? 'bg-white/[0.06] text-zinc-300 border-white/[0.1]'
+                                      : 'bg-white/[0.02] text-zinc-500 border-white/[0.05]'
                                 }`}>
                                   {prio}
                                 </span>
@@ -1505,7 +1506,7 @@ export default function TodoHub({
                                 {subCount > 0 && (
                                   <span className={`px-1.5 py-0.5 rounded-full border flex items-center gap-1 font-medium tabular-nums ${
                                     subDone === subCount 
-                                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' 
+                                      ? 'bg-white/[0.08] text-white border-white/20' 
                                       : 'bg-white/[0.04] text-[#9496a1] border-white/[0.08]'
                                   }`}>
                                     <ListChecks className="w-2.5 h-2.5" />
@@ -1533,7 +1534,7 @@ export default function TodoHub({
                                       e.stopPropagation();
                                       handleStartFocus(g.id);
                                     }}
-                                    className="p-1 rounded hover:bg-amber-500/10 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                                    className="p-1 rounded hover:bg-white/[0.08] text-zinc-500 hover:text-white transition-colors cursor-pointer"
                                     title="Start Pomodoro Focus on this task"
                                   >
                                     <Flame className="w-3 h-3" />
@@ -1639,10 +1640,11 @@ export default function TodoHub({
                                   const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
                                   const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
                                   const prio = g.priority || 'Medium';
-                                  const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                                    : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                                    : prio === 'Medium' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                                    : 'bg-zinc-800 text-zinc-400 border-zinc-700';
+                                  const prioColor = prio === 'The One Thing' || prio === 'High'
+                                    ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                                    : prio === 'Medium'
+                                      ? 'bg-white/[0.06] text-zinc-300 border-white/[0.1]'
+                                      : 'bg-white/[0.02] text-zinc-500 border-white/[0.05]';
 
                                   return (
                                     <tr 
@@ -1659,7 +1661,7 @@ export default function TodoHub({
                                         <button
                                           type="button"
                                           onClick={() => handleToggle(g.id, !g.completed)}
-                                          className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
+                                          className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'}`}
                                         >
                                           {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
                                         </button>
@@ -1679,7 +1681,7 @@ export default function TodoHub({
                                       </td>
                                       <td className="py-2.5 px-3 text-[11px] text-[#9496a1] tabular-nums">
                                         {subCount > 0 ? (
-                                          <span className={subDone === subCount ? 'text-emerald-400' : ''}>
+                                          <span className={subDone === subCount ? 'text-white' : ''}>
                                             {subDone}/{subCount}
                                           </span>
                                         ) : '-'}
@@ -1688,10 +1690,10 @@ export default function TodoHub({
                                         <button
                                           type="button"
                                           onClick={() => handleStartFocus(g.id)}
-                                          className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
+                                          className="px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] hover:border-white/20 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
                                           title="Start Pomodoro Focus on this task"
                                         >
-                                          <Flame className="w-3 h-3 text-amber-400 group-hover/btn:scale-110 transition-transform" />
+                                          <Flame className="w-3 h-3 text-zinc-400 group-hover/btn:text-white group-hover/btn:scale-110 transition-transform" />
                                           <span className="text-[10px] font-semibold">Focus</span>
                                         </button>
                                       </td>
@@ -1764,10 +1766,11 @@ export default function TodoHub({
                         const prio = g.priority || 'Medium';
                         const isDragOver = dbDragOverTaskId === g.id;
                         
-                        const prioColor = prio === 'The One Thing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                          : prio === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                          : prio === 'Medium' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                          : 'bg-zinc-800 text-zinc-400 border-zinc-700';
+                        const prioColor = prio === 'The One Thing' || prio === 'High' 
+                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                          : prio === 'Medium' 
+                            ? 'bg-white/[0.06] text-zinc-300 border-white/[0.1]'
+                            : 'bg-white/[0.02] text-zinc-500 border-white/[0.05]';
 
                         return (
                           <tr 
@@ -1779,7 +1782,7 @@ export default function TodoHub({
                             onDrop={(e) => handleDbDropOnTask(e, g.id, g.timeframe)}
                             onClick={() => setActivePanelGoalId(g.id)}
                             className={`hover:bg-white/[0.03] transition-colors cursor-pointer group select-none ${
-                              isDragOver ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                              isDragOver ? 'border-t-2 border-white/40 bg-white/[0.04]' : ''
                             } ${g.completed ? 'opacity-50' : ''}`}
                           >
                             <td className="py-3 px-2 text-center" onClick={e => e.stopPropagation()}>
@@ -1795,7 +1798,7 @@ export default function TodoHub({
                               <button
                                 type="button"
                                 onClick={() => handleToggle(g.id, !g.completed)}
-                                className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
+                                className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'}`}
                               >
                                 {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
                               </button>
@@ -1823,9 +1826,9 @@ export default function TodoHub({
                                   return (
                                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono border ${
                                       dateInfo.isToday 
-                                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold' 
+                                        ? 'bg-sky-500/10 text-sky-200 border-sky-500/20 font-semibold' 
                                         : dateInfo.isOverdue 
-                                          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' 
+                                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' 
                                           : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                                     }`}>
                                       {dateInfo.displayDate}
@@ -1847,7 +1850,7 @@ export default function TodoHub({
 
                             <td className="py-3 px-3 tabular-nums text-[11px] text-[#9496a1]">
                               {subCount > 0 ? (
-                                <span className={`px-2 py-0.5 rounded-full ${subDone === subCount ? 'text-emerald-400 bg-emerald-500/10' : 'text-[#9496a1]'}`}>
+                                <span className={`px-2 py-0.5 rounded-full ${subDone === subCount ? 'text-white bg-white/[0.08]' : 'text-[#9496a1]'}`}>
                                   {subDone}/{subCount}
                                 </span>
                               ) : (
@@ -1863,10 +1866,10 @@ export default function TodoHub({
                               <button
                                 type="button"
                                 onClick={() => handleStartFocus(g.id)}
-                                className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
+                                className="px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] hover:border-white/20 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
                                 title="Start Pomodoro Focus on this task"
                               >
-                                <Flame className="w-3.5 h-3.5 text-amber-400 group-hover/btn:scale-110 transition-transform" />
+                                <Flame className="w-3.5 h-3.5 text-zinc-400 group-hover/btn:text-white group-hover/btn:scale-110 transition-transform" />
                                 <span className="text-[10px] font-semibold">Focus</span>
                               </button>
                             </td>
@@ -1951,7 +1954,7 @@ export default function TodoHub({
               />
               <button
                 type="submit"
-                className="px-4 py-2 btn-primary-cyan text-xs font-semibold flex items-center gap-1 shrink-0 rounded-xl"
+                className="px-4 py-2 bg-white text-black hover:bg-zinc-200 font-semibold shadow-sm text-xs flex items-center gap-1 shrink-0 rounded-xl cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add</span>
@@ -1988,9 +1991,9 @@ export default function TodoHub({
                   onClick={() => setSelectedDay(day.dayStr)}
                   className={`min-h-[140px] md:min-h-[160px] p-2 md:p-2.5 rounded-2xl border transition-all flex flex-col justify-between group/day relative ${
                     isDragTarget
-                      ? 'bg-[#1591DC]/15 border-[#1591DC] ring-2 ring-[#1591DC]/50 shadow-[0_0_20px_rgba(21,145,220,0.25)]'
+                      ? 'bg-white/[0.05] border-white/40 ring-2 ring-white/20'
                       : day.isToday
-                        ? 'bg-[#10141f] border-[#1591DC]/40 shadow-sm'
+                        ? 'bg-white/[0.03] border-white/30 shadow-sm'
                         : isCurrentSelected
                           ? 'bg-white/[0.04] border-white/20'
                           : 'bg-[#0c0e14]/90 border-white/[0.06] hover:border-white/[0.14]'
@@ -2000,12 +2003,12 @@ export default function TodoHub({
                   <div className="flex items-center justify-between w-full mb-2">
                     <div className="flex items-center gap-1.5">
                       {day.isToday ? (
-                        <span className="w-6 h-6 rounded-full bg-[#1591DC] text-white flex items-center justify-center font-mono font-bold text-xs shadow-md">
+                        <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-mono font-bold text-xs shadow-md">
                           {day.dayNum}
                         </span>
                       ) : (
                         <span className={`font-mono text-xs font-semibold transition-colors ${
-                          isCurrentSelected ? 'text-[#38bdf8]' : 'text-zinc-400 group-hover/day:text-white'
+                          isCurrentSelected ? 'text-white' : 'text-zinc-400 group-hover/day:text-white'
                         }`}>
                           {day.dayNum}
                         </span>
@@ -2014,7 +2017,7 @@ export default function TodoHub({
                       {day.total > 0 && (
                         <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-medium ${
                           day.completed === day.total
-                            ? 'bg-emerald-500/20 text-emerald-300'
+                            ? 'bg-white/15 text-white font-semibold'
                             : 'bg-white/[0.06] text-[#9496a1]'
                         }`}>
                           {day.completed}/{day.total}
@@ -2029,7 +2032,7 @@ export default function TodoHub({
                         setQuickAddDayKey(quickAddDayKey === day.ctxKey ? null : day.ctxKey);
                         setQuickAddText('');
                       }}
-                      className="opacity-0 group-hover/day:opacity-100 p-1 rounded hover:bg-white/[0.08] text-[#9496a1] hover:text-white transition-all"
+                      className="opacity-0 group-hover/day:opacity-100 p-1 rounded hover:bg-white/[0.08] text-[#9496a1] hover:text-white transition-all cursor-pointer"
                       title="Add task to this day"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -2061,7 +2064,7 @@ export default function TodoHub({
                             if (e.key === 'Escape') setQuickAddDayKey(null);
                           }}
                           placeholder="Task title..."
-                          className="w-full text-[11px] px-2 py-1 rounded-lg bg-black/60 border border-[#1591DC] text-white focus:outline-none placeholder:text-zinc-500"
+                          className="w-full text-[11px] px-2 py-1 rounded-lg bg-black/60 border border-white/30 text-white focus:outline-none placeholder:text-zinc-500"
                           onBlur={() => {
                             if (!quickAddText.trim()) setQuickAddDayKey(null);
                           }}
@@ -2084,9 +2087,9 @@ export default function TodoHub({
                           }}
                           className={`group/card p-1.5 rounded-lg border text-left cursor-grab active:cursor-grabbing transition-all select-none flex flex-col gap-1 ${
                             isDragged
-                              ? 'opacity-40 border-[#1591DC] bg-[#1591DC]/10 scale-95'
+                              ? 'opacity-40 border-white/40 bg-white/[0.05] scale-95'
                               : g.completed
-                                ? 'bg-emerald-500/[0.04] border-emerald-500/20 opacity-70 hover:opacity-100 hover:bg-emerald-500/[0.08]'
+                                ? 'bg-white/[0.02] border-white/[0.04] opacity-60 hover:opacity-85'
                                 : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.06] hover:border-white/20 shadow-sm'
                           }`}
                           title="Click to view details, drag to move to another day"
@@ -2101,7 +2104,7 @@ export default function TodoHub({
                               className="mt-0.5 text-[#9496a1] hover:text-white transition-colors shrink-0"
                             >
                               {g.completed ? (
-                                <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+                                <CheckSquare className="w-3.5 h-3.5 text-zinc-300" />
                               ) : (
                                 <Square className="w-3.5 h-3.5 group-hover/card:text-white" />
                               )}
@@ -2127,7 +2130,7 @@ export default function TodoHub({
                                 </span>
                               )}
                               {g.subTasks && g.subTasks.length > 0 && (
-                                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 flex items-center gap-0.5">
+                                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/[0.05] text-zinc-300 flex items-center gap-0.5">
                                   <ListChecks className="w-2.5 h-2.5" />
                                   {g.subTasks.filter(s => s.completed).length}/{g.subTasks.length}
                                 </span>
@@ -2180,7 +2183,7 @@ export default function TodoHub({
                       {s.done} <span className="text-xs font-normal text-[#9496a1]">/ {s.total} completed</span>
                     </div>
                     <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#1591DC] rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-white/40 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -2209,7 +2212,7 @@ export default function TodoHub({
               {/* Header */}
               <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/[0.08]">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#1591DC]" />
+                  <FileText className="w-4 h-4 text-zinc-300" />
                   <span className="text-xs font-semibold text-white">
                     Task details & sub-tasks
                   </span>
@@ -2217,7 +2220,7 @@ export default function TodoHub({
                 <button
                   type="button"
                   onClick={() => setActivePanelGoalId(null)}
-                  className="p-1.5 rounded-full hover:bg-white/[0.06] text-[#9496a1] hover:text-white transition-colors"
+                  className="p-1.5 rounded-full hover:bg-white/[0.06] text-[#9496a1] hover:text-white transition-colors cursor-pointer"
                   title="Close Side Panel"
                 >
                   <X className="w-4 h-4" />
@@ -2237,7 +2240,7 @@ export default function TodoHub({
                     const prefix = match ? match[1] : '';
                     handleUpdateProperty(activePanelGoal, 'text', prefix + e.target.value);
                   }}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] px-3.5 py-2.5 text-base font-semibold text-white focus:outline-none rounded-xl transition-colors"
+                  className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-white/30 px-3.5 py-2.5 text-base font-semibold text-white focus:outline-none rounded-xl transition-colors font-sans"
                   placeholder="Enter task title..."
                 />
               </div>
@@ -2249,13 +2252,13 @@ export default function TodoHub({
                   <button
                     type="button"
                     onClick={() => onToggleGoal(activePanelGoal.id, !activePanelGoal.completed)}
-                    className={`w-full py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border transition-all ${
+                    className={`w-full py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border transition-all cursor-pointer ${
                       activePanelGoal.completed
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        ? 'bg-white/15 text-white border-white/20 font-semibold'
                         : 'bg-white/[0.04] text-[#ededf3] border-white/[0.08] hover:border-white/20'
                     }`}
                   >
-                    {activePanelGoal.completed ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-[#9496a1]" />}
+                    {activePanelGoal.completed ? <CheckSquare className="w-4 h-4 text-zinc-300" /> : <Square className="w-4 h-4 text-[#9496a1]" />}
                     <span>{activePanelGoal.completed ? 'Completed' : 'In progress'}</span>
                   </button>
                 </div>
@@ -2281,11 +2284,11 @@ export default function TodoHub({
                     onChange={(e) => handleUpdateProperty(activePanelGoal, 'priority', e.target.value)}
                     className="w-full bg-[#12141a] border border-white/[0.08] text-xs text-white p-2 rounded-lg focus:outline-none cursor-pointer"
                   >
-                    <option value="The One Thing">🔥 The One Thing</option>
-                    <option value="High">🔴 High Priority</option>
-                    <option value="Medium">🔵 Medium Priority</option>
-                    <option value="Low">⚪ Low Priority</option>
-                    <option value="As and When">⏳ As and When</option>
+                    <option value="The One Thing">★ The One Thing</option>
+                    <option value="High">High Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="Low">Low Priority</option>
+                    <option value="As and When">As and When</option>
                   </select>
                 </div>
 
@@ -2331,13 +2334,13 @@ export default function TodoHub({
               <div className="mb-8 p-5 glass-panel-true border border-white/[0.08] rounded-2xl">
                 <div className="flex justify-between items-center mb-3">
                   <div className="flex items-center gap-2">
-                    <ListChecks className="w-4 h-4 text-emerald-400" />
+                    <ListChecks className="w-4 h-4 text-zinc-300" />
                     <h4 className="text-xs font-semibold text-white">
                       Sub-tasks ({(activePanelGoal.subTasks || []).filter(s => s.completed).length}/{(activePanelGoal.subTasks || []).length})
                     </h4>
                   </div>
                   {(activePanelGoal.subTasks || []).length > 0 && (
-                    <span className="text-xs font-medium text-emerald-400 font-mono">
+                    <span className="text-xs font-medium text-white font-mono">
                       {Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}% done
                     </span>
                   )}
@@ -2346,7 +2349,7 @@ export default function TodoHub({
                 {(activePanelGoal.subTasks || []).length > 0 && (
                   <div className="w-full h-1.5 bg-white/[0.08] rounded-full overflow-hidden mb-4">
                     <div 
-                      className="h-full bg-emerald-400 transition-all duration-500" 
+                      className="h-full bg-white/50 transition-all duration-500" 
                       style={{ width: `${Math.round(((activePanelGoal.subTasks || []).filter(s => s.completed).length / (activePanelGoal.subTasks || []).length) * 100)}%` }} 
                     />
                   </div>
@@ -2366,10 +2369,10 @@ export default function TodoHub({
                         <button
                           type="button"
                           onClick={() => handleToggleSubTask(activePanelGoal, sub.id)}
-                          className="flex items-center gap-2.5 text-xs text-left min-w-0 flex-1 focus:outline-none"
+                          className="flex items-center gap-2.5 text-xs text-left min-w-0 flex-1 focus:outline-none cursor-pointer"
                         >
                           {sub.completed ? (
-                            <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <CheckSquare className="w-4 h-4 text-zinc-300 shrink-0" />
                           ) : (
                             <Square className="w-4 h-4 text-[#9496a1] shrink-0" />
                           )}
@@ -2380,7 +2383,7 @@ export default function TodoHub({
                         <button
                           type="button"
                           onClick={() => handleDeleteSubTask(activePanelGoal, sub.id)}
-                          className="text-[#9496a1] hover:text-red-400 p-1 transition-colors"
+                          className="text-[#9496a1] hover:text-red-400 p-1 transition-colors cursor-pointer"
                           title="Delete sub-task"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -2406,7 +2409,7 @@ export default function TodoHub({
                   />
                   <button
                     type="submit"
-                    className="px-3.5 py-1.5 btn-primary-cyan text-white text-xs font-semibold shrink-0 flex items-center gap-1"
+                    className="px-3.5 py-1.5 bg-white text-black hover:bg-zinc-200 text-xs font-semibold shrink-0 flex items-center gap-1 rounded-lg cursor-pointer shadow-sm"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add</span>
@@ -2418,7 +2421,7 @@ export default function TodoHub({
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-[#9496a1] font-medium flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#1591DC]" />
+                    <FileText className="w-3.5 h-3.5 text-zinc-300" />
                     <span>Task notes</span>
                   </span>
                   <span className="text-[10px] text-[#9496a1]">Auto-saved</span>
@@ -2428,7 +2431,7 @@ export default function TodoHub({
                   onChange={(e) => handleUpdateNotes(activePanelGoal, e.target.value)}
                   placeholder="Write notes, links, or outlines for this task..."
                   rows={7}
-                  className="w-full bg-white/[0.02] border border-white/[0.08] focus:border-[#1591DC] p-4 text-xs font-sans leading-relaxed text-[#ededf3] placeholder-zinc-600 focus:outline-none rounded-xl transition-colors resize-none"
+                  className="w-full bg-white/[0.02] border border-white/[0.08] focus:border-white/30 p-4 text-xs font-sans leading-relaxed text-[#ededf3] placeholder-zinc-600 focus:outline-none rounded-xl transition-colors resize-none"
                 />
               </div>
             </div>

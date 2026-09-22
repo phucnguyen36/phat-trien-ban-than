@@ -266,7 +266,7 @@ export default function ExecutiveDashboard({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2 border-b border-white/[0.08] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] tracking-wider uppercase text-[#1591DC] font-semibold">
+            <span className="text-[11px] tracking-wider uppercase text-zinc-300 font-semibold">
               DAILY EXECUTIVE BRIEFING
             </span>
             <span className="text-zinc-600">•</span>
@@ -286,7 +286,7 @@ export default function ExecutiveDashboard({
           <button
             type="button"
             onClick={() => onNavigate('todo-hub')}
-            className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#1591DC] hover:bg-[#1591DC]/90 text-white transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-black hover:bg-zinc-200 transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <CheckSquare className="w-3.5 h-3.5" />
             <span>Tasks Hub</span>
@@ -296,7 +296,7 @@ export default function ExecutiveDashboard({
             onClick={() => onNavigate('habits')}
             className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Activity className="w-3.5 h-3.5 text-[#1591DC]" />
+            <Activity className="w-3.5 h-3.5 text-zinc-300" />
             <span>Habit Matrix</span>
           </button>
         </div>
@@ -308,7 +308,7 @@ export default function ExecutiveDashboard({
         <div className="kuldeep-card p-5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#9496a1]">Today's Execution</span>
-            <Clock className="w-4 h-4 text-[#1591DC]" />
+            <Clock className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
             {todayDone} <span className="text-sm font-normal text-[#9496a1]">/ {todayTotal} tasks</span>
@@ -318,7 +318,7 @@ export default function ExecutiveDashboard({
             <span className="tabular-nums font-semibold text-white">{todayProgressPercent}%</span>
           </div>
           <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-            <div className="h-full bg-[#1591DC] rounded-full transition-all duration-500" style={{ width: `${todayProgressPercent}%` }} />
+            <div className="h-full bg-white/60 rounded-full transition-all duration-500" style={{ width: `${todayProgressPercent}%` }} />
           </div>
         </div>
 
@@ -326,7 +326,7 @@ export default function ExecutiveDashboard({
         <div className="kuldeep-card p-5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#9496a1]">Habit Discipline</span>
-            <Activity className="w-4 h-4 text-emerald-400" />
+            <Activity className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
             {todayHabitsDoneCount} <span className="text-sm font-normal text-[#9496a1]">/ {habits.length} check-ins</span>
@@ -336,7 +336,7 @@ export default function ExecutiveDashboard({
             <span className="tabular-nums font-semibold text-white">{habitCompletionPercent}%</span>
           </div>
           <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-400 rounded-full transition-all duration-500" style={{ width: `${habitCompletionPercent}%` }} />
+            <div className="h-full bg-white/40 rounded-full transition-all duration-500" style={{ width: `${habitCompletionPercent}%` }} />
           </div>
         </div>
 
@@ -354,13 +354,13 @@ export default function ExecutiveDashboard({
             <button 
               type="button" 
               onClick={() => onNavigate('expenses')} 
-              className="text-[#1591DC] hover:underline cursor-pointer"
+              className="text-zinc-400 hover:text-white hover:underline cursor-pointer"
             >
               Ledger &rarr;
             </button>
           </div>
           <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-            <div className="h-full bg-sky-400/40 rounded-full" style={{ width: monthlyExpenses.length > 0 ? '100%' : '0%' }} />
+            <div className="h-full bg-white/30 rounded-full" style={{ width: monthlyExpenses.length > 0 ? '100%' : '0%' }} />
           </div>
         </div>
       </div>
@@ -372,7 +372,7 @@ export default function ExecutiveDashboard({
         <div className="lg:col-span-5 kuldeep-card p-5 md:p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#1591DC]" />
+              <Clock className="w-4 h-4 text-zinc-300" />
               <h2 className="text-sm font-semibold text-white">
                 Today's Daily Tasks
               </h2>
@@ -384,7 +384,7 @@ export default function ExecutiveDashboard({
                 type="button"
                 onClick={() => setTodayTaskFilter('all')}
                 className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                  todayTaskFilter === 'all' ? 'bg-[#1591DC] text-white' : 'text-[#9496a1] hover:text-white'
+                  todayTaskFilter === 'all' ? 'bg-white text-black font-semibold shadow-xs' : 'text-[#9496a1] hover:text-white'
                 }`}
               >
                 All ({todayDailyTasks.length})
@@ -393,7 +393,7 @@ export default function ExecutiveDashboard({
                 type="button"
                 onClick={() => setTodayTaskFilter('active')}
                 className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                  todayTaskFilter === 'active' ? 'bg-[#1591DC] text-white' : 'text-[#9496a1] hover:text-white'
+                  todayTaskFilter === 'active' ? 'bg-white text-black font-semibold shadow-xs' : 'text-[#9496a1] hover:text-white'
                 }`}
               >
                 Active ({todayPending})
@@ -403,10 +403,10 @@ export default function ExecutiveDashboard({
 
           {/* Overdue Tasks Alert Banner */}
           {overdueTasks.length > 0 && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="text-xs text-amber-200 truncate">
+                <AlertCircle className="w-4 h-4 text-rose-300 shrink-0" />
+                <span className="text-xs text-rose-200 truncate">
                   {overdueTasks.length} unfinished task(s) from earlier days
                 </span>
               </div>
@@ -414,7 +414,7 @@ export default function ExecutiveDashboard({
                 <button
                   type="button"
                   onClick={handleRolloverAll}
-                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-500 text-black hover:bg-amber-400 transition-colors shrink-0 flex items-center gap-1 shadow-sm cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-black hover:bg-zinc-200 transition-colors shrink-0 flex items-center gap-1 shadow-sm cursor-pointer"
                   title="Move all unfinished tasks to today"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -438,7 +438,7 @@ export default function ExecutiveDashboard({
                 <button
                   type="submit"
                   disabled={!quickTaskText.trim()}
-                  className="px-3 py-2 btn-primary-cyan text-xs font-semibold rounded-xl shrink-0 flex items-center gap-1 disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-2 bg-white text-black hover:bg-zinc-200 text-xs font-semibold rounded-xl shrink-0 flex items-center gap-1 disabled:opacity-40 cursor-pointer shadow-sm"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add</span>
@@ -455,7 +455,7 @@ export default function ExecutiveDashboard({
                     onClick={() => setQuickEstimate(quickEstimate === est ? '' : est)}
                     className={`px-2 py-0.5 rounded-full text-[10px] tabular-nums transition-colors cursor-pointer ${
                       quickEstimate === est
-                        ? 'bg-[#1591DC] text-white font-bold'
+                        ? 'bg-white text-black font-bold shadow-xs'
                         : 'bg-white/[0.03] text-[#9496a1] hover:text-white border border-white/[0.06]'
                     }`}
                   >
@@ -484,7 +484,7 @@ export default function ExecutiveDashboard({
                   onDragLeave={(e) => handleTaskDragLeave(e, task.id)}
                   onDrop={(e) => handleTaskDrop(e, task.id)}
                   className={`flex items-center justify-between p-3 rounded-xl transition-all group select-none ${
-                    dragOverTaskId === task.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                    dragOverTaskId === task.id ? 'border-t-2 border-white bg-white/[0.08]' : ''
                   } ${
                     task.completed
                       ? 'bg-white/[0.02] border border-white/[0.04] text-[#9496a1]'
@@ -502,10 +502,10 @@ export default function ExecutiveDashboard({
                       type="button"
                       onClick={() => onToggleGoal(task.id, !task.completed)}
                       className={`transition-transform active:scale-95 shrink-0 cursor-pointer ${
-                        task.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'
+                        task.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'
                       }`}
                     >
-                      {task.completed ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4" />}
+                      {task.completed ? <CheckSquare className="w-4 h-4 text-zinc-300" /> : <Square className="w-4 h-4" />}
                     </button>
                     <div className="min-w-0">
                       <span className={`text-xs font-medium block truncate ${task.completed ? 'line-through opacity-60 text-[#9496a1]' : 'text-white'}`}>
@@ -525,7 +525,7 @@ export default function ExecutiveDashboard({
                       <button
                         type="button"
                         onClick={() => onDeleteGoal(task.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-[#9496a1] hover:text-red-400 transition-opacity cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-[#9496a1] hover:text-rose-400 transition-opacity cursor-pointer"
                         title="Delete task"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -545,7 +545,7 @@ export default function ExecutiveDashboard({
           <div className="kuldeep-card p-5 md:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-[#1591DC]" />
+                <CheckSquare className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-sm font-semibold text-white">
                   Strategic Roadmap ({strategicGoalsAll.length})
                 </h3>
@@ -570,7 +570,7 @@ export default function ExecutiveDashboard({
 
             {filteredStrategicGoals.length === 0 ? (
               <div className="py-8 text-center text-[#9496a1] space-y-2">
-                <CheckCircle2 className="w-7 h-7 mx-auto text-emerald-400" />
+                <CheckCircle2 className="w-7 h-7 mx-auto text-zinc-500" />
                 <p className="text-xs font-semibold text-white">No strategic objectives for this scope.</p>
               </div>
             ) : (
@@ -584,7 +584,7 @@ export default function ExecutiveDashboard({
                     onDragLeave={(e) => handleTaskDragLeave(e, goal.id)}
                     onDrop={(e) => handleTaskDrop(e, goal.id)}
                     className={`flex items-center justify-between p-3 rounded-xl transition-all group select-none ${
-                      dragOverTaskId === goal.id ? 'border-t-2 border-[#1591DC] bg-[#1591DC]/[0.08]' : ''
+                      dragOverTaskId === goal.id ? 'border-t-2 border-white/40 bg-white/[0.04]' : ''
                     } ${
                       goal.completed
                         ? 'bg-white/[0.02] border border-white/[0.04] opacity-60'
@@ -601,9 +601,9 @@ export default function ExecutiveDashboard({
                       <button
                         type="button"
                         onClick={() => onToggleGoal(goal.id, !goal.completed)}
-                        className={`shrink-0 transition-colors cursor-pointer ${goal.completed ? 'text-emerald-400' : 'text-[#9496a1] hover:text-white'}`}
+                        className={`shrink-0 transition-colors cursor-pointer ${goal.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'}`}
                       >
-                        {goal.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                        {goal.completed ? <CheckSquare className="w-4 h-4 text-zinc-300" /> : <Square className="w-4 h-4" />}
                       </button>
                       <div className="min-w-0">
                         <span className={`text-xs font-medium block truncate ${goal.completed ? 'line-through text-[#9496a1]' : 'text-[#ededf3]'}`}>
@@ -613,13 +613,7 @@ export default function ExecutiveDashboard({
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[9px] uppercase px-2 py-0.5 rounded-full border ${
-                        goal.timeframe === 'weekly' 
-                          ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                          : goal.timeframe === 'monthly'
-                            ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      }`}>
+                      <span className="text-[9px] uppercase px-2 py-0.5 rounded-full border bg-white/[0.05] text-zinc-300 border-white/[0.08]">
                         {goal.timeframe}
                       </span>
 
@@ -627,7 +621,7 @@ export default function ExecutiveDashboard({
                         <button
                           type="button"
                           onClick={() => onDeleteGoal(goal.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-[#9496a1] hover:text-red-400 transition-opacity cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-[#9496a1] hover:text-rose-400 transition-opacity cursor-pointer"
                           title="Delete goal"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -644,7 +638,7 @@ export default function ExecutiveDashboard({
           <div className="kuldeep-card p-5 md:p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-400" />
+                <Activity className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-sm font-semibold text-white">
                   Today's Habit Check-in (Day {todayDay})
                 </h3>
@@ -673,7 +667,7 @@ export default function ExecutiveDashboard({
                       key={habit.id}
                       className={`flex items-center justify-between p-3 rounded-xl transition-all ${
                         isDoneToday
-                          ? 'bg-emerald-500/[0.06] border border-emerald-500/20'
+                          ? 'bg-white/[0.04] border border-white/20'
                           : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.12]'
                       }`}
                     >
@@ -683,7 +677,7 @@ export default function ExecutiveDashboard({
                             {habit.habitName}
                           </span>
                           <span className="text-[10px] text-[#9496a1] flex items-center gap-1 mt-0.5">
-                            <Flame className={`w-3 h-3 ${isDoneToday ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                            <Flame className={`w-3 h-3 ${isDoneToday ? 'text-white' : 'text-zinc-500'}`} />
                             <span className="tabular-nums">{streakCount} days completed this month</span>
                           </span>
                         </div>
@@ -695,13 +689,13 @@ export default function ExecutiveDashboard({
                         onClick={() => onToggleHabitDay(habit.id, todayDay)}
                         className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                           isDoneToday 
-                            ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 shadow-sm' 
+                            ? 'bg-white text-black font-semibold shadow-sm' 
                             : 'bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-zinc-300 hover:text-white'
                         }`}
                       >
                         {isDoneToday ? (
                           <>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-black" />
                             <span>Done</span>
                           </>
                         ) : (

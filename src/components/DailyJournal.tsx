@@ -99,11 +99,11 @@ export default function DailyJournalPanel({
         {
           label: 'Energy Level (1-5)',
           data: sortedEntries.map(e => Number(e.energy) || 1),
-          borderColor: '#fde68a',
-          backgroundColor: 'rgba(253, 230, 138, 0.15)',
+          borderColor: '#ffffff',
+          backgroundColor: 'rgba(255, 255, 255, 0.08)',
           borderWidth: 2,
           tension: 0.4,
-          pointBackgroundColor: '#fde68a',
+          pointBackgroundColor: '#ffffff',
           pointBorderColor: '#ffffff',
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -154,7 +154,7 @@ export default function DailyJournalPanel({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/[0.08] pb-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans flex items-center gap-2.5">
-            <BookOpen className="w-5 h-5 text-[#1591DC]" />
+            <BookOpen className="w-5 h-5 text-zinc-300" />
             <span>Daily Journal</span>
           </h2>
           <p className="text-xs text-[#9496a1] mt-1">
@@ -164,9 +164,9 @@ export default function DailyJournalPanel({
 
         <button
           onClick={() => setIsArchiveOpen(prev => !prev)}
-          className="px-3.5 py-1.5 glass-button-true text-xs font-medium text-[#ededf3] hover:text-white flex items-center gap-2 rounded-full"
+          className="px-3.5 py-1.5 glass-button-true text-xs font-medium text-[#ededf3] hover:text-white flex items-center gap-2 rounded-full cursor-pointer"
         >
-          <History className="w-4 h-4 text-[#1591DC]" />
+          <History className="w-4 h-4 text-zinc-300" />
           <span>Journal history ({activeEntries.length})</span>
           {isArchiveOpen ? <ChevronUp className="w-4 h-4 text-[#9496a1]" /> : <ChevronDown className="w-4 h-4 text-[#9496a1]" />}
         </button>
@@ -174,8 +174,8 @@ export default function DailyJournalPanel({
 
       {/* Save Success Toast */}
       {showSaveNotice && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3 rounded-xl bg-white/[0.06] border border-white/15 text-zinc-200 text-xs flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
           <span>Journal entry for <strong>{selectedDate}</strong> successfully saved.</span>
         </div>
       )}
@@ -188,7 +188,7 @@ export default function DailyJournalPanel({
           <form onSubmit={handleSave} className="space-y-6">
             {/* Date Picker Row */}
             <div className="flex items-center gap-4 glass-card-true p-4 rounded-xl">
-              <Calendar className="w-4 h-4 text-[#1591DC]" />
+              <Calendar className="w-4 h-4 text-zinc-300" />
               <div className="flex-1 flex justify-between items-center">
                 <span className="text-xs text-[#9496a1] font-medium">Log date:</span>
                 <input
@@ -213,12 +213,14 @@ export default function DailyJournalPanel({
                       type="button"
                       key={level}
                       onClick={() => setEditorEnergy(level)}
-                      className={`py-3 flex flex-col items-center justify-center gap-1.5 glass-button-true transition-all rounded-xl ${
-                        isActive ? 'bg-[#1591DC]/20 border-[#1591DC]/40 text-white font-semibold' : 'text-[#9496a1]'
+                      className={`py-3 flex flex-col items-center justify-center gap-1.5 glass-button-true transition-all rounded-xl cursor-pointer ${
+                        isActive 
+                          ? 'bg-white text-black font-semibold border-white shadow-sm' 
+                          : 'text-[#9496a1]'
                       }`}
                     >
                       <span className="text-base font-mono font-bold">{level}</span>
-                      <span className="text-[10px] text-[#9496a1]">
+                      <span className={`text-[10px] ${isActive ? 'text-zinc-700' : 'text-[#9496a1]'}`}>
                         {energyLabels[level - 1]}
                       </span>
                     </button>
@@ -288,7 +290,7 @@ export default function DailyJournalPanel({
         <div className="pt-6 border-t border-white/15 space-y-4 animate-fadeIn">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-sans font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-              <History className="w-4 h-4 text-amber-400" />
+              <History className="w-4 h-4 text-zinc-300" />
               <span>Past Journal Entries History</span>
             </h3>
             <span className="text-[10px] font-mono text-zinc-400">
@@ -308,7 +310,7 @@ export default function DailyJournalPanel({
                   <div
                     key={entry.id}
                     className={`p-4 glass-card-true transition-all rounded-xl flex flex-col justify-between space-y-3 border ${
-                      isSelected ? 'border-amber-400/60 bg-amber-500/10' : 'border-white/10'
+                      isSelected ? 'border-white/30 bg-white/[0.06]' : 'border-white/10'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -316,7 +318,7 @@ export default function DailyJournalPanel({
                         <Calendar className="w-3.5 h-3.5 text-zinc-400" />
                         <span className="text-xs font-mono font-bold text-white">{entry.id}</span>
                       </div>
-                      <span className="px-2.5 py-0.5 glass-pill-true text-[10px] font-mono font-bold text-amber-300">
+                      <span className="px-2.5 py-0.5 glass-pill-true text-[10px] font-mono font-bold text-zinc-200">
                         ⚡ {entry.energy}/5 ({energyLabels[(entry.energy || 3) - 1]})
                       </span>
                     </div>
@@ -337,17 +339,17 @@ export default function DailyJournalPanel({
                             setEditorEnergy(entry.energy);
                             setEditorText(entry.text);
                           }}
-                          className="px-2.5 py-1 glass-button-true text-zinc-200 hover:text-white flex items-center gap-1 rounded-lg text-[10px]"
+                          className="px-2.5 py-1 glass-button-true text-zinc-200 hover:text-white flex items-center gap-1 rounded-lg text-[10px] cursor-pointer"
                           title="Load and edit this entry"
                         >
-                          <Edit3 className="w-3 h-3 text-amber-300" />
+                          <Edit3 className="w-3 h-3 text-zinc-300" />
                           <span>Load / Edit</span>
                         </button>
                         {onDeleteJournal && (
                           <button
                             type="button"
                             onClick={() => onDeleteJournal(entry.id)}
-                            className="p-1 glass-button-true text-zinc-500 hover:text-red-400 rounded-lg"
+                            className="p-1 glass-button-true text-zinc-500 hover:text-rose-400 rounded-lg cursor-pointer"
                             title="Delete entry"
                           >
                             <Trash2 className="w-3 h-3" />

@@ -17,25 +17,25 @@ const MODE_CONFIGS: Record<TimerMode, { label: string; defaultMinutes: number; c
   focus: {
     label: 'Focus',
     defaultMinutes: 25,
-    color: '#1591DC',
-    bg: 'bg-[#1591DC]/15',
-    border: 'border-[#1591DC]/40',
+    color: '#ffffff',
+    bg: 'bg-white/[0.08]',
+    border: 'border-white/20',
     icon: Flame
   },
   short_break: {
     label: 'Short Break',
     defaultMinutes: 5,
-    color: '#10b981',
-    bg: 'bg-emerald-500/15',
-    border: 'border-emerald-500/40',
+    color: '#e4e4e7',
+    bg: 'bg-white/[0.08]',
+    border: 'border-white/20',
     icon: Coffee
   },
   long_break: {
     label: 'Long Break',
     defaultMinutes: 15,
-    color: '#f59e0b',
-    bg: 'bg-amber-500/15',
-    border: 'border-amber-500/40',
+    color: '#d4d4d8',
+    bg: 'bg-white/[0.08]',
+    border: 'border-white/20',
     icon: Sparkles
   }
 };
@@ -120,7 +120,7 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
       <div 
         className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all select-none ${
           isRunning 
-            ? `${currentConfig.bg} ${currentConfig.border} shadow-[0_0_15px_rgba(21,145,220,0.25)]` 
+            ? `${currentConfig.bg} ${currentConfig.border} shadow-[0_0_15px_rgba(255,255,255,0.08)]` 
             : 'glass-button-true'
         }`}
       >
@@ -130,10 +130,9 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
           onClick={handleToggle}
           className={`flex items-center justify-center w-5 h-5 rounded-full transition-transform active:scale-90 ${
             isRunning 
-              ? 'text-white' 
+              ? 'bg-white text-black' 
               : 'text-[#9496a1] hover:text-white'
           }`}
-          style={{ backgroundColor: isRunning ? currentConfig.color : undefined }}
           title={isRunning ? "Pause timer" : `Start ${currentConfig.label}`}
         >
           {isRunning ? (
@@ -196,15 +195,15 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
           {/* Header */}
           <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-1.5">
-              <ModeIcon className="w-3.5 h-3.5 text-[#1591DC]" />
+              <ModeIcon className="w-3.5 h-3.5 text-zinc-300" />
               <span className="text-xs font-semibold text-white">Focus Timer</span>
             </div>
             {todaySessions.filter(s => s.mode === 'focus').length > 0 ? (
-              <span className="text-[10px] text-[#1591DC] bg-[#1591DC]/15 px-2 py-0.5 rounded-full font-semibold">
+              <span className="text-[10px] text-zinc-200 bg-white/[0.08] border border-white/10 px-2 py-0.5 rounded-full font-semibold">
                 {todaySessions.filter(s => s.mode === 'focus').length} today
               </span>
             ) : sessionsCompleted > 0 ? (
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-[10px] text-zinc-300 bg-white/[0.05] border border-white/10 px-2 py-0.5 rounded-full font-medium">
                 {sessionsCompleted} done
               </span>
             ) : null}
@@ -244,15 +243,15 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
                     onClick={() => handleSelectPreset(preset.minutes)}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all ${
                       isSelected
-                        ? 'bg-[#1591DC]/15 border border-[#1591DC]/30 text-white font-medium'
+                        ? 'bg-white text-black font-semibold'
                         : 'hover:bg-white/[0.04] text-[#9496a1] hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <span>{preset.label}</span>
-                      <span className="text-[10px] text-[#9496a1] font-normal">({preset.desc})</span>
+                      <span className={`text-[10px] font-normal ${isSelected ? 'text-zinc-600' : 'text-[#9496a1]'}`}>({preset.desc})</span>
                     </div>
-                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#1591DC]" />}
+                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-black" />}
                   </button>
                 );
               })}
@@ -269,7 +268,7 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
                   onClick={() => handleSelectPreset(m)}
                   className={`py-2 text-xs rounded-xl border text-center transition-all ${
                     durations.short_break === m
-                      ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-semibold'
+                      ? 'bg-white text-black font-semibold border-white'
                       : 'border-white/[0.08] text-[#9496a1] hover:text-white'
                   }`}
                 >
@@ -288,7 +287,7 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
                   onClick={() => handleSelectPreset(m)}
                   className={`py-2 text-xs rounded-xl border text-center transition-all ${
                     durations.long_break === m
-                      ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-semibold'
+                      ? 'bg-white text-black font-semibold border-white'
                       : 'border-white/[0.08] text-[#9496a1] hover:text-white'
                   }`}
                 >
@@ -329,7 +328,7 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({ isLightMode, onOpe
                 setIsOpenMenu(false);
                 onOpenWorkspace();
               }}
-              className="w-full mt-3 py-2 px-3 rounded-xl bg-[#1591DC]/15 hover:bg-[#1591DC]/25 text-[#1591DC] border border-[#1591DC]/30 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full mt-3 py-2 px-3 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/10 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Flame className="w-3.5 h-3.5" />
               <span>Open Pomodoro Workspace</span>

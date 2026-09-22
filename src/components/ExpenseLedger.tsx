@@ -61,10 +61,10 @@ const CURRENCIES: Record<string, CurrencyMeta> = {
 type CurrencyCode = keyof typeof CURRENCIES;
 
 const CATEGORY_COLORS: Record<ExpenseCategory, { bg: string; border: string; text: string; hex: string }> = {
-  Eating: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', hex: '#f43f5e' },
-  Transport: { bg: 'bg-sky-500/10', border: 'border-sky-500/20', text: 'text-sky-400', hex: '#1591DC' },
-  'Study/Equipment': { bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400', hex: '#a855f7' },
-  Entertainment: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', hex: '#f59e0b' },
+  Eating: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-300', hex: '#fda4af' },
+  Transport: { bg: 'bg-sky-500/10', border: 'border-sky-500/20', text: 'text-sky-300', hex: '#7dd3fc' },
+  'Study/Equipment': { bg: 'bg-white/10', border: 'border-white/20', text: 'text-zinc-200', hex: '#e4e4e7' },
+  Entertainment: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-200', hex: '#fde68a' },
   Others: { bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', text: 'text-zinc-400', hex: '#71717a' }
 };
 
@@ -245,9 +245,9 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         {
           label: 'Outflow',
           data: timelineData.values,
-          backgroundColor: 'rgba(21, 145, 220, 0.75)',
-          hoverBackgroundColor: '#38bdf8',
-          borderColor: '#1591DC',
+          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          hoverBackgroundColor: '#ffffff',
+          borderColor: '#ffffff',
           borderWidth: 1,
           borderRadius: 6,
         }
@@ -263,7 +263,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       tooltip: {
         backgroundColor: '#0c0d12',
         titleColor: '#ffffff',
-        bodyColor: '#38bdf8',
+        bodyColor: '#ffffff',
         borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1,
         padding: 10,
@@ -364,7 +364,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-white/[0.08] pb-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <Wallet className="w-6 h-6 text-[#1591DC]" />
+            <Wallet className="w-6 h-6 text-zinc-300" />
             <span>Cash Flow & Financial Ledger</span>
           </h2>
           <p className="text-xs text-[#9496a1] mt-1">
@@ -377,7 +377,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           
           {/* Multi-Currency Dropdown */}
           <div className="flex items-center gap-1.5 glass-card-true px-3 py-1 rounded-full text-xs">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <DollarSign className="w-3.5 h-3.5 text-zinc-300" />
             <span className="text-xs text-[#9496a1]">Currency:</span>
             <select
               value={currency}
@@ -396,16 +396,16 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           <div className="flex items-center gap-1 glass-card-true p-0.5 rounded-full text-xs">
             <button
               onClick={() => setFilterMode('monthly')}
-              className={`px-3 py-1 text-xs font-medium transition-all rounded-full ${
-                filterMode === 'monthly' ? 'bg-[#1591DC] text-white font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
+              className={`px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+                filterMode === 'monthly' ? 'bg-white text-black font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-3 py-1 text-xs font-medium transition-all rounded-full ${
-                filterMode === 'all' ? 'bg-[#1591DC] text-white font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
+              className={`px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+                filterMode === 'all' ? 'bg-white text-black font-semibold shadow-sm' : 'text-[#9496a1] hover:text-white'
               }`}
             >
               All Time
@@ -415,7 +415,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           {/* Month Picker */}
           {filterMode === 'monthly' && (
             <div className="flex items-center gap-1.5 glass-card-true px-2.5 py-1 rounded-full text-xs">
-              <Calendar className="w-3.5 h-3.5 text-[#1591DC]" />
+              <Calendar className="w-3.5 h-3.5 text-zinc-300" />
               <input
                 type="month"
                 value={filterMonthYear}
@@ -450,7 +450,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#9496a1] font-medium">Daily Burn Rate</span>
-            <div className="w-7 h-7 rounded-lg bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300">
               <Activity className="w-4 h-4" />
             </div>
           </div>
@@ -466,7 +466,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#9496a1] font-medium">Largest Expense</span>
-            <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         <div className="glass-card-true p-5 rounded-2xl space-y-1.5 border border-white/[0.08]">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#9496a1] font-medium">Top Category</span>
-            <div className="w-7 h-7 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300">
               <PieChart className="w-4 h-4" />
             </div>
           </div>
@@ -501,7 +501,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#1591DC]" />
+              <Activity className="w-4 h-4 text-zinc-300" />
               <span>Cash Flow & Outflow Timeline Progress</span>
             </h3>
             <p className="text-xs text-[#9496a1] mt-0.5">
@@ -510,7 +510,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
           </div>
 
           <div className="flex items-center gap-2 text-xs text-[#9496a1]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#1591DC]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-white" />
             <span>Daily Outflow ({currency})</span>
           </div>
         </div>
@@ -534,7 +534,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         <div className="lg:col-span-5 glass-card-true p-6 space-y-4 rounded-2xl border border-white/[0.08]">
           <div className="border-b border-white/[0.08] pb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#1591DC]" />
+              <Plus className="w-4 h-4 text-zinc-300" />
               <span>Log New Transaction</span>
             </h3>
           </div>
@@ -552,7 +552,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
                   className="w-full glass-input-true py-2.5 pl-8 pr-3 text-xs text-white placeholder-zinc-500 font-semibold rounded-xl focus:outline-none"
                   required
                 />
-                <span className="text-xs text-[#1591DC] absolute left-3 top-1/2 -translate-y-1/2 font-bold">
+                <span className="text-xs text-zinc-300 absolute left-3 top-1/2 -translate-y-1/2 font-bold">
                   {CURRENCIES[currency]?.symbol || '$'}
                 </span>
               </div>
@@ -608,7 +608,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
         <div className="lg:col-span-7 glass-card-true p-6 space-y-4 rounded-2xl border border-white/[0.08] flex flex-col justify-between">
           <div className="border-b border-white/[0.08] pb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-[#1591DC]" />
+              <PieChart className="w-4 h-4 text-zinc-300" />
               <span>Category Allocation Breakdown</span>
             </h3>
           </div>
@@ -663,7 +663,7 @@ export default function ExpenseLedger({ expenses, onAddExpense, onDeleteExpense,
       <div className="glass-card-true p-6 space-y-4 rounded-2xl border border-white/[0.08]">
         <div className="flex justify-between items-center border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-[#1591DC]" />
+            <Receipt className="w-4 h-4 text-zinc-300" />
             <h3 className="text-sm font-semibold text-white">
               Transaction History ({filteredExpenses.length})
             </h3>

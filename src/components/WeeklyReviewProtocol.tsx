@@ -156,7 +156,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div>
           <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-[#1591DC]" />
+            <Trophy className="w-5 h-5 text-zinc-300" />
             <span>{reviewType === 'weekly' ? 'Weekly Review Protocol' : 'Monthly Review Protocol'}</span>
           </h3>
           <p className="text-xs text-[#9496a1] mt-0.5">
@@ -171,9 +171,9 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
             <button
               type="button"
               onClick={() => handleSwitchType('weekly')}
-              className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
                 reviewType === 'weekly'
-                  ? 'bg-[#1591DC] text-white shadow-sm font-semibold'
+                  ? 'bg-white text-black shadow-sm font-semibold'
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
@@ -182,9 +182,9 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
             <button
               type="button"
               onClick={() => handleSwitchType('monthly')}
-              className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 text-xs rounded-lg font-medium transition-all cursor-pointer ${
                 reviewType === 'monthly'
-                  ? 'bg-[#1591DC] text-white shadow-sm font-semibold'
+                  ? 'bg-white text-black shadow-sm font-semibold'
                   : 'text-[#9496a1] hover:text-white'
               }`}
             >
@@ -194,7 +194,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
 
           {/* Period Dropdown */}
           <div className="flex items-center gap-1.5 glass-card-true px-3 py-1.5 rounded-xl text-xs">
-            <Calendar className="w-3.5 h-3.5 text-[#1591DC]" />
+            <Calendar className="w-3.5 h-3.5 text-zinc-300" />
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -225,9 +225,9 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
             <span className="text-xs text-[#9496a1] block mb-1">Completed</span>
-            <span className="text-2xl font-bold tabular-nums text-emerald-400">{stats.completed}</span>
+            <span className="text-2xl font-bold tabular-nums text-white">{stats.completed}</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
@@ -235,9 +235,9 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         <div className="glass-card-true p-4 rounded-2xl flex items-center justify-between">
           <div>
             <span className="text-xs text-[#9496a1] block mb-1">Win Rate</span>
-            <span className="text-2xl font-bold tabular-nums text-[#1591DC]">{stats.rate}%</span>
+            <span className="text-2xl font-bold tabular-nums text-white">{stats.rate}%</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#1591DC]/10 border border-[#1591DC]/20 flex items-center justify-center text-[#1591DC]">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-300">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
@@ -249,7 +249,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         {/* Question 1: Biggest Win */}
         <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+            <div className="w-6 h-6 rounded-lg bg-white/[0.06] border border-white/15 flex items-center justify-center text-zinc-200 shrink-0">
               <Trophy className="w-3.5 h-3.5" />
             </div>
             <label className="text-xs font-semibold text-white">
@@ -273,7 +273,7 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         {/* Question 2: Time Wasters & Bottlenecks */}
         <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+            <div className="w-6 h-6 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-300 shrink-0">
               <Hourglass className="w-3.5 h-3.5" />
             </div>
             <label className="text-xs font-semibold text-white">
@@ -295,9 +295,9 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
         </div>
 
         {/* Question 3: The #1 Priority */}
-        <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-[#1591DC]/30 bg-[#1591DC]/[0.02]">
+        <div className="glass-card-true p-5 rounded-2xl space-y-2 border border-white/20 bg-white/[0.02]">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shrink-0">
+            <div className="w-6 h-6 rounded-lg bg-white/[0.08] border border-white/15 flex items-center justify-center text-white shrink-0">
               <Target className="w-3.5 h-3.5" />
             </div>
             <label className="text-xs font-semibold text-white">
@@ -319,10 +319,10 @@ export const WeeklyReviewProtocol: React.FC<WeeklyReviewProtocolProps> = ({
               <button
                 type="button"
                 onClick={handleConvertGoal}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   addedAsGoal
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'glass-button-true text-[#1591DC] hover:text-white border-[#1591DC]/30'
+                    ? 'bg-white/15 text-white border border-white/30'
+                    : 'glass-button-true text-white hover:bg-white/[0.08]'
                 }`}
               >
                 {addedAsGoal ? (

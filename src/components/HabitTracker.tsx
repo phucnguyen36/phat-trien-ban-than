@@ -301,11 +301,11 @@ export default function HabitTracker({
         {
           label: 'Completed habits',
           data: stats.dailyCounts,
-          backgroundColor: '#1591DC',
-          borderColor: '#1591DC',
+          backgroundColor: '#ffffff',
+          borderColor: '#ffffff',
           borderRadius: 2,
           borderWidth: 0,
-          hoverBackgroundColor: '#38bdf8'
+          hoverBackgroundColor: '#e4e4e7'
         }
       ]
     };
@@ -343,8 +343,8 @@ export default function HabitTracker({
       datasets: [
         {
           data: [stats.consistency, Math.max(0, 100 - stats.consistency)],
-          backgroundColor: ['#1591DC', 'rgba(255, 255, 255, 0.06)'],
-          borderColor: ['rgba(21, 145, 220, 0.2)', 'rgba(255, 255, 255, 0.06)'],
+          backgroundColor: ['#ffffff', 'rgba(255, 255, 255, 0.06)'],
+          borderColor: ['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.06)'],
           borderWidth: 1,
         }
       ]
@@ -395,7 +395,7 @@ export default function HabitTracker({
               Record • {formattedMonthYearString}
             </p>
             <div className="flex items-center gap-1.5 glass-pill-true px-3 py-1 text-xs">
-              <Calendar className="w-3.5 h-3.5 text-[#1591DC]" />
+              <Calendar className="w-3.5 h-3.5 text-zinc-300" />
               <span className="text-[#9496a1]">Month:</span>
               <input
                 type="month"
@@ -447,7 +447,7 @@ export default function HabitTracker({
         {/* Metric 1: Best Active Streak */}
         <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
           <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
-            <Flame className="w-4 h-4 text-[#1591DC]" />
+            <Flame className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
@@ -464,7 +464,7 @@ export default function HabitTracker({
         {/* Metric 2: Today's Execution */}
         <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
           <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
-            <Zap className="w-4 h-4 text-[#1591DC]" />
+            <Zap className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
@@ -484,7 +484,7 @@ export default function HabitTracker({
         {/* Metric 3: Top Performer Habit */}
         <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
           <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
-            <Trophy className="w-4 h-4 text-[#1591DC]" />
+            <Trophy className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
@@ -501,7 +501,7 @@ export default function HabitTracker({
         {/* Metric 4: Monthly Consistency Index */}
         <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center gap-3.5 hover:border-white/[0.12] transition-all">
           <div className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center shrink-0">
-            <TrendingUp className="w-4 h-4 text-[#1591DC]" />
+            <TrendingUp className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5">
@@ -533,7 +533,7 @@ export default function HabitTracker({
                     key={day} 
                     className={`text-[10px] tabular-nums font-medium py-1 transition-all ${
                       isItToday 
-                        ? 'bg-[#1591DC]/20 text-white border border-[#1591DC]/40 rounded-full font-bold' 
+                        ? 'bg-white text-black rounded-full font-bold shadow-xs' 
                         : 'text-[#9496a1]'
                     }`}
                     title={isItToday ? 'Today' : undefined}
@@ -583,7 +583,7 @@ export default function HabitTracker({
                             <button
                               type="button"
                               onClick={() => handleSaveEditHabit(h.id)}
-                              className="p-1 text-[#1591DC] hover:text-white"
+                              className="p-1 text-white hover:text-zinc-300"
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
@@ -599,7 +599,7 @@ export default function HabitTracker({
                           <>
                             <span 
                               onDoubleClick={() => handleStartEditHabit(h)}
-                              className="text-xs font-semibold text-white tracking-wide pr-2 truncate cursor-pointer hover:text-[#1591DC] transition-colors"
+                              className="text-xs font-semibold text-white tracking-wide pr-2 truncate cursor-pointer hover:text-zinc-300 transition-colors"
                               title="Double-click to edit habit name"
                             >
                               {h.habitName}
@@ -615,7 +615,7 @@ export default function HabitTracker({
                               </button>
                               <button
                                 onClick={() => onDeleteHabit(h.id)}
-                                className="text-[#9496a1] hover:text-red-400 transition-all p-0.5"
+                                className="text-[#9496a1] hover:text-rose-400 transition-all p-0.5"
                                 title="Delete habit"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -634,8 +634,8 @@ export default function HabitTracker({
                         {streak.current > 1 && (
                           <>
                             <span className="text-zinc-600">•</span>
-                            <span className="text-emerald-400 font-medium tabular-nums flex items-center gap-0.5">
-                              <Flame className="w-3 h-3" />
+                            <span className="text-zinc-300 font-medium tabular-nums flex items-center gap-0.5">
+                              <Flame className="w-3 h-3 text-zinc-400" />
                               <span>{streak.current}d</span>
                             </span>
                           </>
@@ -646,7 +646,7 @@ export default function HabitTracker({
                           <>
                             <span className="text-zinc-600">•</span>
                             <div className="flex items-center gap-1">
-                              <Link2 className="w-2.5 h-2.5 text-[#1591DC] shrink-0" />
+                              <Link2 className="w-2.5 h-2.5 text-zinc-400 shrink-0" />
                               <select
                                 value={habitGoalLinks[h.id] || ''}
                                 onChange={e => saveHabitGoalLink(h.id, e.target.value)}
@@ -671,15 +671,15 @@ export default function HabitTracker({
                       const isCompleted = h.completedDays.includes(day);
                       const isItToday = isCurrentMonthActive && day === todayDay;
                       return (
-                        <div key={day} className={`flex justify-center items-center py-0.5 ${isItToday ? 'bg-[#1591DC]/10' : ''}`}>
+                        <div key={day} className={`flex justify-center items-center py-0.5 ${isItToday ? 'bg-white/[0.04]' : ''}`}>
                           <button
                             type="button"
                             onClick={() => onToggleHabitDay(h.id, day)}
-                            className={`w-5 h-5 border transition-all duration-200 flex items-center justify-center rounded focus:outline-none ${
+                            className={`w-5 h-5 border transition-all duration-200 flex items-center justify-center rounded focus:outline-none cursor-pointer ${
                               isCompleted 
-                                ? 'bg-[#1591DC] border-[#1591DC] text-white font-bold' 
+                                ? 'bg-white border-white text-black font-bold shadow-sm' 
                                 : isItToday
-                                  ? 'border-[#1591DC]/40 bg-[#1591DC]/10 hover:border-[#1591DC]'
+                                  ? 'border-white/40 bg-white/10 hover:border-white'
                                   : 'border-white/[0.10] bg-white/[0.02] hover:border-white/30'
                             }`}
                           >
@@ -705,7 +705,7 @@ export default function HabitTracker({
       <div className="p-4 rounded-xl bg-[#0e1015] border border-white/[0.06] space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CalendarDays className="w-3.5 h-3.5 text-[#1591DC]" />
+            <CalendarDays className="w-3.5 h-3.5 text-zinc-300" />
             <span className="text-xs font-semibold text-white">Weekly Discipline Progression</span>
           </div>
           <span className="text-[11px] text-[#9496a1]">Monthly Rhythm</span>
@@ -721,7 +721,7 @@ export default function HabitTracker({
               </div>
               <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
                 <div 
-                  className="h-full rounded-full bg-[#1591DC]"
+                  className="h-full rounded-full bg-white/60"
                   style={{ width: `${wb.rate}%` }}
                 />
               </div>
@@ -734,14 +734,14 @@ export default function HabitTracker({
         </div>
       </div>
 
-      {/* 📈 4. CHARTS SECTION (CLEAN SWISS MONOCHROME & CYAN) */}
+      {/* 📈 4. CHARTS SECTION (CLEAN SWISS MONOCHROME) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 border-t border-white/[0.08] pt-6">
         
         {/* Left Column (2 Cols): Daily completion volume bar chart */}
         <div className="lg:col-span-2 space-y-3 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/[0.08] pb-6 lg:pb-0">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5 text-[#1591DC]" />
+              <BarChart3 className="w-3.5 h-3.5 text-zinc-300" />
               Daily Completion Volume
             </h4>
             <span className="text-[10px] text-[#9496a1]">30-Day Activity Curve</span>
@@ -765,7 +765,7 @@ export default function HabitTracker({
                   </span>
                   <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
                     <div 
-                      className="h-full rounded-full bg-[#1591DC]"
+                      className="h-full rounded-full bg-white/60"
                       style={{ width: `${dow.rate}%` }}
                     />
                   </div>
@@ -786,7 +786,7 @@ export default function HabitTracker({
           <div className="relative w-40 h-40 flex items-center justify-center">
             <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
             <div className="absolute text-center">
-              <span className="text-3xl font-bold tabular-nums text-[#1591DC] tracking-tight">
+              <span className="text-3xl font-bold tabular-nums text-white tracking-tight">
                 {stats.consistency}%
               </span>
               <p className="text-xs text-[#9496a1] mt-1 font-medium">

@@ -1094,7 +1094,7 @@ export default function App() {
 
       {/* Atmospheric Ambient Glow */}
       <div className="ambient-glow fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-[#1591DC]/12 via-[#1591DC]/3 to-transparent blur-[120px]" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-white/[0.04] via-white/[0.01] to-transparent blur-[120px]" />
       </div>
 
       {/* 1. CLEAN STICKY HEADER (Thomas Nguyen & Swiss Studio Standard) */}
@@ -1106,7 +1106,7 @@ export default function App() {
             <img 
               src={profile.avatarUrl} 
               alt="Deep Focus" 
-              className="w-8 h-8 rounded-full object-cover border border-[#1591DC] shadow-[0_0_12px_rgba(21,145,220,0.4)] group-hover:scale-105 transition-transform"
+              className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.15)] group-hover:scale-105 transition-transform"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
               }}
@@ -1118,7 +1118,7 @@ export default function App() {
               <span className="text-xs text-[#9496a1] leading-none mt-1 font-sans flex items-center gap-1.5">
                 <span>{currentUser ? currentUser.name : profile.name}</span>
                 {currentUser?.role === 'admin' && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#1591DC]/15 text-[#1591DC] font-medium leading-none">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/10 text-zinc-200 border border-white/15 font-medium leading-none">
                     Admin
                   </span>
                 )}
@@ -1148,7 +1148,7 @@ export default function App() {
                 >
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#1591DC] rounded-full" />
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white rounded-full" />
                   )}
                 </button>
               );
@@ -1251,7 +1251,7 @@ export default function App() {
                   onClick={() => setActiveSection(section.id)}
                   className={`px-3 py-2 flex items-center gap-1.5 border shrink-0 text-xs font-medium transition-all rounded-full ${
                     isActive 
-                      ? 'bg-[#1591DC] text-white font-semibold' 
+                      ? 'bg-white text-black font-semibold border-white shadow-sm' 
                       : 'border-white/[0.08] bg-white/[0.03] text-[#9496a1] hover:text-white'
                   }`}
                 >
@@ -1270,10 +1270,10 @@ export default function App() {
             <div className="hidden lg:flex flex-col shrink-0 sticky top-28 z-20">
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-3 glass-panel-true border border-white/[0.08] hover:border-[#1591DC]/40 text-[#9496a1] hover:text-white rounded-2xl transition-all shadow-xl flex items-center gap-2.5 cursor-pointer group"
+                className="p-3 glass-panel-true border border-white/[0.08] hover:border-white/30 text-[#9496a1] hover:text-white rounded-2xl transition-all shadow-xl flex items-center gap-2.5 cursor-pointer group"
                 title="Expand Navigation (Dashboard, Tasks...)"
               >
-                <PanelLeftOpen className="w-4 h-4 text-[#1591DC] group-hover:scale-110 transition-transform" />
+                <PanelLeftOpen className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-white">Menu</span>
               </button>
             </div>
@@ -1313,14 +1313,14 @@ export default function App() {
                       onClick={() => setActiveSection(section.id)}
                       className={`w-full text-left px-3 py-2.5 transition-all duration-200 flex items-center gap-3 border rounded-xl ${
                         isActive 
-                          ? 'bg-[#1591DC]/15 border-[#1591DC]/30 text-white font-semibold shadow-sm' 
+                          ? 'bg-white text-black font-semibold shadow-sm border-white' 
                           : 'border-transparent text-[#9496a1] hover:text-white hover:bg-white/[0.03]'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#1591DC]' : 'text-[#9496a1]'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-black' : 'text-[#9496a1]'}`} />
                       <div className="flex flex-col min-w-0">
                         <span className="text-xs font-sans font-medium leading-tight">{section.label}</span>
-                        <span className="text-[10px] font-sans font-normal text-[#9496a1] leading-tight mt-0.5 truncate">{section.sub}</span>
+                        <span className={`text-[10px] font-sans font-normal leading-tight mt-0.5 truncate ${isActive ? 'text-zinc-600' : 'text-[#9496a1]'}`}>{section.sub}</span>
                       </div>
                     </button>
                   );
@@ -1334,7 +1334,7 @@ export default function App() {
                   className="py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
                   title="Export Backup Data (JSON)"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#1591DC]" />
+                  <Download className="w-3.5 h-3.5 text-zinc-300" />
                   <span>Backup</span>
                 </button>
                 
@@ -1350,7 +1350,7 @@ export default function App() {
                     type="button"
                     className="w-full py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
                   >
-                    <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    <Upload className="w-3.5 h-3.5 text-zinc-300" />
                     <span>Import</span>
                   </button>
                 </div>
@@ -1533,7 +1533,7 @@ export default function App() {
               href="https://x.com/thomaseditor_vn" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
               title="X / Twitter"
             >
               <Twitter size={14} />
@@ -1543,7 +1543,7 @@ export default function App() {
               href="https://www.instagram.com/thomasvisualeditor/" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
               title="Instagram"
             >
               <Instagram size={14} />
@@ -1553,7 +1553,7 @@ export default function App() {
               href="https://www.facebook.com/profile.php?id=100063990921099" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
               title="Facebook"
             >
               <Facebook size={14} />
@@ -1563,7 +1563,7 @@ export default function App() {
               href="https://www.linkedin.com/in/phucxuannguyen/" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
               title="LinkedIn"
             >
               <Linkedin size={14} />
@@ -1571,7 +1571,7 @@ export default function App() {
 
             <a 
               href="mailto:thomasnguyen.editor@gmail.com" 
-              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-[#1591DC] hover:border-[#1591DC]/50 transition-all flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[#12141a] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/30 transition-all flex items-center justify-center cursor-pointer"
               title="Email"
             >
               <Mail size={14} />
@@ -1663,7 +1663,7 @@ export default function App() {
                         type="button"
                         className="w-full py-1.5 glass-button-true text-[#ededf3] hover:text-white text-xs font-medium rounded-lg flex items-center justify-center gap-2"
                       >
-                        <Upload className="w-3.5 h-3.5 text-[#1591DC]" />
+                        <Upload className="w-3.5 h-3.5 text-zinc-300" />
                         <span>Upload Image</span>
                       </button>
                     </div>
@@ -1735,7 +1735,7 @@ export default function App() {
             {/* Section 0: Theme Mode (Light / Dark) */}
             <div className="mb-6">
               <h4 className="text-xs font-medium text-[#9496a1] mb-3 flex items-center gap-1.5">
-                {isLightMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-[#1591DC]" />}
+                {isLightMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-zinc-300" />}
                 <span>Theme Mode</span>
               </h4>
               <div className="grid grid-cols-2 gap-3">
@@ -1748,7 +1748,7 @@ export default function App() {
                   }}
                   className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium transition-all ${
                     !isLightMode 
-                      ? 'bg-[#1591DC] text-white shadow-md font-semibold' 
+                      ? 'bg-white text-black shadow-md font-semibold' 
                       : 'glass-button-true text-[#9496a1] hover:text-white'
                   }`}
                 >
@@ -1777,7 +1777,7 @@ export default function App() {
             {/* Section 2: Storage Status & Import/Export */}
             <div className="mb-6">
               <h4 className="text-xs font-medium text-[#9496a1] mb-3 flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-[#1591DC]" />
+                <Database className="w-3.5 h-3.5 text-zinc-300" />
                 <span>Data & Backup</span>
               </h4>
 
@@ -1802,7 +1802,7 @@ export default function App() {
                   onClick={handleExportData}
                   className="flex items-center justify-center gap-2 py-2.5 glass-button-true text-[#ededf3] hover:text-white text-xs font-medium rounded-xl transition-all"
                 >
-                  <Download className="w-4 h-4 text-[#1591DC]" />
+                  <Download className="w-4 h-4 text-zinc-300" />
                   <span>Export JSON</span>
                 </button>
 
@@ -2106,12 +2106,12 @@ export default function App() {
       {isTimerRunning && activeSection !== 'pomodoro-station' && (
         <aside 
           aria-label="Active Pomodoro Session Indicator"
-          className="fixed bottom-5 right-5 z-40 animate-slideUp flex items-center gap-2.5 px-3.5 py-2 glass-panel-true border border-[#1591DC]/40 bg-[#0e1015]/95 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(21,145,220,0.2)] backdrop-blur-xl transition-all select-none"
+          className="fixed bottom-5 right-5 z-40 animate-slideUp flex items-center gap-2.5 px-3.5 py-2 glass-panel-true border border-white/20 bg-[#0e1015]/95 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all select-none"
         >
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1591DC] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1591DC]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
             </span>
             <span className="font-mono font-bold text-sm text-white tabular-nums tracking-tight">
               {String(Math.floor(timerTimeLeft / 60)).padStart(2, '0')}:{String(timerTimeLeft % 60).padStart(2, '0')}
@@ -2134,7 +2134,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setActiveSection('pomodoro-station')}
-              className="px-2 py-1 rounded-lg bg-[#1591DC]/20 hover:bg-[#1591DC]/30 text-[#1591DC] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-white text-black hover:bg-zinc-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shadow-sm"
               title="Open Pomodoro Station"
             >
               <span>Open</span>

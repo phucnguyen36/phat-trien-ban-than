@@ -325,7 +325,7 @@ export default function PomodoroWorkspace({
       <div className="glass-panel-true p-4 md:p-5 rounded-2xl border border-white/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1591DC]/15 border border-[#1591DC]/30 flex items-center justify-center text-[#1591DC] shadow-[0_0_20px_rgba(21,145,220,0.2)]">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/15 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,255,255,0.06)]">
             <Flame className="w-5 h-5" />
           </div>
           <div>
@@ -333,7 +333,7 @@ export default function PomodoroWorkspace({
               <h2 className="text-base md:text-lg font-bold text-white tracking-tight">
                 Pomodoro Deep Work Station
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#1591DC]/15 text-[#1591DC] border border-[#1591DC]/30 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-zinc-200 border border-white/15 uppercase tracking-wider">
                 Full-Stack
               </span>
             </div>
@@ -354,7 +354,7 @@ export default function PomodoroWorkspace({
               </span>
             </div>
             <span className="text-zinc-600">•</span>
-            <div className="flex items-center gap-1 text-[#1591DC]">
+            <div className="flex items-center gap-1 text-zinc-300">
               <Clock className="w-3.5 h-3.5" />
               <span className="font-semibold tabular-nums">
                 {Math.floor(totalFocusMinutesToday / 60)}h {totalFocusMinutesToday % 60}m
@@ -368,7 +368,7 @@ export default function PomodoroWorkspace({
             onClick={() => setIsZenMode(!isZenMode)}
             className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium ${
               isZenMode 
-                ? 'bg-[#1591DC] text-white border-[#1591DC] shadow-lg' 
+                ? 'bg-white text-black border-white shadow-lg' 
                 : 'bg-white/[0.03] border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/20'
             }`}
             title={isZenMode ? "Exit Zen Mode (Esc)" : "Enter Fullscreen Zen Mode"}
@@ -384,7 +384,7 @@ export default function PomodoroWorkspace({
             className="px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-[#9496a1] hover:text-white hover:border-white/20 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
             title="Switch to Tasks & Database View"
           >
-            <Kanban className="w-3.5 h-3.5 text-[#1591DC]" />
+            <Kanban className="w-3.5 h-3.5 text-zinc-300" />
             <span>Database</span>
           </button>
         </div>
@@ -402,7 +402,7 @@ export default function PomodoroWorkspace({
             
             {/* Ambient Background Glow */}
             <div className={`absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none transition-opacity duration-700 ${
-              isRunning ? 'opacity-30 bg-[#1591DC]' : 'opacity-10 bg-white/10'
+              isRunning ? 'opacity-20 bg-white/15' : 'opacity-10 bg-white/10'
             }`} />
 
             {/* Mode Selectors */}
@@ -412,7 +412,7 @@ export default function PomodoroWorkspace({
                 onClick={() => handleSwitchMode('focus')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   mode === 'focus' 
-                    ? 'bg-[#1591DC] text-white shadow-[0_0_15px_rgba(21,145,220,0.4)]' 
+                    ? 'bg-white text-black font-semibold shadow-sm' 
                     : 'text-[#9496a1] hover:text-white'
                 }`}
               >
@@ -425,7 +425,7 @@ export default function PomodoroWorkspace({
                 onClick={() => handleSwitchMode('short_break')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   mode === 'short_break' 
-                    ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' 
+                    ? 'bg-white text-black font-semibold shadow-sm' 
                     : 'text-[#9496a1] hover:text-white'
                 }`}
               >
@@ -438,7 +438,7 @@ export default function PomodoroWorkspace({
                 onClick={() => handleSwitchMode('long_break')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   mode === 'long_break' 
-                    ? 'bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                    ? 'bg-white text-black font-semibold shadow-sm' 
                     : 'text-[#9496a1] hover:text-white'
                 }`}
               >
@@ -462,7 +462,7 @@ export default function PomodoroWorkspace({
                     onClick={() => handleSetCustomFocusMinutes(p.mins)}
                     className={`px-2.5 py-1 rounded-full text-xs font-medium tabular-nums transition-all cursor-pointer ${
                       durations.focus === p.mins
-                        ? 'bg-white/20 text-white border border-white/40 font-semibold'
+                        ? 'bg-white text-black font-semibold shadow-sm'
                         : 'bg-white/[0.03] border border-white/[0.06] text-[#9496a1] hover:text-white'
                     }`}
                   >
@@ -489,9 +489,7 @@ export default function PomodoroWorkspace({
                   cx="50"
                   cy="50"
                   r="44"
-                  className={`transition-all duration-1000 ${
-                    mode === 'focus' ? 'stroke-[#1591DC]' : mode === 'short_break' ? 'stroke-emerald-400' : 'stroke-amber-400'
-                  }`}
+                  className="transition-all duration-1000 stroke-white/80"
                   strokeWidth="4"
                   strokeDasharray={276.46}
                   strokeDashoffset={276.46 * (1 - progressRatio)}
@@ -505,9 +503,7 @@ export default function PomodoroWorkspace({
                 <span className="text-5xl md:text-6xl font-extrabold text-white tracking-tight tabular-nums font-sans drop-shadow-md">
                   {timeFormatted}
                 </span>
-                <span className={`text-xs uppercase tracking-widest font-semibold mt-2 ${
-                  mode === 'focus' ? 'text-[#1591DC]' : mode === 'short_break' ? 'text-emerald-400' : 'text-amber-400'
-                }`}>
+                <span className="text-xs uppercase tracking-widest font-semibold mt-2 text-zinc-300">
                   {mode === 'focus' ? (isRunning ? 'In The Zone' : 'Ready to Focus') : 'Rest & Recharge'}
                 </span>
                 <span className="text-[11px] text-[#9496a1] mt-1 tabular-nums">
@@ -532,8 +528,8 @@ export default function PomodoroWorkspace({
                 onClick={handleToggleTimer}
                 className={`px-8 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-xl flex items-center gap-2 cursor-pointer ${
                   isRunning 
-                    ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20' 
-                    : 'btn-primary-cyan text-white shadow-[#1591DC]/30'
+                    ? 'bg-white/[0.12] hover:bg-white/[0.2] text-white border border-white/20' 
+                    : 'bg-white text-black hover:bg-zinc-200 shadow-lg'
                 }`}
               >
                 {isRunning ? (
@@ -562,7 +558,7 @@ export default function PomodoroWorkspace({
             {/* Ambient Soundscapes & Sound Generator Bar */}
             <div className="w-full pt-4 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs z-10">
               <div className="flex items-center gap-2">
-                <Headphones className="w-4 h-4 text-[#1591DC]" />
+                <Headphones className="w-4 h-4 text-zinc-300" />
                 <span className="font-semibold text-white">Focus Soundscapes:</span>
               </div>
 
@@ -580,7 +576,7 @@ export default function PomodoroWorkspace({
                     onClick={() => handleAmbientChange(snd.id as AmbientSoundType)}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                       ambientSound === snd.id
-                        ? 'bg-[#1591DC] text-white font-semibold shadow-sm'
+                        ? 'bg-white text-black font-semibold shadow-sm'
                         : 'bg-white/[0.03] border border-white/[0.06] text-[#9496a1] hover:text-white'
                     }`}
                   >
@@ -599,7 +595,7 @@ export default function PomodoroWorkspace({
                     step="0.05"
                     value={ambientVolume}
                     onChange={(e) => setAmbientVolume(parseFloat(e.target.value))}
-                    className="w-20 accent-[#1591DC] cursor-pointer"
+                    className="w-20 accent-white cursor-pointer"
                     title="Ambient sound volume"
                   />
                 </div>
@@ -612,7 +608,7 @@ export default function PomodoroWorkspace({
           <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-4 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#1591DC] animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
                 <span className="text-xs font-bold text-white uppercase tracking-wider">
                   Target Deliverable (Locked In)
                 </span>
@@ -621,7 +617,7 @@ export default function PomodoroWorkspace({
               <button
                 type="button"
                 onClick={() => setIsTaskSelectorOpen(!isTaskSelectorOpen)}
-                className="text-xs text-[#1591DC] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-zinc-300 hover:text-white font-semibold flex items-center gap-1 cursor-pointer"
               >
                 <span>{activeGoal ? 'Change Task' : 'Select Task'}</span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isTaskSelectorOpen ? 'rotate-180' : ''}`} />
@@ -650,7 +646,7 @@ export default function PomodoroWorkspace({
                         }}
                         className={`p-2.5 rounded-lg text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
                           currentActiveGoalId === task.id
-                            ? 'bg-[#1591DC]/20 text-white font-semibold border border-[#1591DC]/40'
+                            ? 'bg-white/10 text-white font-semibold border border-white/20'
                             : 'bg-white/[0.02] hover:bg-white/[0.06] text-[#ededf3]'
                         }`}
                       >
@@ -673,11 +669,11 @@ export default function PomodoroWorkspace({
                     value={newQuickTaskText}
                     onChange={(e) => setNewQuickTaskText(e.target.value)}
                     placeholder="+ Add new task to Today's backlog..."
-                    className="flex-1 bg-white/[0.03] border border-white/[0.08] focus:border-[#1591DC] px-3 py-1.5 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none"
+                    className="flex-1 bg-white/[0.03] border border-white/[0.08] focus:border-white/40 px-3 py-1.5 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="p-1.5 btn-primary-cyan text-white rounded-lg shrink-0 cursor-pointer"
+                    className="p-1.5 btn-primary-cyan rounded-lg shrink-0 cursor-pointer"
                     title="Add task"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -697,7 +693,7 @@ export default function PomodoroWorkspace({
                       className="mt-0.5 text-[#9496a1] hover:text-emerald-400 transition-colors cursor-pointer shrink-0"
                     >
                       {activeGoal.completed ? (
-                        <CheckSquare className="w-4 h-4 text-emerald-400" />
+                        <CheckSquare className="w-4 h-4 text-zinc-300" />
                       ) : (
                         <Square className="w-4 h-4" />
                       )}
@@ -715,7 +711,9 @@ export default function PomodoroWorkspace({
                         {activeGoal.priority && (
                           <>
                             <span>•</span>
-                            <span className="text-[#1591DC] font-medium">{activeGoal.priority}</span>
+                            <span className={activeGoal.priority === 'High' || activeGoal.priority === 'The One Thing' ? 'text-rose-300 font-medium' : 'text-zinc-300 font-medium'}>
+                              {activeGoal.priority}
+                            </span>
                           </>
                         )}
                         {activeGoal.timeEstimate && (
@@ -734,7 +732,7 @@ export default function PomodoroWorkspace({
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                       activeGoal.completed
                         ? 'bg-zinc-800 text-zinc-400'
-                        : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30'
+                        : 'bg-white text-black font-semibold shadow-sm'
                     }`}
                   >
                     <Check className="w-3.5 h-3.5" />
@@ -756,7 +754,7 @@ export default function PomodoroWorkspace({
                           className="flex items-center gap-2 py-1 px-2 rounded hover:bg-white/[0.03] cursor-pointer text-xs transition-colors"
                         >
                           {st.completed ? (
-                            <CheckSquare className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <CheckSquare className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
                           ) : (
                             <Square className="w-3.5 h-3.5 text-[#9496a1] shrink-0" />
                           )}
@@ -788,7 +786,7 @@ export default function PomodoroWorkspace({
           <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-3 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#1591DC]" />
+                <FileText className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                   Dev Scratchpad & Code Snippets
                 </h3>
@@ -800,19 +798,19 @@ export default function PomodoroWorkspace({
                   className="p-1.5 rounded-lg text-[#9496a1] hover:text-white bg-white/[0.03] hover:bg-white/[0.08] transition-colors cursor-pointer"
                   title="Copy scratchpad content"
                 >
-                  {copiedScratchpad ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedScratchpad ? <Check className="w-3.5 h-3.5 text-zinc-300" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
                 <button
                   type="button"
                   onClick={handleExportToJournal}
                   className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 ${
                     journalLogged
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      ? 'bg-white/15 text-white border border-white/20'
                       : 'bg-white/[0.04] hover:bg-white/[0.08] text-[#9496a1] hover:text-white border border-white/[0.08]'
                   }`}
                   title="Log scratchpad notes to Today's Daily Journal"
                 >
-                  <BookOpen className="w-3 h-3 text-[#1591DC]" />
+                  <BookOpen className="w-3 h-3 text-zinc-300" />
                   <span>{journalLogged ? 'Logged to Journal!' : 'Send to Journal'}</span>
                 </button>
               </div>
@@ -855,7 +853,7 @@ export default function PomodoroWorkspace({
               value={localScratchpad}
               onChange={handleScratchpadChange}
               placeholder="Dump quick thoughts, SQL queries, CLI commands, API payloads, or bug hypotheses here... Auto-saved continuously."
-              className="w-full h-44 bg-[#0e1015] border border-white/[0.08] focus:border-[#1591DC] p-3 text-xs text-[#ededf3] font-mono leading-relaxed rounded-xl focus:outline-none resize-none transition-colors"
+              className="w-full h-44 bg-[#0e1015] border border-white/[0.08] focus:border-white/30 p-3 text-xs text-[#ededf3] font-mono leading-relaxed rounded-xl focus:outline-none resize-none transition-colors"
             />
             <div className="flex justify-between items-center text-[10px] text-[#9496a1] pt-1">
               <span>Auto-saved to Cloud & LocalStorage</span>
@@ -868,7 +866,7 @@ export default function PomodoroWorkspace({
             <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-3 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-emerald-400" />
+                  <Activity className="w-4 h-4 text-zinc-300" />
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                     Habit Matrix Link
                   </h3>
@@ -876,7 +874,7 @@ export default function PomodoroWorkspace({
                 <button
                   type="button"
                   onClick={() => onNavigate('habit-matrix')}
-                  className="text-[11px] text-[#1591DC] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] text-zinc-400 hover:text-white font-semibold flex items-center gap-1 cursor-pointer"
                 >
                   <span>Habits Tab</span>
                   <ArrowRight className="w-3 h-3" />
@@ -898,7 +896,7 @@ export default function PomodoroWorkspace({
                   onClick={() => onToggleHabitDay && onToggleHabitDay(deepWorkHabit.id, todayDayNumber)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                     isHabitCheckedToday
-                      ? 'bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                      ? 'bg-white text-black font-semibold shadow-sm'
                       : 'bg-white/[0.05] hover:bg-white/[0.1] text-[#ededf3] border border-white/[0.1]'
                   }`}
                 >
