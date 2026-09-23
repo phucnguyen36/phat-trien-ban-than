@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Mail, Key, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { DeepFocusLogo } from './DeepFocusLogo';
 import { 
   authenticateUserAsync, 
   syncUsersRegistryFromCloud, 
@@ -141,11 +142,9 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
           >
             {/* Top Brand Banner */}
             <div className="flex flex-col items-center text-center space-y-3">
-              <img 
-                src="/logo.png" 
-                alt="DeepFocus" 
-                className="w-14 h-14 rounded-2xl object-contain bg-black border border-white/15 p-1 shadow-[0_0_20px_rgba(21,145,220,0.2)]"
-              />
+              <div className="hover:scale-105 transition-transform shrink-0">
+                <DeepFocusLogo size={52} />
+              </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">
                   DeepFocus

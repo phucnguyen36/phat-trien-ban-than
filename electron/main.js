@@ -14,7 +14,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'DeepFocus',
-    icon: path.join(__dirname, '../public/logo.png'),
+    icon: path.join(__dirname, '../public/deepfocus-app-icon-512.png'),
     backgroundColor: '#07070a',
     autoHideMenuBar: true,
     show: false,

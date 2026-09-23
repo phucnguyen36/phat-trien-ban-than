@@ -48,6 +48,7 @@ import DailyJournalPanel from './components/DailyJournal';
 import ExpenseLedger from './components/ExpenseLedger';
 import DeepWorkTimer from './components/DeepWorkTimer';
 import PomodoroWorkspace from './components/PomodoroWorkspace';
+import { DeepFocusLogo } from './components/DeepFocusLogo';
 import { usePomodoro } from './context/PomodoroContext';
 import AEPicker from './components/AEPicker';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
@@ -1076,21 +1077,14 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto w-full flex justify-between items-center gap-4">
           
-          {/* Studio Brand Mark with Official Logo */}
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveSection('overview')}>
-            <img 
-              src="/logo.png" 
-              alt="DeepFocus" 
-              className="w-8 h-8 rounded-lg object-contain bg-black border border-white/10 p-0.5 shadow-[0_0_12px_rgba(21,145,220,0.2)] group-hover:scale-105 transition-transform"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/logo.png';
-              }}
-            />
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm tracking-tight text-white leading-none">
-                DeepFocus
-              </span>
+          {/* Studio Brand Mark with Official Vector Logo (No rounded container shape) */}
+          <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setActiveSection('overview')}>
+            <div className="group-hover:scale-105 transition-transform shrink-0">
+              <DeepFocusLogo size={24} />
             </div>
+            <span className="font-semibold text-sm tracking-tight text-white leading-none">
+              DeepFocus
+            </span>
           </div>
 
           {/* Quick Header Actions */}
@@ -1446,12 +1440,8 @@ export default function App() {
       {/* MINIMAL CLEAN STUDIO FOOTER (DeepFocus Standard) */}
       <footer className="border-t border-white/[0.06] bg-[#0b0c10] py-6 px-6 md:px-12 mt-20 relative z-20">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="DeepFocus" 
-              className="w-5 h-5 rounded object-contain bg-black border border-white/10 p-0.5 opacity-80" 
-            />
+          <div className="flex items-center gap-2.5">
+            <DeepFocusLogo size={18} />
             <span className="text-xs font-semibold text-white tracking-wider uppercase font-mono">
               DeepFocus
             </span>
