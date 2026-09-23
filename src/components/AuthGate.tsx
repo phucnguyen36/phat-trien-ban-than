@@ -140,13 +140,20 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
             className="w-full max-w-md glass-panel-true p-6 md:p-8 relative z-10 shadow-2xl space-y-6 border border-white/15 rounded-2xl"
           >
             {/* Top Brand Banner */}
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">
-                Deep Focus
-              </h1>
-              <p className="text-xs text-[#9496a1]">
-                Personal productivity & focus toolkit
-              </p>
+            <div className="flex flex-col items-center text-center space-y-3">
+              <img 
+                src="/logo.png" 
+                alt="DeepFocus" 
+                className="w-14 h-14 rounded-2xl object-contain bg-black border border-white/15 p-1 shadow-[0_0_20px_rgba(21,145,220,0.2)]"
+              />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">
+                  DeepFocus
+                </h1>
+                <p className="text-xs text-[#9496a1] mt-1">
+                  Personal productivity & focus toolkit
+                </p>
+              </div>
             </div>
 
             {/* Success Notice */}
@@ -217,7 +224,7 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
 
             {/* Footer Copyright */}
             <div className="text-center text-xs text-[#9496a1] pt-2">
-              Deep Focus • Studio Edition
+              DeepFocus
             </div>
           </motion.div>
         </motion.div>

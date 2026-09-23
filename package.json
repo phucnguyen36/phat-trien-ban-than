@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "com.deepfocus.os",
-    "productName": "Deep Focus OS",
+    "productName": "DeepFocus",
     "directories": {
       "output": "dist-app"
     },

@@ -71,7 +71,7 @@ export const INITIAL_JOURNAL: DailyJournal[] = [
   {
     id: '2026-07-13',
     energy: 5,
-    text: 'Peak flow state achieved! Polished UI v5.0 with pristine spacing and exact typographic execution.',
+    text: 'Peak flow state achieved! Polished UI with pristine spacing and exact typographic execution.',
     updatedAt: Date.now() - 3600000 * 24 * 3
   },
   {

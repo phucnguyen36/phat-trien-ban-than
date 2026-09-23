@@ -304,9 +304,6 @@ export default function App() {
 
   // A2 — Weekly Review panel open state
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState<boolean>(false);
-  
-  // Real-time Clock State (local time)
-  const [currentTime, setCurrentTime] = useState<string>('');
 
   // Active Theme Selection State
   const [activeThemeId, setActiveThemeId] = useState<string>(() => {
@@ -435,7 +432,7 @@ export default function App() {
       name: 'DeepFocus Pro',
       role: 'Creative Director & Designer',
       bio: 'Focus, clean aesthetics, and deliberate consistency.',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+      avatarUrl: '/logo.png'
     };
   });
 
@@ -470,16 +467,6 @@ export default function App() {
     onConfirm?: () => void;
   } | null>(null);
 
-  // Time Ticker
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('en-US', { hour12: false }) + ' | ' + now.toLocaleDateString('en-US'));
-    };
-    updateClock();
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Show a custom modal notice
   const showNotice = (title: string, message: string, onConfirm?: () => void) => {
@@ -1089,38 +1076,19 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto w-full flex justify-between items-center gap-4">
           
-          {/* Studio Avatar & Brand Mark */}
+          {/* Studio Brand Mark with Official Logo */}
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setActiveSection('overview')}>
             <img 
-              src={profile.avatarUrl} 
-              alt="Deep Focus" 
-              className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.15)] group-hover:scale-105 transition-transform"
+              src="/logo.png" 
+              alt="DeepFocus" 
+              className="w-8 h-8 rounded-lg object-contain bg-black border border-white/10 p-0.5 shadow-[0_0_12px_rgba(21,145,220,0.2)] group-hover:scale-105 transition-transform"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+                (e.target as HTMLImageElement).src = '/logo.png';
               }}
             />
             <div className="flex flex-col">
               <span className="font-semibold text-sm tracking-tight text-white leading-none">
-                Deep Focus
-              </span>
-              <span className="text-[10px] text-[#9496a1] font-mono leading-none mt-1">
-                OS • v5.0.0
-              </span>
-            </div>
-          </div>
-
-          {/* Real-time Focus Clock & Active Metric Indicator */}
-          <div className="hidden xl:flex items-center gap-6 px-4 py-1.5 rounded-full bg-white/[0.02] border border-white/[0.05]">
-            <div className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="text-xs font-mono text-zinc-300 font-medium">{currentTime || '00:00:00'}</span>
-            </div>
-            <div className="h-3 w-px bg-white/10" />
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: customAccentColor }} />
-              <span className="text-xs text-zinc-400 font-medium">Completed Tasks:</span>
-              <span className="text-xs font-bold text-white font-mono">
-                {goals.filter(g => g.completed).length}/{goals.length}
+                DeepFocus
               </span>
             </div>
           </div>
@@ -1155,16 +1123,6 @@ export default function App() {
                 style={{ backgroundColor: customAccentColor }}
               />
               <span className="text-[10px] tracking-wider uppercase font-semibold text-zinc-200">COLOR</span>
-            </button>
-
-            {/* Cloud Sync Status */}
-            <button
-              onClick={() => handleToggleLocalMode(!localOnlyMode)}
-              className="flex items-center gap-1.5 px-3 py-1.5 kuldeep-badge text-xs font-mono"
-              title={localOnlyMode ? "Offline Mode (Click to enable Cloud Sync)" : "Cloud Sync Active (Click to switch to Offline Mode)"}
-            >
-              <span className={`w-2 h-2 rounded-full ${!localOnlyMode ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
-              <span className="text-[10px] uppercase font-bold tracking-wider">{!localOnlyMode ? 'Synced' : 'Local'}</span>
             </button>
 
             {/* Profile Settings */}
@@ -1346,7 +1304,7 @@ export default function App() {
               <div className="flex flex-col items-center justify-center py-36 gap-4">
                 <RefreshCw className={`w-8 h-8 ${activeTheme.text} animate-spin`} />
                 <span className="font-mono text-xs text-zinc-600 uppercase tracking-widest animate-pulse">
-                  Loading Deep Focus OS v5.0...
+                  Loading DeepFocus...
                 </span>
               </div>
             ) : (
@@ -1486,26 +1444,21 @@ export default function App() {
         </div>
 
       {/* MINIMAL CLEAN STUDIO FOOTER (DeepFocus Standard) */}
-      <footer className="border-t border-white/[0.06] bg-[#0b0c10] py-8 px-6 md:px-12 mt-20 relative z-20">
+      <footer className="border-t border-white/[0.06] bg-[#0b0c10] py-6 px-6 md:px-12 mt-20 relative z-20">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-            <span className="text-xs font-bold text-white tracking-wider uppercase font-mono">
-              DeepFocus OS
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo.png" 
+              alt="DeepFocus" 
+              className="w-5 h-5 rounded object-contain bg-black border border-white/10 p-0.5 opacity-80" 
+            />
+            <span className="text-xs font-semibold text-white tracking-wider uppercase font-mono">
+              DeepFocus
             </span>
             <span className="hidden sm:inline text-zinc-700">•</span>
             <p className="text-xs text-[#9496a1] font-sans">
               &copy; 2026 DeepFocus. All rights reserved.
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono text-zinc-400">
-              v5.0.0
-            </span>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>System Operational</span>
-            </div>
           </div>
         </div>
       </footer>
