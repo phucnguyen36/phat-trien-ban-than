@@ -46,6 +46,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
   } = usePomodoro();
 
   const [activeTab, setActiveTab] = useState<'byDate' | 'weekly' | 'today'>('byDate');
+  const [sessionFilter, setSessionFilter] = useState<'all' | 'completed' | 'partial'>('all');
   const [expandedDate, setExpandedDate] = useState<string | null>(() => getLocalDateStr());
   const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -53,6 +54,8 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
   // Manual Log Form State
   const [manualDate, setManualDate] = useState<string>(() => getLocalDateStr());
   const [manualMinutes, setManualMinutes] = useState<number>(25);
+  const [manualTargetMinutes, setManualTargetMinutes] = useState<number>(25);
+  const [manualIsCompleted, setManualIsCompleted] = useState<boolean>(true);
   const [manualTaskTitle, setManualTaskTitle] = useState<string>('');
   const [isCustomDuration, setIsCustomDuration] = useState<boolean>(false);
   const [customDurationInput, setCustomDurationInput] = useState<string>('25');
@@ -61,6 +64,19 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
   const totalFocusSessionsCount = useMemo(() => {
     return allSessions.filter(s => s.mode === 'focus').length;
   }, [allSessions]);
+
+  const completedFocusSessionsCount = useMemo(() => {
+    return allSessions.filter(s => s.mode === 'focus' && s.completed !== false).length;
+  }, [allSessions]);
+
+  const partialFocusSessionsCount = useMemo(() => {
+    return allSessions.filter(s => s.mode === 'focus' && s.completed === false).length;
+  }, [allSessions]);
+
+  const completionRate = useMemo(() => {
+    if (totalFocusSessionsCount === 0) return '100%';
+    return `${Math.round((completedFocusSessionsCount / totalFocusSessionsCount) * 100)}%`;
+  }, [completedFocusSessionsCount, totalFocusSessionsCount]);
 
   const totalFocusMinutesAll = useMemo(() => {
     return allSessions
@@ -118,6 +134,8 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
         s => s.mode === 'focus' && (s.dateStr === ds || getLocalDateStr(new Date(s.timestamp)) === ds)
       );
       const count = daySessions.length;
+      const completedCount = daySessions.filter(s => s.completed !== false).length;
+      const partialCount = daySessions.filter(s => s.completed === false).length;
       const minutes = daySessions.reduce((sum, s) => sum + s.durationMinutes, 0);
       const dayLabel = d.toLocaleDateString('en-US', { weekday: 'narrow' });
       const dateNumber = d.getDate();
@@ -130,6 +148,8 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
         dayLabel,
         dateNumber,
         count,
+        completedCount,
+        partialCount,
         minutes,
         isToday
       });
@@ -151,7 +171,10 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
     addFocusSession({
       dateStr: manualDate,
       durationMinutes: finalMinutes,
-      taskTitle: manualTaskTitle.trim() || 'Manual Deep Work Session',
+      targetMinutes: manualIsCompleted ? finalMinutes : manualTargetMinutes,
+      completed: manualIsCompleted,
+      interrupted: !manualIsCompleted,
+      taskTitle: manualTaskTitle.trim() || (manualIsCompleted ? 'Manual Deep Work Session' : 'Partial Deep Work Session'),
       mode: 'focus'
     });
 
@@ -243,13 +266,16 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
       </div>
 
       {/* 2. COMPACT KPI STRIP */}
-      <div className="grid grid-cols-4 gap-2 text-center bg-[#0e1015] p-2.5 rounded-xl border border-white/[0.06]">
+      <div className="grid grid-cols-4 gap-2 text-center bg-[#0e1015] p-3 rounded-xl border border-white/[0.06]">
         <div>
           <span className="text-[10px] text-[#9496a1] uppercase tracking-wider block font-medium">
             Total Blocks
           </span>
           <span className="text-sm font-bold text-white tabular-nums">
             {totalFocusSessionsCount}
+          </span>
+          <span className="text-[10px] text-zinc-400 block tabular-nums">
+            {completedFocusSessionsCount} full{partialFocusSessionsCount > 0 ? ` • ${partialFocusSessionsCount} partial` : ''}
           </span>
         </div>
         <div className="border-l border-white/[0.06]">
@@ -259,13 +285,19 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
           <span className="text-sm font-bold text-white tabular-nums">
             {(totalFocusMinutesAll / 60).toFixed(1)}h
           </span>
+          <span className="text-[10px] text-zinc-400 block tabular-nums">
+            {totalFocusMinutesAll}m tracked
+          </span>
         </div>
         <div className="border-l border-white/[0.06]">
           <span className="text-[10px] text-[#9496a1] uppercase tracking-wider block font-medium">
-            Daily Avg
+            Completion Rate
           </span>
-          <span className="text-sm font-bold text-white tabular-nums">
-            {dailyAverageSessions}
+          <span className="text-sm font-bold text-emerald-400 tabular-nums">
+            {completionRate}
+          </span>
+          <span className="text-[10px] text-zinc-400 block tabular-nums">
+            {dailyAverageSessions} avg/day
           </span>
         </div>
         <div className="border-l border-white/[0.06]">
@@ -276,6 +308,51 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
           <span className="text-sm font-bold text-amber-400 tabular-nums">
             {currentStreakDays}d
           </span>
+          <span className="text-[10px] text-zinc-400 block tabular-nums">
+            {activeDaysCount} active days
+          </span>
+        </div>
+      </div>
+
+      {/* FILTER BAR: All, Completed Only, Partial Only */}
+      <div className="flex items-center justify-between text-[11px] pt-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-wider text-[#9496a1] font-semibold">Filter:</span>
+          <div className="flex items-center bg-[#0e1015] p-0.5 rounded-lg border border-white/[0.06]">
+            <button
+              type="button"
+              onClick={() => setSessionFilter('all')}
+              className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                sessionFilter === 'all'
+                  ? 'bg-white/15 text-white font-semibold'
+                  : 'text-[#9496a1] hover:text-white'
+              }`}
+            >
+              All ({totalFocusSessionsCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSessionFilter('completed')}
+              className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                sessionFilter === 'completed'
+                  ? 'bg-white/15 text-white font-semibold'
+                  : 'text-[#9496a1] hover:text-white'
+              }`}
+            >
+              Full ({completedFocusSessionsCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSessionFilter('partial')}
+              className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                sessionFilter === 'partial'
+                  ? 'bg-amber-500/20 text-amber-300 font-semibold'
+                  : 'text-[#9496a1] hover:text-white'
+              }`}
+            >
+              Partial ({partialFocusSessionsCount})
+            </button>
+          </div>
         </div>
       </div>
 
@@ -288,7 +365,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
               <Plus className="w-3.5 h-3.5 text-zinc-300" />
-              <span>Record Completed Focus Block</span>
+              <span>Record Focus Block</span>
             </span>
             <button
               type="button"
@@ -297,6 +374,40 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
             >
               <X className="w-3.5 h-3.5" />
             </button>
+          </div>
+
+          {/* Session Status Selector */}
+          <div>
+            <label className="text-[10px] font-semibold text-[#9496a1] uppercase tracking-wider block mb-1">
+              Block Status
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setManualIsCompleted(true)}
+                className={`py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  manualIsCompleted
+                    ? 'bg-white text-black shadow-xs'
+                    : 'bg-white/[0.03] text-zinc-400 hover:text-white border border-white/[0.06]'
+                }`}
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Full Completed</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setManualIsCompleted(false)}
+                className={`py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  !manualIsCompleted
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'bg-white/[0.03] text-zinc-400 hover:text-white border border-white/[0.06]'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Partial / Stopped Early</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -316,7 +427,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
             {/* Duration Selector */}
             <div>
               <label className="text-[10px] font-semibold text-[#9496a1] uppercase tracking-wider block mb-1">
-                Duration (Minutes)
+                {manualIsCompleted ? 'Duration (Minutes)' : 'Actual Focused Minutes'}
               </label>
               <div className="flex items-center gap-1">
                 {[
@@ -365,6 +476,31 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
               )}
             </div>
           </div>
+
+          {/* Planned Target Minutes if Partial */}
+          {!manualIsCompleted && (
+            <div>
+              <label className="text-[10px] font-semibold text-[#9496a1] uppercase tracking-wider block mb-1">
+                Original Target Goal (Minutes)
+              </label>
+              <div className="flex items-center gap-1">
+                {[25, 45, 50, 90].map(mins => (
+                  <button
+                    key={mins}
+                    type="button"
+                    onClick={() => setManualTargetMinutes(mins)}
+                    className={`flex-1 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                      manualTargetMinutes === mins
+                        ? 'bg-amber-400 text-black font-semibold'
+                        : 'bg-white/[0.04] text-[#9496a1] hover:text-white border border-white/[0.06]'
+                    }`}
+                  >
+                    {mins}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Task / Work Note */}
           <div>
@@ -488,68 +624,90 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   {/* Expanded Session Records inside this Day */}
                   {isExpanded && (
                     <div className="px-3 pb-3 pt-1 border-t border-white/[0.04] space-y-1.5 animate-fadeIn">
-                      {summary.sessions.length === 0 ? (
-                        <div className="text-[11px] text-zinc-500 py-2 text-center">
-                          No focus sessions recorded on this date.
-                        </div>
-                      ) : (
-                        summary.sessions.map(session => (
-                          <div
-                            key={session.id}
-                            className="p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] flex items-center justify-between gap-2 text-xs transition-colors"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                session.mode === 'focus' ? 'bg-white' : 'bg-zinc-400'
-                              }`} />
-                              <span className="text-white truncate font-medium">
-                                {session.taskTitle}
-                              </span>
+                      {(() => {
+                        const displayedSessions = summary.sessions.filter(s => {
+                          if (sessionFilter === 'completed') return s.completed !== false;
+                          if (sessionFilter === 'partial') return s.completed === false;
+                          return true;
+                        });
+
+                        if (displayedSessions.length === 0) {
+                          return (
+                            <div className="text-[11px] text-zinc-500 py-2 text-center">
+                              {summary.sessions.length === 0 
+                                ? 'No focus sessions recorded on this date.'
+                                : `No ${sessionFilter} sessions on this date.`}
                             </div>
+                          );
+                        }
 
-                            <div className="flex items-center gap-2 shrink-0 text-[#9496a1] text-[11px] tabular-nums">
-                              <span className="font-semibold text-zinc-300">
-                                {session.durationMinutes}m
-                              </span>
-                              <span>•</span>
-                              <span>
-                                {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                        return displayedSessions.map(session => {
+                          const isPartial = session.completed === false;
+                          return (
+                            <div
+                              key={session.id}
+                              className="p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] flex items-center justify-between gap-2 text-xs transition-colors"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                  isPartial 
+                                    ? 'bg-amber-400 ring-2 ring-amber-400/20' 
+                                    : (session.mode === 'focus' ? 'bg-sky-400' : 'bg-zinc-400')
+                                }`} />
+                                <span className="text-white truncate font-medium">
+                                  {session.taskTitle}
+                                </span>
+                                {isPartial && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium shrink-0">
+                                    Partial ({session.durationMinutes}/{session.targetMinutes || 25}m)
+                                  </span>
+                                )}
+                              </div>
 
-                              {/* Delete Session Action */}
-                              {confirmDeleteId === session.id ? (
-                                <div className="flex items-center gap-1 pl-1">
+                              <div className="flex items-center gap-2 shrink-0 text-[#9496a1] text-[11px] tabular-nums">
+                                <span className={`font-semibold ${isPartial ? 'text-amber-300' : 'text-zinc-300'}`}>
+                                  {session.durationMinutes}m
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+
+                                {/* Delete Session Action */}
+                                {confirmDeleteId === session.id ? (
+                                  <div className="flex items-center gap-1 pl-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteSession(session.id)}
+                                      className="p-0.5 rounded text-rose-400 hover:text-rose-300"
+                                      title="Confirm delete"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setConfirmDeleteId(null)}
+                                      className="p-0.5 rounded text-zinc-500 hover:text-white"
+                                      title="Cancel"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
                                   <button
                                     type="button"
-                                    onClick={() => handleDeleteSession(session.id)}
-                                    className="p-0.5 rounded text-rose-400 hover:text-rose-300"
-                                    title="Confirm delete"
+                                    onClick={() => setConfirmDeleteId(session.id)}
+                                    className="text-zinc-600 hover:text-rose-400 transition-colors p-0.5"
+                                    title="Delete record"
                                   >
-                                    <Check className="w-3 h-3" />
+                                    <Trash2 className="w-3 h-3" />
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setConfirmDeleteId(null)}
-                                    className="p-0.5 rounded text-zinc-500 hover:text-white"
-                                    title="Cancel"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setConfirmDeleteId(session.id)}
-                                  className="text-zinc-600 hover:text-rose-400 transition-colors p-0.5"
-                                  title="Delete record"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))
-                      )}
+                          );
+                        });
+                      })()}
                     </div>
                   )}
                 </div>
@@ -578,13 +736,13 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                     setActiveTab('byDate');
                   }}
                   className="flex flex-col items-center justify-end h-full gap-1 cursor-pointer group"
-                  title={`${day.dateStr}: ${day.count} blocks (${day.minutes} mins)`}
+                  title={`${day.dateStr}: ${day.count} blocks (${day.completedCount} full, ${day.partialCount} partial • ${day.minutes} mins)`}
                 >
                   <span className="text-[10px] text-[#9496a1] group-hover:text-white tabular-nums font-semibold">
                     {day.count > 0 ? day.count : ''}
                   </span>
                   
-                    {/* Bar */}
+                  {/* Bar */}
                   <div className="w-full bg-white/[0.04] rounded-t-md h-full flex items-end overflow-hidden p-0.5">
                     <div 
                       className="w-full rounded-t transition-all duration-500"
@@ -627,42 +785,66 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
       {/* TAB C: TODAY'S TIMELINE */}
       {activeTab === 'today' && (
         <div className="space-y-2 max-h-72 overflow-y-auto pr-1 animate-fadeIn">
-          {todaySessions.length === 0 ? (
-            <div className="text-xs text-[#9496a1] py-8 text-center border border-dashed border-white/[0.06] rounded-xl">
-              No sessions logged yet today. Start the timer to complete your first focus session!
-            </div>
-          ) : (
-            todaySessions.map(session => (
-              <div
-                key={session.id}
-                className="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between gap-2 text-xs"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${
-                    session.mode === 'focus' ? 'bg-white' : 'bg-zinc-400'
-                  }`} />
-                  <span className="text-white font-medium truncate">
-                    {session.taskTitle}
-                  </span>
+          {(() => {
+            const displayedToday = todaySessions.filter(s => {
+              if (sessionFilter === 'completed') return s.completed !== false;
+              if (sessionFilter === 'partial') return s.completed === false;
+              return true;
+            });
+
+            if (displayedToday.length === 0) {
+              return (
+                <div className="text-xs text-[#9496a1] py-8 text-center border border-dashed border-white/[0.06] rounded-xl">
+                  {todaySessions.length === 0
+                    ? "No sessions logged yet today. Start the timer to complete your first focus session!"
+                    : `No ${sessionFilter} sessions recorded today.`}
                 </div>
-                <div className="flex items-center gap-2 shrink-0 text-[#9496a1] tabular-nums text-[11px]">
-                  <span className="text-zinc-200 font-semibold">{session.durationMinutes}m</span>
-                  <span>•</span>
-                  <span>
-                    {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteSession(session.id)}
-                    className="text-zinc-600 hover:text-rose-400 transition-colors ml-1 p-0.5"
-                    title="Delete session"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+              );
+            }
+
+            return displayedToday.map(session => {
+              const isPartial = session.completed === false;
+              return (
+                <div
+                  key={session.id}
+                  className="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between gap-2 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${
+                      isPartial 
+                        ? 'bg-amber-400 ring-2 ring-amber-400/20' 
+                        : (session.mode === 'focus' ? 'bg-sky-400' : 'bg-zinc-400')
+                    }`} />
+                    <span className="text-white font-medium truncate">
+                      {session.taskTitle}
+                    </span>
+                    {isPartial && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium shrink-0">
+                        Partial ({session.durationMinutes}/{session.targetMinutes || 25}m)
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 text-[#9496a1] tabular-nums text-[11px]">
+                    <span className={`font-semibold ${isPartial ? 'text-amber-300' : 'text-zinc-200'}`}>
+                      {session.durationMinutes}m
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSession(session.id)}
+                      className="text-zinc-600 hover:text-rose-400 transition-colors ml-1 p-0.5"
+                      title="Delete session"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              );
+            });
+          })()}
         </div>
       )}
 

@@ -12,7 +12,10 @@ export interface FocusSessionRecord {
   id: string;
   timestamp: number;
   dateStr: string; // YYYY-MM-DD
-  durationMinutes: number;
+  durationMinutes: number; // actual minutes spent focusing
+  targetMinutes?: number;  // original planned duration (e.g. 25, 45, 50)
+  completed?: boolean;     // true if timer finished naturally; false if stopped early/partial
+  interrupted?: boolean;   // true if paused/reset/switched before timer expired
   taskTitle: string;
   mode: TimerMode;
 }
@@ -21,7 +24,9 @@ export interface DailyFocusSummary {
   dateStr: string;           // "YYYY-MM-DD"
   displayDate: string;       // e.g. "Today (Sep 21)" or "Yesterday (Sep 20)"
   dayOfWeek: string;         // "Mon", "Tue", etc.
-  totalSessions: number;     // number of focus sessions
+  totalSessions: number;     // number of focus sessions (completed + partial)
+  completedSessions: number; // completed full blocks
+  partialSessions: number;   // partial / stopped early blocks
   totalFocusMinutes: number; // total duration in minutes
   sessions: FocusSessionRecord[];
 }
@@ -56,6 +61,9 @@ interface PomodoroContextType {
   addFocusSession: (session: {
     dateStr?: string;
     durationMinutes: number;
+    targetMinutes?: number;
+    completed?: boolean;
+    interrupted?: boolean;
     taskTitle?: string;
     mode?: TimerMode;
     timestamp?: number;
@@ -239,6 +247,9 @@ const generateInitialSessions = (): FocusSessionRecord[] => {
         timestamp: ts,
         dateStr,
         durationMinutes: s.mins,
+        targetMinutes: s.mins,
+        completed: true,
+        interrupted: false,
         taskTitle: s.task,
         mode: 'focus'
       });
@@ -338,7 +349,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed.map((s: any) => ({
             ...s,
-            dateStr: s.dateStr || getLocalDateStr(new Date(s.timestamp || Date.now()))
+            dateStr: s.dateStr || getLocalDateStr(new Date(s.timestamp || Date.now())),
+            completed: s.completed !== undefined ? s.completed : true,
+            interrupted: s.interrupted !== undefined ? s.interrupted : false,
+            targetMinutes: s.targetMinutes || s.durationMinutes || 25
           }));
         }
       }
@@ -350,7 +364,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
           const withDate = parsedLegacy.map((s: any) => ({
             ...s,
-            dateStr: s.dateStr || getLocalDateStr()
+            dateStr: s.dateStr || getLocalDateStr(),
+            completed: s.completed !== undefined ? s.completed : true,
+            interrupted: s.interrupted !== undefined ? s.interrupted : false,
+            targetMinutes: s.targetMinutes || s.durationMinutes || 25
           }));
           return withDate;
         }
@@ -390,6 +407,8 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
       sessions.sort((a, b) => b.timestamp - a.timestamp);
       const focusSessions = sessions.filter(s => s.mode === 'focus');
       const totalSessions = focusSessions.length;
+      const completedSessions = focusSessions.filter(s => s.completed !== false).length;
+      const partialSessions = focusSessions.filter(s => s.completed === false).length;
       const totalFocusMinutes = focusSessions.reduce((sum, s) => sum + s.durationMinutes, 0);
       const { displayDate, dayOfWeek } = formatDisplayDate(dateStr, todayDateStr);
 
@@ -398,6 +417,8 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         displayDate,
         dayOfWeek,
         totalSessions,
+        completedSessions,
+        partialSessions,
         totalFocusMinutes,
         sessions
       });
@@ -637,6 +658,9 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
           timestamp: Date.now(),
           dateStr: getLocalDateStr(),
           durationMinutes: completedMins,
+          targetMinutes: completedMins,
+          completed: true,
+          interrupted: false,
           taskTitle: activeTaskTitleRef.current || 'Deep Work Session',
           mode
         };
@@ -671,26 +695,58 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     return () => clearInterval(interval);
   }, [isRunning, targetEndTime, mode, totalSessionSeconds, durations, sessionsCompleted]);
 
+  // Helper: auto-capture partial focus sessions if stopped or reset before timer expires
+  const recordPartialFocusSessionIfNeeded = () => {
+    if (mode !== 'focus') return;
+    const currentRemaining = targetEndTime ? Math.max(0, Math.ceil((targetEndTime - Date.now()) / 1000)) : timeLeft;
+    const elapsedSecs = Math.max(0, totalSessionSeconds - currentRemaining);
+    // If the user has spent at least 60 seconds (1 minute) of genuine focus, record partial session
+    if (elapsedSecs >= 60) {
+      const elapsedMins = Math.max(1, Math.round(elapsedSecs / 60));
+      const targetMins = Math.round(totalSessionSeconds / 60);
+      const partialRecord: FocusSessionRecord = {
+        id: 'partial_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+        timestamp: Date.now(),
+        dateStr: getLocalDateStr(),
+        durationMinutes: elapsedMins,
+        targetMinutes: targetMins,
+        completed: false,
+        interrupted: true,
+        taskTitle: activeTaskTitleRef.current || 'Deep Work Session',
+        mode: 'focus'
+      };
+      setAllSessions(prev => [partialRecord, ...prev]);
+    }
+  };
+
   // Manual session actions
   const addFocusSession = (data: {
     dateStr?: string;
     durationMinutes: number;
+    targetMinutes?: number;
+    completed?: boolean;
+    interrupted?: boolean;
     taskTitle?: string;
     mode?: TimerMode;
     timestamp?: number;
   }) => {
     const targetDate = data.dateStr || getLocalDateStr();
     const ts = data.timestamp || Date.now();
+    const isCompleted = data.completed !== undefined ? data.completed : true;
+    const isInterrupted = data.interrupted !== undefined ? data.interrupted : !isCompleted;
     const newRecord: FocusSessionRecord = {
       id: 'manual_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
       timestamp: ts,
       dateStr: targetDate,
       durationMinutes: data.durationMinutes || 25,
+      targetMinutes: data.targetMinutes || data.durationMinutes || 25,
+      completed: isCompleted,
+      interrupted: isInterrupted,
       taskTitle: data.taskTitle?.trim() || 'Deep Work Session',
       mode: data.mode || 'focus'
     };
     setAllSessions(prev => [newRecord, ...prev]);
-    if (data.mode !== 'short_break' && data.mode !== 'long_break') {
+    if ((data.mode || 'focus') === 'focus' && isCompleted) {
       const updatedCount = sessionsCompleted + 1;
       setSessionsCompleted(updatedCount);
       try {
@@ -752,6 +808,7 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const resetTimer = () => {
+    recordPartialFocusSessionIfNeeded();
     setIsRunning(false);
     setTargetEndTime(null);
     const initialSecs = durations[mode] * 60;
@@ -768,6 +825,9 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const switchMode = (newMode: TimerMode, customMins?: number) => {
+    if (mode === 'focus' && newMode !== 'focus') {
+      recordPartialFocusSessionIfNeeded();
+    }
     setIsRunning(false);
     setTargetEndTime(null);
     setMode(newMode);

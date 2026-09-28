@@ -49,8 +49,10 @@ import {
   PlusCircle,
   Sliders,
   Bell,
-  RefreshCw,
-  ChevronDown
+  ChevronDown,
+  Search,
+  Target,
+  X
 } from 'lucide-react';
 
 import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
@@ -104,6 +106,7 @@ export default function PomodoroWorkspace({
     durations,
     activeFocusGoalId: contextGoalId,
     setActiveFocusGoalId: setContextGoalId,
+    allSessions,
     todaySessions,
     ambientSound,
     ambientVolume,
@@ -125,19 +128,11 @@ export default function PomodoroWorkspace({
     setContextGoalId(id);
   };
 
-  // Scratchpad local state for fast typing + debounced save
-  const [localScratchpad, setLocalScratchpad] = useState<string>(scratchpadText || '');
-  const [copiedScratchpad, setCopiedScratchpad] = useState<boolean>(false);
-  const [journalLogged, setJournalLogged] = useState<boolean>(false);
-
-  // Task selection drawer / popover state
+  // Task selection drawer / popover state & search
   const [isTaskSelectorOpen, setIsTaskSelectorOpen] = useState<boolean>(false);
+  const [taskSearchQuery, setTaskSearchQuery] = useState<string>('');
+  const [taskFilterTab, setTaskFilterTab] = useState<'today' | 'priority' | 'all'>('today');
   const [newQuickTaskText, setNewQuickTaskText] = useState<string>('');
-
-  // Keep local scratchpad updated when parent updates
-  useEffect(() => {
-    setLocalScratchpad(scratchpadText || '');
-  }, [scratchpadText]);
 
   // Strip context tag from display text
   const cleanGoalText = (text?: string | null): string => {
@@ -165,6 +160,42 @@ export default function PomodoroWorkspace({
     return goals.filter(g => !g.completed);
   }, [goals]);
 
+  // Today's specific tasks
+  const todayTasks = useMemo(() => {
+    return goals.filter(g => !g.completed && g.timeframe === 'daily');
+  }, [goals]);
+
+  // Priority tasks
+  const priorityTasks = useMemo(() => {
+    return goals.filter(g => !g.completed && (g.priority === 'High' || g.priority === 'The One Thing'));
+  }, [goals]);
+
+  // Filtered candidate tasks based on search & active tab
+  const filteredCandidateTasks = useMemo(() => {
+    let list = candidateTasks;
+    if (taskFilterTab === 'today') {
+      list = list.filter(g => g.timeframe === 'daily');
+    } else if (taskFilterTab === 'priority') {
+      list = list.filter(g => g.priority === 'High' || g.priority === 'The One Thing');
+    }
+    if (taskSearchQuery.trim()) {
+      const q = taskSearchQuery.trim().toLowerCase();
+      list = list.filter(g => cleanGoalText(g.text).toLowerCase().includes(q));
+    }
+    return list;
+  }, [candidateTasks, taskFilterTab, taskSearchQuery]);
+
+  // Focused time stats for the active goal
+  const activeTaskStats = useMemo(() => {
+    if (!activeGoal) return { minutes: 0, blocks: 0 };
+    const clean = cleanGoalText(activeGoal.text).toLowerCase();
+    const matched = allSessions.filter(
+      s => s.mode === 'focus' && s.taskTitle?.toLowerCase().includes(clean)
+    );
+    const minutes = matched.reduce((sum, s) => sum + s.durationMinutes, 0);
+    return { minutes, blocks: matched.length };
+  }, [activeGoal, allSessions]);
+
   // Calculate deep work habit for today
   const deepWorkHabit = useMemo(() => {
     return habits.find(h => 
@@ -185,12 +216,27 @@ export default function PomodoroWorkspace({
       .reduce((acc, s) => acc + s.durationMinutes, 0);
   }, [todaySessions]);
 
-  // Save sessions to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(`df_focus_history_${todayDateStr}`, JSON.stringify(todaySessions));
-    } catch (e) {}
-  }, [todaySessions, todayDateStr]);
+  const todayCompletedCount = useMemo(() => {
+    return todaySessions.filter(s => s.mode === 'focus' && s.completed !== false).length;
+  }, [todaySessions]);
+
+  const todayPartialCount = useMemo(() => {
+    return todaySessions.filter(s => s.mode === 'focus' && s.completed === false).length;
+  }, [todaySessions]);
+
+  // Tasks breakdown worked on today
+  const todayTasksBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    todaySessions
+      .filter(s => s.mode === 'focus')
+      .forEach(s => {
+        const title = s.taskTitle || 'Deep Work Session';
+        map.set(title, (map.get(title) || 0) + s.durationMinutes);
+      });
+    return Array.from(map.entries())
+      .map(([title, minutes]) => ({ title, minutes }))
+      .sort((a, b) => b.minutes - a.minutes);
+  }, [todaySessions]);
 
   // Hotkey listener: Space to toggle, R to reset, B for break
   useEffect(() => {
@@ -252,50 +298,7 @@ export default function PomodoroWorkspace({
     setNewQuickTaskText('');
   };
 
-  // Scratchpad save
-  const handleScratchpadChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setLocalScratchpad(val);
-    onSaveScratchpad(val);
-  };
 
-  // Insert code snippet template
-  const handleInsertSnippet = (snippetType: 'code' | 'terminal' | 'todo' | 'bug') => {
-    let snippet = '';
-    if (snippetType === 'code') {
-      snippet = `\n\`\`\`typescript\n// Implementation\n\n\`\`\`\n`;
-    } else if (snippetType === 'terminal') {
-      snippet = `\n$ npm run build\n$ git status\n`;
-    } else if (snippetType === 'todo') {
-      snippet = `\n- [ ] Immediate subtask:\n- [ ] Edge case check:\n`;
-    } else if (snippetType === 'bug') {
-      snippet = `\n### Root Cause Analysis\n- Symptom:\n- Trigger:\n- Fix:\n`;
-    }
-    const updated = localScratchpad + snippet;
-    setLocalScratchpad(updated);
-    onSaveScratchpad(updated);
-  };
-
-  // Copy scratchpad
-  const handleCopyScratchpad = () => {
-    navigator.clipboard.writeText(localScratchpad);
-    setCopiedScratchpad(true);
-    setTimeout(() => setCopiedScratchpad(false), 2000);
-  };
-
-  // Export scratchpad to daily journal
-  const handleExportToJournal = () => {
-    if (!onSaveJournal || !localScratchpad.trim()) return;
-    const existingToday = journalEntries.find(j => j.id === todayDateStr);
-    const existingText = existingToday?.text || '';
-    const updatedJournalText = existingText 
-      ? `${existingText}\n\n## Deep Work Session Reflection (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})\n${localScratchpad}`
-      : `## Deep Work Session Reflection (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})\n${localScratchpad}`;
-    
-    onSaveJournal(todayDateStr, existingToday?.energy || 5, updatedJournalText);
-    setJournalLogged(true);
-    setTimeout(() => setJournalLogged(false), 3000);
-  };
 
   // Subtask toggle inside active goal
   const handleToggleSubTask = (subIndex: number) => {
@@ -333,16 +336,11 @@ export default function PomodoroWorkspace({
             <Flame className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base md:text-lg font-bold text-white tracking-tight">
-                Pomodoro Deep Work Station
-              </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-zinc-200 border border-white/15 uppercase tracking-wider">
-                Full-Stack
-              </span>
-            </div>
+            <h2 className="text-base md:text-lg font-bold text-white tracking-tight">
+              Pomodoro Deep Work Station
+            </h2>
             <p className="text-xs text-[#9496a1] mt-0.5">
-              Uninterrupted flow state linked with tasks, habits & dev scratchpad
+              Uninterrupted flow state linked with tasks, habits & daily focus metrics
             </p>
           </div>
         </div>
@@ -350,12 +348,17 @@ export default function PomodoroWorkspace({
         {/* Right Tools: Daily Stats & Zen Toggle */}
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           {/* Today's Focus KPI */}
-          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs">
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-[#9496a1] uppercase tracking-wider">Today:</span>
               <span className="font-bold text-white tabular-nums">
-                {todaySessions.filter(s => s.mode === 'focus').length} / 8 blocks
+                {todayCompletedCount} full
               </span>
+              {todayPartialCount > 0 && (
+                <span className="text-[10px] text-amber-300 font-medium tabular-nums">
+                  +{todayPartialCount} partial
+                </span>
+              )}
             </div>
             <span className="text-zinc-600">•</span>
             <div className="flex items-center gap-1 text-zinc-300">
@@ -619,51 +622,189 @@ export default function PomodoroWorkspace({
                 </span>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsTaskSelectorOpen(!isTaskSelectorOpen)}
-                className="text-xs text-zinc-300 hover:text-white font-semibold flex items-center gap-1 cursor-pointer"
-              >
-                <span>{activeGoal ? 'Change Task' : 'Select Task'}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isTaskSelectorOpen ? 'rotate-180' : ''}`} />
-              </button>
+              <div className="flex items-center gap-2">
+                {activeGoal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGoalId(null);
+                      setIsTaskSelectorOpen(false);
+                    }}
+                    className="text-xs text-[#9496a1] hover:text-rose-400 font-medium flex items-center gap-1 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-white/[0.04]"
+                    title="Unlink task from this focus session"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Unlink</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsTaskSelectorOpen(!isTaskSelectorOpen)}
+                  className="text-xs text-zinc-300 hover:text-white font-semibold flex items-center gap-1 cursor-pointer px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all"
+                >
+                  <span>{activeGoal ? 'Change Task' : 'Select Task'}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isTaskSelectorOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
             </div>
 
-            {/* Task Selector Dropdown Panel */}
-            {isTaskSelectorOpen && (
-              <div className="p-3 rounded-xl bg-[#0e1015] border border-white/[0.1] space-y-3 animate-fadeIn">
-                <div className="text-xs text-[#9496a1] font-medium">
-                  Select an active task from your database to anchor this focus session:
+            {/* Quick-Pick Row for Today's Tasks (1-click link) */}
+            {todayTasks.length > 0 && (
+              <div className="space-y-1.5 pt-1 border-t border-white/[0.06]">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-400 font-medium flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-sky-400" />
+                    <span>Quick-Pick Today's Tasks:</span>
+                  </span>
+                  <span className="text-[10px] text-zinc-500 tabular-nums">
+                    {todayTasks.length} available
+                  </span>
                 </div>
-
-                <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-                  {candidateTasks.length === 0 ? (
-                    <div className="text-xs text-zinc-500 py-3 text-center">
-                      No active tasks found in database. Create one below:
-                    </div>
-                  ) : (
-                    candidateTasks.map(task => (
-                      <div
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  {todayTasks.map(task => {
+                    const isSelected = currentActiveGoalId === task.id;
+                    const title = cleanGoalText(task.text);
+                    return (
+                      <button
                         key={task.id}
+                        type="button"
                         onClick={() => {
                           setGoalId(task.id);
                           setIsTaskSelectorOpen(false);
                         }}
-                        className={`p-2.5 rounded-lg text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
-                          currentActiveGoalId === task.id
-                            ? 'bg-white/10 text-white font-semibold border border-white/20'
-                            : 'bg-white/[0.02] hover:bg-white/[0.06] text-[#ededf3]'
+                        className={`px-2.5 py-1 rounded-lg text-xs transition-all shrink-0 flex items-center gap-1.5 cursor-pointer max-w-[240px] truncate ${
+                          isSelected
+                            ? 'bg-white text-black font-semibold shadow-sm'
+                            : 'bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-white/[0.08]'
                         }`}
+                        title={title}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Square className="w-3.5 h-3.5 text-[#9496a1] shrink-0" />
-                          <span className="truncate">{cleanGoalText(task.text)}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? 'bg-black' : 'bg-sky-400'}`} />
+                        <span className="truncate">{title}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Task Selector Dropdown Panel with Search & Filter Tabs */}
+            {isTaskSelectorOpen && (
+              <div className="p-3.5 rounded-xl bg-[#0e1015] border border-white/[0.12] space-y-3 animate-fadeIn shadow-2xl">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={taskSearchQuery}
+                    onChange={(e) => setTaskSearchQuery(e.target.value)}
+                    placeholder="Search any task by title or keyword..."
+                    className="w-full bg-white/[0.04] border border-white/[0.1] focus:border-white/40 pl-8 pr-8 py-2 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none"
+                    autoFocus
+                  />
+                  {taskSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setTaskSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex items-center gap-1 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setTaskFilterTab('today')}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                      taskFilterTab === 'today'
+                        ? 'bg-white/15 text-white font-semibold'
+                        : 'text-[#9496a1] hover:text-white bg-white/[0.02]'
+                    }`}
+                  >
+                    <span>⭐ Today</span>
+                    <span className="text-[10px] px-1 rounded bg-white/10 tabular-nums">{todayTasks.length}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTaskFilterTab('priority')}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                      taskFilterTab === 'priority'
+                        ? 'bg-white/15 text-white font-semibold'
+                        : 'text-[#9496a1] hover:text-white bg-white/[0.02]'
+                    }`}
+                  >
+                    <span>🔥 Priority</span>
+                    <span className="text-[10px] px-1 rounded bg-white/10 tabular-nums">{priorityTasks.length}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTaskFilterTab('all')}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                      taskFilterTab === 'all'
+                        ? 'bg-white/15 text-white font-semibold'
+                        : 'text-[#9496a1] hover:text-white bg-white/[0.02]'
+                    }`}
+                  >
+                    <span>📋 All Active</span>
+                    <span className="text-[10px] px-1 rounded bg-white/10 tabular-nums">{candidateTasks.length}</span>
+                  </button>
+                </div>
+
+                {/* Task List */}
+                <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
+                  {filteredCandidateTasks.length === 0 ? (
+                    <div className="text-xs text-zinc-500 py-4 text-center space-y-1">
+                      <p>No matching active tasks found.</p>
+                      {taskSearchQuery && (
+                        <p className="text-[11px] text-zinc-400">
+                          Use the quick add field below to create it in Today's backlog.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    filteredCandidateTasks.map(task => {
+                      const isSelected = currentActiveGoalId === task.id;
+                      return (
+                        <div
+                          key={task.id}
+                          onClick={() => {
+                            setGoalId(task.id);
+                            setIsTaskSelectorOpen(false);
+                            setTaskSearchQuery('');
+                          }}
+                          className={`p-2.5 rounded-lg text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-white/15 text-white font-semibold border border-white/20'
+                              : 'bg-white/[0.02] hover:bg-white/[0.07] text-[#ededf3]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Square className="w-3.5 h-3.5 text-[#9496a1] shrink-0" />
+                            <span className="truncate">{cleanGoalText(task.text)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {task.priority && (
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
+                                task.priority === 'High' || task.priority === 'The One Thing'
+                                  ? 'bg-rose-500/10 text-rose-300'
+                                  : 'bg-white/[0.05] text-zinc-400'
+                              }`}>
+                                {task.priority}
+                              </span>
+                            )}
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.05] text-[#9496a1] capitalize">
+                              {task.timeframe}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-[#9496a1] shrink-0 capitalize">
-                          {task.timeframe}
-                        </span>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 
@@ -673,7 +814,7 @@ export default function PomodoroWorkspace({
                     type="text"
                     value={newQuickTaskText}
                     onChange={(e) => setNewQuickTaskText(e.target.value)}
-                    placeholder="+ Add new task to Today's backlog..."
+                    placeholder="+ Quick add task to Today's backlog..."
                     className="flex-1 bg-white/[0.03] border border-white/[0.08] focus:border-white/40 px-3 py-1.5 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none"
                   />
                   <button
@@ -745,6 +886,15 @@ export default function PomodoroWorkspace({
                   </button>
                 </div>
 
+                {/* Task-specific Focus Metrics */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[11px] text-zinc-300">
+                  <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span>Total focus invested:</span>
+                  <span className="font-bold text-white tabular-nums">
+                    {activeTaskStats.minutes}m ({activeTaskStats.blocks} {activeTaskStats.blocks === 1 ? 'block' : 'blocks'})
+                  </span>
+                </div>
+
                 {/* Interactive Subtasks in this Goal */}
                 {activeGoal.subTasks && activeGoal.subTasks.length > 0 && (
                   <div className="space-y-1.5 pt-2 border-t border-white/[0.04]">
@@ -776,7 +926,7 @@ export default function PomodoroWorkspace({
               <div className="py-8 px-4 text-center rounded-xl border border-dashed border-white/[0.1] bg-[#0e1015] space-y-2">
                 <p className="text-xs font-medium text-[#ededf3]">No target task selected</p>
                 <p className="text-[11px] text-[#9496a1]">
-                  Click "Select Task" above to link a deliverable from your database to this focus session.
+                  Click "Select Task" above or quick-pick a task from Today's row to anchor this focus session.
                 </p>
               </div>
             )}
@@ -784,85 +934,80 @@ export default function PomodoroWorkspace({
 
         </div>
 
-        {/* RIGHT COLUMN: DEV SCRATCHPAD, HABIT MATRIX LINK & SESSION LOG (5 COLS) */}
+        {/* RIGHT COLUMN: TODAY FOCUS PULSE, HABIT MATRIX LINK & SESSION LOG (5 COLS) */}
         <div className="lg:col-span-5 space-y-6">
           
-          {/* FULL-STACK DEV SCRATCHPAD & NOTES */}
-          <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-3 shadow-lg">
+          {/* TODAY'S FOCUS PULSE & TASK BREAKDOWN */}
+          <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-4 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-zinc-300" />
+                <div className="w-2 h-2 rounded-full bg-sky-400" />
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Dev Scratchpad & Code Snippets
+                  Today's Focus Pulse
                 </h3>
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handleCopyScratchpad}
-                  className="p-1.5 rounded-lg text-[#9496a1] hover:text-white bg-white/[0.03] hover:bg-white/[0.08] transition-colors cursor-pointer"
-                  title="Copy scratchpad content"
-                >
-                  {copiedScratchpad ? <Check className="w-3.5 h-3.5 text-zinc-300" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleExportToJournal}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                    journalLogged
-                      ? 'bg-white/15 text-white border border-white/20'
-                      : 'bg-white/[0.04] hover:bg-white/[0.08] text-[#9496a1] hover:text-white border border-white/[0.08]'
-                  }`}
-                  title="Log scratchpad notes to Today's Daily Journal"
-                >
-                  <BookOpen className="w-3 h-3 text-zinc-300" />
-                  <span>{journalLogged ? 'Logged to Journal!' : 'Send to Journal'}</span>
-                </button>
+              <span className="text-[11px] text-zinc-400 tabular-nums font-semibold">
+                {todayCompletedCount} full{todayPartialCount > 0 ? ` • ${todayPartialCount} partial` : ''}
+              </span>
+            </div>
+
+            {/* Daily Target Progress Bar */}
+            <div className="space-y-1.5 bg-[#0e1015] p-3 rounded-xl border border-white/[0.06]">
+              <div className="flex justify-between text-[11px]">
+                <span className="text-zinc-400">Daily Target (4h / 8 blocks)</span>
+                <span className="text-white font-bold tabular-nums">
+                  {Math.floor(totalFocusMinutesToday / 60)}h {totalFocusMinutesToday % 60}m{' '}
+                  <span className="text-zinc-500 font-normal">
+                    ({Math.min(100, Math.round((totalFocusMinutesToday / 240) * 100))}%)
+                  </span>
+                </span>
+              </div>
+              <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min(100, (totalFocusMinutesToday / 240) * 100)}%`,
+                    backgroundColor: accentColor
+                  }}
+                />
               </div>
             </div>
 
-            {/* Quick Insertion Helpers */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              <button
-                type="button"
-                onClick={() => handleInsertSnippet('code')}
-                className="px-2 py-0.5 rounded text-[10px] bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] text-[#9496a1] hover:text-white transition-colors cursor-pointer"
-              >
-                + Code Block
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInsertSnippet('terminal')}
-                className="px-2 py-0.5 rounded text-[10px] bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] text-[#9496a1] hover:text-white transition-colors cursor-pointer"
-              >
-                + Commands
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInsertSnippet('todo')}
-                className="px-2 py-0.5 rounded text-[10px] bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] text-[#9496a1] hover:text-white transition-colors cursor-pointer"
-              >
-                + Subtasks
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInsertSnippet('bug')}
-                className="px-2 py-0.5 rounded text-[10px] bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] text-[#9496a1] hover:text-white transition-colors cursor-pointer"
-              >
-                + RCA Log
-              </button>
-            </div>
+            {/* Tasks Breakdown worked on today */}
+            <div className="space-y-2 pt-1 border-t border-white/[0.06]">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#9496a1] uppercase tracking-wider font-semibold">
+                  Today's Task Distribution:
+                </span>
+                <span className="text-[10px] text-zinc-500 tabular-nums">
+                  {todayTasksBreakdown.length} task{todayTasksBreakdown.length !== 1 ? 's' : ''}
+                </span>
+              </div>
 
-            {/* Editor Area */}
-            <textarea
-              value={localScratchpad}
-              onChange={handleScratchpadChange}
-              placeholder="Dump quick thoughts, SQL queries, CLI commands, API payloads, or bug hypotheses here... Auto-saved continuously."
-              className="w-full h-44 bg-[#0e1015] border border-white/[0.08] focus:border-white/30 p-3 text-xs text-[#ededf3] font-mono leading-relaxed rounded-xl focus:outline-none resize-none transition-colors"
-            />
-            <div className="flex justify-between items-center text-[10px] text-[#9496a1] pt-1">
-              <span>Auto-saved to Cloud & LocalStorage</span>
-              <span>{localScratchpad.length} chars</span>
+              {todayTasksBreakdown.length === 0 ? (
+                <div className="py-4 text-center text-xs text-zinc-500 rounded-lg bg-[#0e1015] border border-dashed border-white/[0.06]">
+                  No focus logged today yet. Start a session to see your task breakdown.
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {todayTasksBreakdown.map(tb => (
+                    <div
+                      key={tb.title}
+                      className="p-2 rounded-lg bg-[#0e1015] hover:bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-2 text-xs transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                        <span className="text-zinc-200 truncate font-medium">
+                          {tb.title}
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-bold text-white tabular-nums px-2 py-0.5 rounded bg-white/[0.06] shrink-0 border border-white/[0.04]">
+                        {tb.minutes}m
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
