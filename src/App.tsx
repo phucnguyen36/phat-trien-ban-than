@@ -1077,10 +1077,10 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto w-full flex justify-between items-center gap-4">
           
-          {/* Studio Brand Mark with Official Vector Logo (No rounded container shape) */}
+          {/* Studio Brand Mark with Official Vector Logo (Black background container) */}
           <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setActiveSection('overview')}>
-            <div className="group-hover:scale-105 transition-transform shrink-0">
-              <DeepFocusLogo size={24} />
+            <div className="w-8 h-8 rounded-lg bg-black border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-sm">
+              <DeepFocusLogo size={18} />
             </div>
             <span className="font-semibold text-sm tracking-tight text-white leading-none">
               DeepFocus

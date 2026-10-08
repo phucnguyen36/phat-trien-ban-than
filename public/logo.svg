@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="180 180 640 640" width="640" height="640" fill="none">
-  <g transform="translate(500, 500)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="180 180 640 640" width="640" height="640">
+  <!-- Solid Black Squircle Tile (DeepFocus Standard) -->
+  <rect x="180" y="180" width="640" height="640" rx="140" fill="#000000" />
+
+  <g transform="translate(500, 500) scale(0.82)">
     <!-- Upper Hook (D) -->
     <path
       d="M -120,-160 L 0,-280 L 280,0 L 192,88 L 140,36 L 192,-16 L 0,-208 L -90,-118 L -90,-16 Z"
