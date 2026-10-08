@@ -60,10 +60,12 @@ import {
   Filter,
   ArrowUpDown,
   Flame,
-  Layers
+  Layers,
+  GanttChart
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 import SectionHeader from './SectionHeader';
+import GanttRoadmapView from './GanttRoadmapView';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -145,8 +147,8 @@ export default function TodoHub({
     return { type: tagType, key: tagKey, isToday, isOverdue, displayDate };
   };
 
-  // View mode toggle: Board vs Master Table View vs Grouped View vs Calendar Grid vs Weekly Review
-  type ViewMode = 'board' | 'table' | 'grouped' | 'calendar' | 'review';
+  // View mode toggle: Board vs Master Table View vs Grouped View vs Gantt Roadmap vs Calendar Grid vs Weekly Review
+  type ViewMode = 'board' | 'table' | 'grouped' | 'gantt' | 'calendar' | 'review';
   const [viewMode, setViewMode] = useState<ViewMode>('board');
   const [databaseSearchQuery, setDatabaseSearchQuery] = useState('');
   const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -896,8 +898,8 @@ export default function TodoHub({
       {/* Module Title & Mode Switcher Section */}
       <SectionHeader
         icon={CheckSquare}
-        title={viewMode === 'board' ? 'Tasks & Roadmap' : viewMode === 'table' ? 'Task Database' : viewMode === 'grouped' ? 'Timeframe Groups' : viewMode === 'calendar' ? 'Calendar' : 'Review Protocol'}
-        subtitle="Timeframe deliverables, execution roadmap, and priority backlog"
+        title={viewMode === 'board' ? 'Tasks & Roadmap' : viewMode === 'table' ? 'Task Database' : viewMode === 'grouped' ? 'Timeframe Groups' : viewMode === 'gantt' ? 'Gantt Roadmap' : viewMode === 'calendar' ? 'Calendar' : 'Review Protocol'}
+        subtitle={viewMode === 'gantt' ? 'Visual project timeline, sprint schedules, milestones & critical deliverables' : 'Timeframe deliverables, execution roadmap, and priority backlog'}
         badge={
           <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08] ml-1">
             {goals.length}
@@ -939,6 +941,17 @@ export default function TodoHub({
             <span>Grouped</span>
           </button>
           <button
+            onClick={() => setViewMode('gantt')}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
+              viewMode === 'gantt'
+                ? 'bg-white text-black font-semibold shadow-sm'
+                : 'text-[#9496a1] hover:text-white'
+            }`}
+          >
+            <GanttChart className="w-3.5 h-3.5" />
+            <span>Gantt</span>
+          </button>
+          <button
             onClick={() => setViewMode('calendar')}
             className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
               viewMode === 'calendar'
@@ -963,8 +976,8 @@ export default function TodoHub({
         </div>
       </SectionHeader>
 
-      {/* Unified Action Bar & Filter Controls (Active in Board, Table, and Grouped views) */}
-      {(viewMode === 'board' || viewMode === 'table' || viewMode === 'grouped') && (
+      {/* Unified Action Bar & Filter Controls (Active in Board, Table, Grouped, and Gantt views) */}
+      {(viewMode === 'board' || viewMode === 'table' || viewMode === 'grouped' || viewMode === 'gantt') && (
         <div className="space-y-3 mb-6 animate-fadeIn font-sans">
           <div className="glass-panel-true p-3 md:p-3.5 rounded-2xl border border-white/10 space-y-2.5">
             {/* Row 1: Search + Quick Filter Dropdowns + Reset */}
@@ -1878,6 +1891,22 @@ export default function TodoHub({
                 </table>
               </div>
             </div>
+          ) : viewMode === 'gantt' ? (
+            /* Interactive Swiss Gantt Timeline Roadmap View */
+            <GanttRoadmapView
+              goals={goals}
+              onToggleGoal={handleToggle}
+              onDeleteGoal={handleDelete}
+              onStartFocus={handleStartFocus}
+              onOpenDetails={(id) => setActivePanelGoalId(id)}
+              onAddGoal={onAddGoal}
+              onUpdateGoal={onUpdateGoal}
+              searchQuery={databaseSearchQuery}
+              statusFilter={databaseStatusFilter}
+              priorityFilter={databasePriorityFilter}
+              timeframeFilter={databaseTimeframeFilter}
+              isLightMode={isLightMode}
+            />
           ) : viewMode === 'calendar' ? (
         /* Notion-Style Drag-and-Drop Calendar View Mode */
         <div className="space-y-4 animate-fadeIn font-sans">

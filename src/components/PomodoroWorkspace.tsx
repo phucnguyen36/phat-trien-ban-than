@@ -134,6 +134,7 @@ export default function PomodoroWorkspace({
   const [taskSearchQuery, setTaskSearchQuery] = useState<string>('');
   const [taskFilterTab, setTaskFilterTab] = useState<'today' | 'priority' | 'all'>('today');
   const [newQuickTaskText, setNewQuickTaskText] = useState<string>('');
+  const [rightColView, setRightColView] = useState<'pulse' | 'history' | 'all'>('pulse');
 
   // Strip context tag from display text
   const cleanGoalText = (text?: string | null): string => {
@@ -637,45 +638,70 @@ export default function PomodoroWorkspace({
               </div>
             </div>
 
-            {/* Quick-Pick Row for Today's Tasks (1-click link) */}
-            {todayTasks.length > 0 && (
-              <div className="space-y-1.5 pt-1 border-t border-white/[0.06]">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-zinc-400 font-medium flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-sky-400" />
-                    <span>Quick-Pick Today's Tasks:</span>
-                  </span>
-                  <span className="text-[10px] text-zinc-500 tabular-nums">
-                    {todayTasks.length} available
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-                  {todayTasks.map(task => {
-                    const isSelected = currentActiveGoalId === task.id;
-                    const title = cleanGoalText(task.text);
-                    return (
+            {/* Quick-Pick Row for Today's Tasks (1-click link, capped to top 4 for clean minimalism) */}
+            {todayTasks.length > 0 && (() => {
+              const MAX_VISIBLE = 4;
+              const isCurrentInFirst = todayTasks.slice(0, MAX_VISIBLE).some(t => t.id === currentActiveGoalId);
+              const visibleTasks = isCurrentInFirst 
+                ? todayTasks.slice(0, MAX_VISIBLE)
+                : activeGoal && todayTasks.some(t => t.id === activeGoal.id)
+                  ? [activeGoal, ...todayTasks.filter(t => t.id !== activeGoal.id).slice(0, MAX_VISIBLE - 1)]
+                  : todayTasks.slice(0, MAX_VISIBLE);
+              const remainingCount = Math.max(0, todayTasks.length - visibleTasks.length);
+
+              return (
+                <div className="space-y-1.5 pt-2 border-t border-white/[0.06]">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-zinc-400 font-medium flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-sky-400" />
+                      <span>Today's Task Shortcuts:</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsTaskSelectorOpen(!isTaskSelectorOpen)}
+                      className="text-[10px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                    >
+                      {todayTasks.length} total tasks
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {visibleTasks.map(task => {
+                      const isSelected = currentActiveGoalId === task.id;
+                      const title = cleanGoalText(task.text);
+                      return (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => {
+                            setGoalId(task.id);
+                            setIsTaskSelectorOpen(false);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer max-w-[200px] truncate ${
+                            isSelected
+                              ? 'bg-white text-black font-semibold shadow-sm'
+                              : 'bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-white/[0.08]'
+                          }`}
+                          title={title}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? 'bg-black' : 'bg-sky-400'}`} />
+                          <span className="truncate">{title}</span>
+                        </button>
+                      );
+                    })}
+                    {remainingCount > 0 && (
                       <button
-                        key={task.id}
                         type="button"
-                        onClick={() => {
-                          setGoalId(task.id);
-                          setIsTaskSelectorOpen(false);
-                        }}
-                        className={`px-2.5 py-1 rounded-lg text-xs transition-all shrink-0 flex items-center gap-1.5 cursor-pointer max-w-[240px] truncate ${
-                          isSelected
-                            ? 'bg-white text-black font-semibold shadow-sm'
-                            : 'bg-white/[0.04] hover:bg-white/[0.09] text-zinc-300 hover:text-white border border-white/[0.08]'
-                        }`}
-                        title={title}
+                        onClick={() => setIsTaskSelectorOpen(!isTaskSelectorOpen)}
+                        className="px-2 py-1 rounded-lg text-xs bg-white/[0.03] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-dashed border-white/[0.12] transition-colors cursor-pointer flex items-center gap-1"
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? 'bg-black' : 'bg-sky-400'}`} />
-                        <span className="truncate">{title}</span>
+                        <span>+{remainingCount} more</span>
+                        <ChevronDown className="w-3 h-3" />
                       </button>
-                    );
-                  })}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Task Selector Dropdown Panel with Search & Filter Tabs */}
             {isTaskSelectorOpen && (
@@ -923,130 +949,197 @@ export default function PomodoroWorkspace({
         </div>
 
         {/* RIGHT COLUMN: TODAY FOCUS PULSE, HABIT MATRIX LINK & SESSION LOG (5 COLS) */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-4">
           
-          {/* TODAY'S FOCUS PULSE & TASK BREAKDOWN */}
-          <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-4 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-sky-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Today's Focus Pulse
-                </h3>
-              </div>
-              <span className="text-[11px] text-zinc-400 tabular-nums font-semibold">
-                {todayCompletedCount} full{todayPartialCount > 0 ? ` • ${todayPartialCount} partial` : ''}
+          {/* Segmented View Switcher: Today's Pulse vs Session History vs All */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setRightColView('pulse')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  rightColView === 'pulse'
+                    ? 'bg-white text-black font-semibold shadow-sm'
+                    : 'text-[#9496a1] hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Today's Pulse</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRightColView('history')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  rightColView === 'history'
+                    ? 'bg-white text-black font-semibold shadow-sm'
+                    : 'text-[#9496a1] hover:text-white'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>History & Logs ({allSessions.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRightColView('all')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  rightColView === 'all'
+                    ? 'bg-white text-black font-semibold shadow-sm'
+                    : 'text-[#9496a1] hover:text-white'
+                }`}
+                title="Show both views stacked"
+              >
+                <span>All</span>
+              </button>
+            </div>
+
+            {rightColView === 'pulse' && (
+              <span className="text-[11px] text-zinc-500 tabular-nums">
+                {todayCompletedCount} full • {Math.floor(totalFocusMinutesToday / 60)}h {totalFocusMinutesToday % 60}m
               </span>
-            </div>
-
-            {/* Daily Target Progress Bar */}
-            <div className="space-y-1.5 bg-[#0e1015] p-3 rounded-xl border border-white/[0.06]">
-              <div className="flex justify-between text-[11px]">
-                <span className="text-zinc-400">Daily Target (4h / 8 blocks)</span>
-                <span className="text-white font-bold tabular-nums">
-                  {Math.floor(totalFocusMinutesToday / 60)}h {totalFocusMinutesToday % 60}m{' '}
-                  <span className="text-zinc-500 font-normal">
-                    ({Math.min(100, Math.round((totalFocusMinutesToday / 240) * 100))}%)
-                  </span>
-                </span>
-              </div>
-              <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.min(100, (totalFocusMinutesToday / 240) * 100)}%`,
-                    backgroundColor: accentColor
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Tasks Breakdown worked on today */}
-            <div className="space-y-2 pt-1 border-t border-white/[0.06]">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#9496a1] uppercase tracking-wider font-semibold">
-                  Today's Task Distribution:
-                </span>
-                <span className="text-[10px] text-zinc-500 tabular-nums">
-                  {todayTasksBreakdown.length} task{todayTasksBreakdown.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-
-              {todayTasksBreakdown.length === 0 ? (
-                <div className="py-4 text-center text-xs text-zinc-500 rounded-lg bg-[#0e1015] border border-dashed border-white/[0.06]">
-                  No focus logged today yet. Start a session to see your task breakdown.
-                </div>
-              ) : (
-                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                  {todayTasksBreakdown.map(tb => (
-                    <div
-                      key={tb.title}
-                      className="p-2 rounded-lg bg-[#0e1015] hover:bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-2 text-xs transition-colors"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                        <span className="text-zinc-200 truncate font-medium">
-                          {tb.title}
-                        </span>
-                      </div>
-                      <span className="text-[11px] font-bold text-white tabular-nums px-2 py-0.5 rounded bg-white/[0.06] shrink-0 border border-white/[0.04]">
-                        {tb.minutes}m
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* HABIT MATRIX INTEGRATION CARD */}
-          {deepWorkHabit && (
-            <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-3 shadow-lg">
+          {/* TODAY'S FOCUS PULSE & INTEGRATED HABIT STATUS */}
+          {(rightColView === 'pulse' || rightColView === 'all') && (
+            <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-4 shadow-lg animate-fadeIn">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-zinc-300" />
+                  <div className="w-2 h-2 rounded-full bg-sky-400" />
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Habit Matrix Link
+                    Today's Focus Pulse
                   </h3>
                 </div>
+                <span className="text-[11px] text-zinc-400 tabular-nums font-semibold">
+                  {todayCompletedCount} full{todayPartialCount > 0 ? ` • ${todayPartialCount} partial` : ''}
+                </span>
+              </div>
+
+              {/* Daily Target Progress Bar */}
+              <div className="space-y-1.5 bg-[#0e1015] p-3 rounded-xl border border-white/[0.06]">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-zinc-400">Daily Target (4h / 8 blocks)</span>
+                  <span className="text-white font-bold tabular-nums">
+                    {Math.floor(totalFocusMinutesToday / 60)}h {totalFocusMinutesToday % 60}m{' '}
+                    <span className="text-zinc-500 font-normal">
+                      ({Math.min(100, Math.round((totalFocusMinutesToday / 240) * 100))}%)
+                    </span>
+                  </span>
+                </div>
+                <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, (totalFocusMinutesToday / 240) * 100)}%`,
+                      backgroundColor: accentColor
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Integrated Habit Matrix Deep Work Status Strip */}
+              {deepWorkHabit && (
+                <div className="p-3 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0">
+                      <Activity className="w-3.5 h-3.5 text-zinc-300" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-white truncate">
+                          {deepWorkHabit.habitName}
+                        </span>
+                        <span className="text-[10px] text-zinc-500 tabular-nums">
+                          {deepWorkHabit.completedDays.length}d this month
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400">
+                        {isHabitCheckedToday ? 'Focus habit checked for today' : 'Habit pending today'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onToggleHabitDay && onToggleHabitDay(deepWorkHabit.id, todayDayNumber)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                      isHabitCheckedToday
+                        ? 'bg-white text-black font-semibold shadow-sm'
+                        : 'bg-white/[0.05] hover:bg-white/[0.1] text-[#ededf3] border border-white/[0.1]'
+                    }`}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isHabitCheckedToday ? 'Done Today' : 'Check In'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Tasks Breakdown worked on today */}
+              <div className="space-y-2 pt-1 border-t border-white/[0.06]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[#9496a1] uppercase tracking-wider font-semibold">
+                    Today's Task Distribution:
+                  </span>
+                  <span className="text-[10px] text-zinc-500 tabular-nums">
+                    {todayTasksBreakdown.length} task{todayTasksBreakdown.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                {todayTasksBreakdown.length === 0 ? (
+                  <div className="py-4 text-center text-xs text-zinc-500 rounded-lg bg-[#0e1015] border border-dashed border-white/[0.06]">
+                    No focus logged today yet. Start a session to see your task breakdown.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                    {todayTasksBreakdown.map(tb => (
+                      <div
+                        key={tb.title}
+                        className="p-2 rounded-lg bg-[#0e1015] hover:bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-2 text-xs transition-colors"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                          <span className="text-zinc-200 truncate font-medium">
+                            {tb.title}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-bold text-white tabular-nums px-2 py-0.5 rounded bg-white/[0.06] shrink-0 border border-white/[0.04]">
+                          {tb.minutes}m
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer quick links */}
+              <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={() => setRightColView('history')}
+                  className="text-[11px] text-zinc-400 hover:text-white font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <span>View session history & logs</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
                 <button
                   type="button"
                   onClick={() => onNavigate('habit-matrix')}
-                  className="text-[11px] text-zinc-400 hover:text-white font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] text-zinc-400 hover:text-white font-medium flex items-center gap-1 cursor-pointer transition-colors"
                 >
-                  <span>Habits Tab</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#0e1015] border border-white/[0.08] flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <h4 className="text-xs font-semibold text-white truncate">
-                    {deepWorkHabit.habitName}
-                  </h4>
-                  <p className="text-[10px] text-[#9496a1] mt-0.5">
-                    {deepWorkHabit.completedDays.length} days completed this month
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onToggleHabitDay && onToggleHabitDay(deepWorkHabit.id, todayDayNumber)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    isHabitCheckedToday
-                      ? 'bg-white text-black font-semibold shadow-sm'
-                      : 'bg-white/[0.05] hover:bg-white/[0.1] text-[#ededf3] border border-white/[0.1]'
-                  }`}
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>{isHabitCheckedToday ? 'Checked Today' : 'Check In'}</span>
+                  <span>Habits Matrix</span>
+                  <ExternalLink className="w-3 h-3" />
                 </button>
               </div>
             </div>
           )}
 
           {/* PERSISTENT DAILY FOCUS SESSION HISTORY & TRACKER */}
-          <DailyFocusHistoryTracker candidateTasks={candidateTasks} accentColor={accentColor} />
+          {(rightColView === 'history' || rightColView === 'all') && (
+            <div className="animate-fadeIn">
+              <DailyFocusHistoryTracker candidateTasks={candidateTasks} accentColor={accentColor} />
+            </div>
+          )}
 
         </div>
 
