@@ -341,7 +341,7 @@ export default function ExecutiveDashboard({
         <div className="kuldeep-card p-5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#9496a1]">Monthly Outflow</span>
-            <CreditCard className="w-4 h-4 text-sky-400" />
+            <CreditCard className="w-4 h-4 text-zinc-300" />
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white tabular-nums tracking-tight">
             {formatDashboardMoney(monthlyTotalSpent)}

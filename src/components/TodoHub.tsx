@@ -66,6 +66,7 @@ import {
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 import SectionHeader from './SectionHeader';
 import GanttRoadmapView from './GanttRoadmapView';
+import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -80,6 +81,7 @@ interface TodoHubProps {
   onNavigate?: (section: string) => void;
   onStartFocus?: (goalId: string) => void;
   isLightMode?: boolean;
+  accentColor?: string;
 }
 
 export default function TodoHub({
@@ -92,7 +94,8 @@ export default function TodoHub({
   onReorderGoals,
   onNavigate,
   onStartFocus,
-  isLightMode
+  isLightMode,
+  accentColor = SIGNATURE_ACCENT_COLOR
 }: TodoHubProps) {
   // Safe helper handlers
   const handleToggle = (id: string, completed: boolean) => {
@@ -1451,7 +1454,7 @@ export default function TodoHub({
                                   return (
                                     <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-medium ${
                                       dateInfo.isToday
-                                        ? 'bg-sky-500/10 text-sky-200 border-sky-500/20 font-semibold'
+                                        ? 'bg-white/10 text-white border-white/20 font-semibold'
                                         : dateInfo.isOverdue
                                           ? 'bg-rose-500/10 text-rose-300 border-rose-500/20 font-medium'
                                           : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
@@ -1624,7 +1627,7 @@ export default function TodoHub({
                                   return (
                                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono border ${
                                       dateInfo.isToday 
-                                        ? 'bg-sky-500/10 text-sky-200 border-sky-500/20 font-semibold' 
+                                        ? 'bg-white/10 text-white border-white/20 font-semibold' 
                                         : dateInfo.isOverdue 
                                           ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' 
                                           : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
@@ -1715,6 +1718,7 @@ export default function TodoHub({
               priorityFilter={databasePriorityFilter}
               timeframeFilter={databaseTimeframeFilter}
               isLightMode={isLightMode}
+              accentColor={accentColor}
             />
           ) : viewMode === 'calendar' ? (
         /* Notion-Style Drag-and-Drop Calendar View Mode */

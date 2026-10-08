@@ -591,7 +591,7 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                             {summary.displayDate}
                           </span>
                           {isToday && (
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-200 border border-sky-500/20 font-semibold uppercase tracking-wider">
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 text-white border border-white/20 font-semibold uppercase tracking-wider">
                               Today
                             </span>
                           )}
@@ -649,11 +649,10 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                               className="p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] flex items-center justify-between gap-2 text-xs transition-colors"
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                  isPartial 
-                                    ? 'bg-amber-400 ring-2 ring-amber-400/20' 
-                                    : (session.mode === 'focus' ? 'bg-sky-400' : 'bg-zinc-400')
-                                }`} />
+                                <span 
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${isPartial ? 'bg-amber-400 ring-2 ring-amber-400/20' : ''}`}
+                                  style={!isPartial ? { backgroundColor: session.mode === 'focus' ? accentColor : '#71717a' } : undefined}
+                                />
                                 <span className="text-white truncate font-medium">
                                   {session.taskTitle}
                                 </span>
@@ -810,11 +809,10 @@ export const DailyFocusHistoryTracker: React.FC<DailyFocusHistoryTrackerProps> =
                   className="p-2.5 rounded-xl bg-[#0e1015] border border-white/[0.06] flex items-center justify-between gap-2 text-xs"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${
-                      isPartial 
-                        ? 'bg-amber-400 ring-2 ring-amber-400/20' 
-                        : (session.mode === 'focus' ? 'bg-sky-400' : 'bg-zinc-400')
-                    }`} />
+                    <div 
+                      className={`w-2 h-2 rounded-full shrink-0 ${isPartial ? 'bg-amber-400 ring-2 ring-amber-400/20' : ''}`}
+                      style={!isPartial ? { backgroundColor: session.mode === 'focus' ? accentColor : '#71717a' } : undefined}
+                    />
                     <span className="text-white font-medium truncate">
                       {session.taskTitle}
                     </span>

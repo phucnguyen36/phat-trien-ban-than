@@ -1359,6 +1359,7 @@ export default function App() {
                         setActiveFocusGoalId(goalId);
                         setActiveSection('pomodoro-station');
                       }}
+                      accentColor={customAccentColor}
                     />
                   </section>
                 )}
@@ -1620,7 +1621,7 @@ export default function App() {
                       applyThemeAccent(SIGNATURE_ACCENT_COLOR);
                       localStorage.setItem('df_custom_accent_color', SIGNATURE_ACCENT_COLOR);
                     }}
-                    className="text-[10px] text-sky-400 hover:text-sky-300 font-medium cursor-pointer"
+                    className="text-[10px] text-zinc-400 hover:text-white underline font-medium cursor-pointer transition-colors"
                   >
                     Reset to Signature Blue
                   </button>
@@ -1655,7 +1656,7 @@ export default function App() {
                           {preset.name}
                         </span>
                         {preset.isSignature && (
-                          <span className="text-[9px] text-sky-400 font-mono leading-none">
+                          <span className="text-[9px] text-zinc-400 font-mono leading-none">
                             Signature
                           </span>
                         )}
@@ -2017,7 +2018,7 @@ export default function App() {
               ].map(s => (
                 <div key={s.key} className="flex justify-between items-center p-2 rounded bg-zinc-900/60 border border-zinc-800">
                   <span className="text-zinc-300 font-sans">{s.label}</span>
-                  <kbd className="px-2 py-0.5 text-[10px] bg-zinc-800 text-cyan-300 rounded border border-zinc-700 font-bold">{s.key}</kbd>
+                  <kbd className="px-2 py-0.5 text-[10px] bg-zinc-800 text-zinc-200 rounded border border-zinc-700 font-bold font-mono">{s.key}</kbd>
                 </div>
               ))}
             </div>

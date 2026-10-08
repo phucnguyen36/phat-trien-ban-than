@@ -41,7 +41,7 @@ export default function Scratchpad({
   const SNAP_TAGS = [
     { value: '#idea' as const, color: 'text-violet-400 border-violet-500/40 bg-violet-500/10' },
     { value: '#todo' as const, color: 'text-amber-400 border-amber-500/40 bg-amber-500/10' },
-    { value: '#reference' as const, color: 'text-cyan-400 border-cyan-500/40 bg-cyan-500/10' },
+    { value: '#reference' as const, color: 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10' },
   ];
   const [nextTag, setNextTag] = useState<'#idea' | '#todo' | '#reference' | ''>('');
   const [filterTag, setFilterTag] = useState<'#idea' | '#todo' | '#reference' | ''>('');
@@ -145,10 +145,10 @@ export default function Scratchpad({
           </span>
           <button
             onClick={handleSaveSnapshot}
-            className="px-3 py-1.5 glass-button-true text-xs font-sans font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 rounded-full"
+            className="px-3 py-1.5 glass-button-true text-xs font-sans font-semibold text-zinc-200 hover:text-white flex items-center gap-1.5 rounded-full"
             title="Save note snapshot into archive"
           >
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
             <span>Save Snapshot</span>
           </button>
           {/* C1 — Pre-tag selector */}
@@ -194,8 +194,8 @@ export default function Scratchpad({
       </div>
 
       {noticeMessage && (
-        <div className="p-3 glass-card-true border-cyan-500/40 text-cyan-300 text-xs font-sans flex items-center gap-2 animate-fadeIn rounded-xl">
-          <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+        <div className="p-3 glass-card-true border-white/20 text-zinc-200 text-xs font-sans flex items-center gap-2 animate-fadeIn rounded-xl">
+          <Sparkles className="w-4 h-4 text-zinc-300 shrink-0" />
           <span>{noticeMessage}</span>
         </div>
       )}
@@ -219,7 +219,7 @@ export default function Scratchpad({
         <div className="pt-6 border-t border-white/15 space-y-4 animate-fadeIn">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-sans font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-              <History className="w-4 h-4 text-cyan-400" />
+              <History className="w-4 h-4 text-zinc-300" />
               <span>Saved Scratchpad Note Snapshots</span>
             </h3>
             <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function Scratchpad({
                   className="p-4 glass-card-true transition-all rounded-xl flex flex-col justify-between space-y-3 border border-white/10"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-sans font-bold text-cyan-300 truncate max-w-[200px]">
+                    <span className="text-xs font-sans font-bold text-white truncate max-w-[200px]">
                       {snap.title}
                     </span>
                     <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ export default function Scratchpad({
                         className="px-2.5 py-1 glass-button-true text-zinc-200 hover:text-white flex items-center gap-1 rounded-lg text-[10px] font-sans font-semibold"
                         title="Restore note into active scratchpad"
                       >
-                        <RotateCcw className="w-3 h-3 text-cyan-300" />
+                        <RotateCcw className="w-3 h-3 text-zinc-300" />
                         <span>Restore Note</span>
                       </button>
                       <button

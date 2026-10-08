@@ -532,14 +532,14 @@ export default function GanttRoadmapView({
               {filteredGoals.filter(g => g.completed).length}/{filteredGoals.length}
             </span>
             <span className="text-zinc-600">•</span>
-            <span className="text-cyan-400 font-semibold tabular-nums">
+            <span className="font-semibold tabular-nums" style={{ color: accentColor }}>
               {filteredGoals.length > 0 ? Math.round((filteredGoals.filter(g => g.completed).length / filteredGoals.length) * 100) : 0}% on-track
             </span>
           </div>
 
           {/* Interactive Hint */}
           <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-zinc-400 pl-2">
-            <MoveHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+            <MoveHorizontal className="w-3.5 h-3.5" style={{ color: accentColor }} />
             <span>Drag bar edges to resize deadline • Drag bar center to reschedule</span>
           </div>
         </div>
@@ -618,25 +618,34 @@ export default function GanttRoadmapView({
                 {timelineConfig.days.map(d => (
                   <div
                     key={d.dateKey}
-                    style={{ width: `${timelineConfig.dayWidth}px` }}
+                    style={{ 
+                      width: `${timelineConfig.dayWidth}px`,
+                      ...(d.isToday ? { borderBottomColor: accentColor } : {})
+                    }}
                     className={`shrink-0 py-2.5 px-1 text-center border-r border-white/[0.04] flex flex-col items-center justify-center transition-colors ${
                       d.isToday 
-                        ? 'bg-white/[0.06] border-b-2 border-b-cyan-400' 
+                        ? 'bg-white/[0.06] border-b-2' 
                         : d.isWeekend 
                           ? 'bg-white/[0.01]' 
                           : ''
                     }`}
                   >
-                    <span className={`text-[10px] font-semibold uppercase tracking-wider ${
-                      d.isToday ? 'text-cyan-400 font-bold' : 'text-zinc-500'
-                    }`}>
+                    <span 
+                      style={d.isToday ? { color: accentColor } : undefined}
+                      className={`text-[10px] font-semibold uppercase tracking-wider ${
+                        d.isToday ? 'font-bold' : 'text-zinc-500'
+                      }`}
+                    >
                       {d.dayName}
                     </span>
-                    <span className={`text-xs font-mono font-bold mt-0.5 ${
-                      d.isToday 
-                        ? 'w-6 h-6 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-md' 
-                        : 'text-zinc-300'
-                    }`}>
+                    <span 
+                      style={d.isToday ? { backgroundColor: accentColor } : undefined}
+                      className={`text-xs font-mono font-bold mt-0.5 ${
+                        d.isToday 
+                          ? 'w-6 h-6 rounded-full text-black flex items-center justify-center shadow-md' 
+                          : 'text-zinc-300'
+                      }`}
+                    >
                       {d.dayNumber}
                     </span>
                   </div>
@@ -685,8 +694,8 @@ export default function GanttRoadmapView({
                     <div className="flex items-center gap-3">
                       <div className="w-20 bg-white/[0.06] rounded-full h-1.5 overflow-hidden hidden sm:block">
                         <div 
-                          className="h-full bg-cyan-400/60 transition-all duration-300" 
-                          style={{ width: `${rate}%` }} 
+                          className="h-full transition-all duration-300" 
+                          style={{ width: `${rate}%`, backgroundColor: accentColor }} 
                         />
                       </div>
                       <span className="text-xs font-mono text-zinc-400 tabular-nums min-w-[32px] text-right">
@@ -844,8 +853,12 @@ export default function GanttRoadmapView({
                                   const todayLeft = todayIdx * timelineConfig.dayWidth + (timelineConfig.dayWidth / 2);
                                   return (
                                     <div 
-                                      className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)] pointer-events-none z-10"
-                                      style={{ left: `${todayLeft}px` }}
+                                      className="absolute top-0 bottom-0 w-0.5 pointer-events-none z-10"
+                                      style={{ 
+                                        left: `${todayLeft}px`,
+                                        backgroundColor: accentColor,
+                                        boxShadow: `0 0 8px ${accentColor}cc`
+                                      }}
                                     />
                                   );
                                 })()}
@@ -853,16 +866,19 @@ export default function GanttRoadmapView({
                                 {/* Floating Live Drag Tooltip */}
                                 {isDraggingThis && dragState.hasMoved && (
                                   <div 
-                                    className="absolute -top-7 z-50 px-2.5 py-1 rounded-lg bg-[#0e1015] border border-cyan-400 text-white text-[11px] font-mono shadow-2xl flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
-                                    style={{ left: `${Math.max(4, barLeft)}px` }}
+                                    className="absolute -top-7 z-50 px-2.5 py-1 rounded-lg bg-[#0e1015] border text-white text-[11px] font-mono shadow-2xl flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
+                                    style={{ 
+                                      left: `${Math.max(4, barLeft)}px`,
+                                      borderColor: accentColor
+                                    }}
                                   >
-                                    <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                                    <Clock className="w-3 h-3 shrink-0" style={{ color: accentColor }} />
                                     <span>
                                       {dragState.type === 'resize-end' ? 'Deadline: ' : dragState.type === 'resize-start' ? 'Start: ' : 'Move: '}
                                       {formatDateKey(previewStartDate)} → {formatDateKey(previewEndDate)}
                                     </span>
                                     <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
-                                      dragState.currentDeltaDays > 0 ? 'bg-cyan-500/20 text-cyan-300' : dragState.currentDeltaDays < 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-white/10 text-white'
+                                      dragState.currentDeltaDays > 0 ? 'bg-white/20 text-white' : dragState.currentDeltaDays < 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-white/10 text-white'
                                     }`}>
                                       {dragState.currentDeltaDays > 0 ? `+${dragState.currentDeltaDays}d` : `${dragState.currentDeltaDays}d`}
                                     </span>
@@ -873,17 +889,19 @@ export default function GanttRoadmapView({
                                 <div
                                   style={{
                                     left: `${Math.max(4, barLeft + 3)}px`,
-                                    width: `${barWidth}px`
+                                    width: `${barWidth}px`,
+                                    ...(isDraggingThis ? { borderColor: accentColor, boxShadow: `0 0 16px ${accentColor}66` } : {}),
+                                    ...(!goal.completed && isHighPrio ? { borderColor: `${accentColor}80`, boxShadow: `0 0 12px ${accentColor}33` } : {})
                                   }}
                                   className={`absolute h-7 rounded-lg border transition-shadow flex items-center select-none z-20 group/bar ${
                                     isDraggingThis
-                                      ? 'ring-2 ring-cyan-400 shadow-[0_0_16px_rgba(6,182,212,0.4)] z-40'
+                                      ? 'ring-2 ring-white/50 z-40'
                                       : ''
                                   } ${
                                     goal.completed
                                       ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
                                       : isHighPrio
-                                        ? 'bg-[#182338] border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.2)] text-white hover:border-cyan-300'
+                                        ? 'bg-white/[0.08] text-white hover:border-white/40'
                                         : 'bg-[#141720] border-white/15 text-zinc-200 hover:border-white/30'
                                   }`}
                                   title={`${cleanText} • Drag center to shift, drag edges to resize deadline`}
@@ -916,7 +934,10 @@ export default function GanttRoadmapView({
                                         {goal.completed ? (
                                           <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                                         ) : isHighPrio ? (
-                                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 shadow-sm" />
+                                          <span 
+                                            className="w-1.5 h-1.5 rounded-full shrink-0 shadow-sm" 
+                                            style={{ backgroundColor: accentColor }}
+                                          />
                                         ) : null}
                                         <span className="text-[11px] font-semibold truncate leading-none">
                                           {cleanText}
@@ -942,10 +963,10 @@ export default function GanttRoadmapView({
                                   {/* Right Resize Handle (Deadline Extension / Shortening) */}
                                   <div
                                     onMouseDown={(e) => handleStartDrag(e, goal, 'resize-end', coords)}
-                                    className="absolute right-0 top-0 bottom-0 w-3.5 cursor-ew-resize hover:bg-cyan-400/40 rounded-r-lg flex items-center justify-center opacity-40 group-hover/bar:opacity-100 transition-opacity z-30"
+                                    className="absolute right-0 top-0 bottom-0 w-3.5 cursor-ew-resize hover:bg-white/20 rounded-r-lg flex items-center justify-center opacity-40 group-hover/bar:opacity-100 transition-opacity z-30"
                                     title="Drag to extend or shorten deadline"
                                   >
-                                    <div className="w-1 h-3.5 rounded-full bg-white/70 group-hover/bar:bg-cyan-300 transition-colors shadow-sm" />
+                                    <div className="w-1 h-3.5 rounded-full bg-white/70 group-hover/bar:bg-white transition-colors shadow-sm" />
                                   </div>
 
                                 </div>
@@ -974,7 +995,14 @@ export default function GanttRoadmapView({
         {/* Color Legend */}
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded bg-cyan-400/80 border border-cyan-300 shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
+            <div 
+              className="w-2.5 h-2.5 rounded border" 
+              style={{
+                backgroundColor: `${accentColor}cc`,
+                borderColor: accentColor,
+                boxShadow: `0 0 6px ${accentColor}80`
+              }}
+            />
             <span>High Priority / Critical Path</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -986,7 +1014,13 @@ export default function GanttRoadmapView({
             <span>Delivered / Completed</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
+            <div 
+              className="w-2 h-2 rounded-full" 
+              style={{
+                backgroundColor: accentColor,
+                boxShadow: `0 0 6px ${accentColor}cc`
+              }}
+            />
             <span>Today's Marker Line</span>
           </div>
         </div>

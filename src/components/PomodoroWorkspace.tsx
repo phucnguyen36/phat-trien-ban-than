@@ -653,7 +653,7 @@ export default function PomodoroWorkspace({
                 <div className="space-y-1.5 pt-2 border-t border-white/[0.06]">
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-zinc-400 font-medium flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-sky-400" />
+                      <Sparkles className="w-3 h-3" style={{ color: accentColor }} />
                       <span>Today's Task Shortcuts:</span>
                     </span>
                     <button
@@ -683,7 +683,10 @@ export default function PomodoroWorkspace({
                           }`}
                           title={title}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? 'bg-black' : 'bg-sky-400'}`} />
+                          <span 
+                            className="w-1.5 h-1.5 rounded-full shrink-0" 
+                            style={{ backgroundColor: isSelected ? '#000000' : accentColor }} 
+                          />
                           <span className="truncate">{title}</span>
                         </button>
                       );
@@ -902,7 +905,7 @@ export default function PomodoroWorkspace({
 
                 {/* Task-specific Focus Metrics */}
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[11px] text-zinc-300">
-                  <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
                   <span>Total focus invested:</span>
                   <span className="font-bold text-white tabular-nums">
                     {activeTaskStats.minutes}m ({activeTaskStats.blocks} {activeTaskStats.blocks === 1 ? 'block' : 'blocks'})
@@ -1006,7 +1009,7 @@ export default function PomodoroWorkspace({
             <div className="glass-panel-true p-5 rounded-2xl border border-white/15 space-y-4 shadow-lg animate-fadeIn">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-sky-400" />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                     Today's Focus Pulse
                   </h3>
@@ -1098,7 +1101,7 @@ export default function PomodoroWorkspace({
                         className="p-2 rounded-lg bg-[#0e1015] hover:bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-2 text-xs transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
                           <span className="text-zinc-200 truncate font-medium">
                             {tb.title}
                           </span>
