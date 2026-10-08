@@ -29,6 +29,7 @@ import {
   Pencil,
   X
 } from 'lucide-react';
+import SectionHeader from './SectionHeader';
 
 interface AdminDashboardProps {
   onNotice: (title: string, message: string) => void;
@@ -171,16 +172,11 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
     <div className="space-y-6 animate-fadeIn">
       {/* Header Banner - Swiss Studio Standard */}
       <div className="kuldeep-card p-6 md:p-8 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1.5">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white font-sans">
-              License & Customer Management
-            </h1>
-            <p className="text-[#9496a1] text-xs md:text-sm max-w-xl font-normal leading-relaxed">
-              Issue new customer credentials, deliver access details, and manage active software licenses.
-            </p>
-          </div>
-
+        <SectionHeader
+          icon={ShieldCheck}
+          title="License & Customer Management"
+          subtitle="Issue customer credentials, deliver access details, and manage active software licenses"
+        >
           <div className="flex flex-wrap gap-2.5">
             <button
               onClick={() => {
@@ -211,7 +207,7 @@ export default function AdminDashboard({ onNotice }: AdminDashboardProps) {
               <span>Export JSON</span>
             </button>
           </div>
-        </div>
+        </SectionHeader>
       </div>
 
       {/* Overview Business Metrics Cards */}

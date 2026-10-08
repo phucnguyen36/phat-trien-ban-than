@@ -63,6 +63,7 @@ import {
   Layers
 } from 'lucide-react';
 import WeeklyReviewProtocol from './WeeklyReviewProtocol';
+import SectionHeader from './SectionHeader';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -860,7 +861,7 @@ export default function TodoHub({
   };
 
   return (
-    <div id="todo-hub" className="p-5 sm:p-6 lg:p-7 glass-panel-true mb-12 border border-white/15 shadow-2xl">
+    <div id="todo-hub" className="kuldeep-card p-6 md:p-8 mb-12 space-y-8">
       
       {/* Overdue / Incomplete Target Reminder Banner (Slim & Compact) */}
       {!isOverdueBannerDismissed && overdueIncompleteGoals.length > 0 && (
@@ -893,17 +894,16 @@ export default function TodoHub({
       )}
 
       {/* Module Title & Mode Switcher Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-5 border-b border-white/[0.08] pb-3.5">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold tracking-tight text-white font-sans">
-            {viewMode === 'board' ? 'Tasks & Roadmap' : viewMode === 'table' ? 'Task Database' : viewMode === 'grouped' ? 'Timeframe Groups' : viewMode === 'calendar' ? 'Calendar' : 'Review Protocol'}
-          </h2>
-          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
+      <SectionHeader
+        icon={CheckSquare}
+        title={viewMode === 'board' ? 'Tasks & Roadmap' : viewMode === 'table' ? 'Task Database' : viewMode === 'grouped' ? 'Timeframe Groups' : viewMode === 'calendar' ? 'Calendar' : 'Review Protocol'}
+        subtitle="Timeframe deliverables, execution roadmap, and priority backlog"
+        badge={
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08] ml-1">
             {goals.length}
           </span>
-        </div>
-
-        {/* View Mode Switcher */}
+        }
+      >
         <div className="flex items-center glass-pill-true p-1">
           <button
             onClick={() => setViewMode('board')}
@@ -958,10 +958,10 @@ export default function TodoHub({
             }`}
           >
             <Trophy className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Review Protocol</span>
+            <span>Review</span>
           </button>
         </div>
-      </div>
+      </SectionHeader>
 
       {/* Unified Action Bar & Filter Controls (Active in Board, Table, and Grouped views) */}
       {(viewMode === 'board' || viewMode === 'table' || viewMode === 'grouped') && (

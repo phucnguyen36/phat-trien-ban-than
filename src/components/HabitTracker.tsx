@@ -31,8 +31,10 @@ import {
   Zap,
   TrendingUp,
   CalendarDays,
-  BarChart3
+  BarChart3,
+  Activity
 } from 'lucide-react';
+import SectionHeader from './SectionHeader';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -385,65 +387,62 @@ export default function HabitTracker({
   }, [selectedMonthYear]);
 
   return (
-    <div id="habit-matrix" className="kuldeep-card p-6 md:p-8 mb-12 space-y-6">
+    <div id="habit-matrix" className="kuldeep-card p-6 md:p-8 mb-12 space-y-8">
       
       {/* Module Title Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/[0.08] pb-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
-            Habits & Consistency
-          </h2>
-          <div className="flex flex-wrap items-center gap-3 mt-1.5">
-            <p className="text-xs text-[#9496a1]">
-              Record • {formattedMonthYearString}
-            </p>
-            <div className="flex items-center gap-1.5 glass-pill-true px-3 py-1 text-xs">
-              <Calendar className="w-3.5 h-3.5 text-zinc-300" />
-              <span className="text-[#9496a1]">Month:</span>
-              <input
-                type="month"
-                value={selectedMonthYear}
-                onChange={(e) => setSelectedMonthYear(e.target.value)}
-                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
-              />
-            </div>
-
-            {/* Habit Sorting Selector */}
-            <div className="flex items-center gap-1.5 glass-pill-true px-3 py-1 text-xs">
-              <ArrowUpDown className="w-3.5 h-3.5 text-[#9496a1]" />
-              <span className="text-[#9496a1]">Sort:</span>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as any)}
-                className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium border-none"
-              >
-                <option value="name-asc" className="bg-[#12141a] text-white">Name (A → Z)</option>
-                <option value="name-desc" className="bg-[#12141a] text-white">Name (Z → A)</option>
-                <option value="streak" className="bg-[#12141a] text-white">Longest Streak</option>
-                <option value="consistency" className="bg-[#12141a] text-white">Most Consistent</option>
-              </select>
-            </div>
+      <SectionHeader
+        icon={Activity}
+        title="Habits & Consistency"
+        subtitle="Daily consistency rituals, streaks, and discipline matrix"
+      >
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          {/* Month Picker */}
+          <div className="flex items-center gap-1.5 glass-pill-true px-3 py-1 text-xs">
+            <Calendar className="w-3.5 h-3.5 text-zinc-300" />
+            <span className="text-[#9496a1]">Month:</span>
+            <input
+              type="month"
+              value={selectedMonthYear}
+              onChange={(e) => setSelectedMonthYear(e.target.value)}
+              className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium"
+            />
           </div>
-        </div>
 
-        {/* Quick Add Form */}
-        <form onSubmit={handleAdd} className="flex gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            value={newHabitName}
-            onChange={(e) => setNewHabitName(e.target.value)}
-            placeholder={`Add habit for ${selectedMonthYear}...`}
-            className="glass-input-true px-3.5 py-2 text-xs text-white placeholder-zinc-500 w-full md:w-64 rounded-xl"
-          />
-          <button 
-            type="submit"
-            className="btn-primary-cyan px-4 py-2 text-xs font-semibold text-white flex items-center gap-1.5 transition-all shadow-md active:scale-95 rounded-xl shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add</span>
-          </button>
-        </form>
-      </div>
+          {/* Habit Sorting Selector */}
+          <div className="flex items-center gap-1.5 glass-pill-true px-3 py-1 text-xs">
+            <ArrowUpDown className="w-3.5 h-3.5 text-[#9496a1]" />
+            <span className="text-[#9496a1]">Sort:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as any)}
+              className="bg-transparent text-xs text-white focus:outline-none cursor-pointer font-medium border-none"
+            >
+              <option value="name-asc" className="bg-[#12141a] text-white">Name (A → Z)</option>
+              <option value="name-desc" className="bg-[#12141a] text-white">Name (Z → A)</option>
+              <option value="streak" className="bg-[#12141a] text-white">Longest Streak</option>
+              <option value="consistency" className="bg-[#12141a] text-white">Most Consistent</option>
+            </select>
+          </div>
+
+          {/* Quick Add Form */}
+          <form onSubmit={handleAdd} className="flex gap-2 w-full md:w-auto">
+            <input
+              type="text"
+              value={newHabitName}
+              onChange={(e) => setNewHabitName(e.target.value)}
+              placeholder={`Add habit for ${selectedMonthYear}...`}
+              className="glass-input-true px-3.5 py-1.5 text-xs text-white placeholder-zinc-500 w-full md:w-56 rounded-xl"
+            />
+            <button 
+              type="submit"
+              className="btn-primary-cyan px-3.5 py-1.5 text-xs font-semibold text-white flex items-center gap-1.5 transition-all shadow-md active:scale-95 rounded-xl shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add</span>
+            </button>
+          </form>
+        </div>
+      </SectionHeader>
 
       {/* 🌟 1. MINIMALIST UNIFIED EXECUTIVE KPI STRIP */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">

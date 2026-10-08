@@ -38,6 +38,7 @@ import {
   Receipt, 
   Filter 
 } from 'lucide-react';
+import SectionHeader from './SectionHeader';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
 
@@ -377,18 +378,11 @@ export default function ExpenseLedger({
     <div id="expense-ledger" className="kuldeep-card p-6 md:p-8 mb-12 space-y-8 font-sans animate-fadeIn">
       
       {/* Header Bar */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-white/[0.08] pb-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <Wallet className="w-6 h-6 text-zinc-300" />
-            <span>Cash Flow & Financial Ledger</span>
-          </h2>
-          <p className="text-xs text-[#9496a1] mt-1">
-            Track outflow velocity, monitor burn rate, and observe category allocations over time
-          </p>
-        </div>
-
-        {/* Currency Switcher & Month Filter Toolbar */}
+      <SectionHeader
+        icon={Wallet}
+        title="Cash Flow & Financial Ledger"
+        subtitle="Track outflow velocity, monitor burn rate, and observe category allocations over time"
+      >
         <div className="flex flex-wrap items-center gap-2.5 glass-pill-true p-1.5 w-full lg:w-auto justify-between lg:justify-end">
           
           {/* Multi-Currency Dropdown */}
@@ -441,7 +435,7 @@ export default function ExpenseLedger({
             </div>
           )}
         </div>
-      </div>
+      </SectionHeader>
 
       {/* 4 Executive KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

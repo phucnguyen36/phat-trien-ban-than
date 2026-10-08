@@ -16,10 +16,11 @@ import {
   RotateCcw,
   Flame,
   Sparkles,
-  Calendar,
   AlertCircle,
-  GripVertical
+  GripVertical,
+  LayoutDashboard
 } from 'lucide-react';
+import SectionHeader from './SectionHeader';
 
 interface ExecutiveDashboardProps {
   goals: GoalTodo[];
@@ -263,26 +264,22 @@ export default function ExecutiveDashboard({
     <div className="space-y-8 animate-fadeIn font-sans">
       
       {/* 1. CLEAN EXECUTIVE BRIEFING HEADER (ZERO AI SLOP) */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2 border-b border-white/[0.08] pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] tracking-wider uppercase text-zinc-300 font-semibold">
-              DAILY EXECUTIVE BRIEFING
+      <SectionHeader
+        icon={LayoutDashboard}
+        title="Command Center Overview"
+        subtitle="Real-time execution across tasks, daily habits, and strategic roadmap"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 glass-pill-true px-3 py-1 text-xs">
+            <span className="text-[10px] tracking-wider uppercase text-zinc-300 font-semibold">
+              BRIEFING
             </span>
             <span className="text-zinc-600">•</span>
             <span className="text-[11px] text-[#9496a1]">
-              {todayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+              {todayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-            Command Center Overview
-          </h1>
-          <p className="text-xs text-[#9496a1] mt-1 font-normal">
-            Real-time execution across tasks, daily habits, and strategic roadmap.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => onNavigate('todo-hub')}
@@ -300,7 +297,7 @@ export default function ExecutiveDashboard({
             <span>Habit Matrix</span>
           </button>
         </div>
-      </div>
+      </SectionHeader>
 
       {/* 2. 3 METRIC PILLARS (100% ACCURATE & HONEST DATA) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

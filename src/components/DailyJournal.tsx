@@ -19,6 +19,7 @@ import {
   Filler 
 } from 'chart.js';
 import { BookOpen, Calendar, Save, History, Sparkles, Check, ChevronDown, ChevronUp, Trash2, CheckCircle2, Edit3 } from 'lucide-react';
+import SectionHeader from './SectionHeader';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -156,17 +157,11 @@ export default function DailyJournalPanel({
     <div id="daily-journal" className="kuldeep-card p-6 md:p-8 mb-12 space-y-8">
       
       {/* 1. Header & Description */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/[0.08] pb-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans flex items-center gap-2.5">
-            <BookOpen className="w-5 h-5 text-zinc-300" />
-            <span>Daily Journal</span>
-          </h2>
-          <p className="text-xs text-[#9496a1] mt-1">
-            Energy levels, reflections, and daily notes
-          </p>
-        </div>
-
+      <SectionHeader
+        icon={BookOpen}
+        title="Daily Journal"
+        subtitle="Energy levels, reflections, and daily notes"
+      >
         <button
           onClick={() => setIsArchiveOpen(prev => !prev)}
           className="px-3.5 py-1.5 glass-button-true text-xs font-medium text-[#ededf3] hover:text-white flex items-center gap-2 rounded-full cursor-pointer"
@@ -175,7 +170,7 @@ export default function DailyJournalPanel({
           <span>Journal history ({activeEntries.length})</span>
           {isArchiveOpen ? <ChevronUp className="w-4 h-4 text-[#9496a1]" /> : <ChevronDown className="w-4 h-4 text-[#9496a1]" />}
         </button>
-      </div>
+      </SectionHeader>
 
       {/* Save Success Toast */}
       {showSaveNotice && (

@@ -56,6 +56,7 @@ import {
 } from 'lucide-react';
 
 import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
+import SectionHeader from './SectionHeader';
 
 interface PomodoroWorkspaceProps {
   goals: GoalTodo[];
@@ -326,26 +327,14 @@ export default function PomodoroWorkspace({
   const timeFormatted = `${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`;
 
   return (
-    <div className={`space-y-6 font-sans animate-fadeIn ${isZenMode ? 'fixed inset-0 z-50 bg-[#0b0c10] p-6 md:p-12 overflow-y-auto' : ''}`}>
+    <div className={`space-y-8 font-sans animate-fadeIn ${isZenMode ? 'fixed inset-0 z-50 bg-[#0b0c10] p-6 md:p-12 overflow-y-auto' : 'kuldeep-card p-6 md:p-8 mb-12'}`}>
       
       {/* 1. TOP HEADER & METRICS BAR */}
-      <div className="glass-panel-true p-4 md:p-5 rounded-2xl border border-white/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/[0.08] border border-white/15 flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,255,255,0.06)]">
-            <Flame className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base md:text-lg font-bold text-white tracking-tight">
-              Pomodoro Deep Work Station
-            </h2>
-            <p className="text-xs text-[#9496a1] mt-0.5">
-              Uninterrupted flow state linked with tasks, habits & daily focus metrics
-            </p>
-          </div>
-        </div>
-
-        {/* Right Tools: Daily Stats & Zen Toggle */}
+      <SectionHeader
+        icon={Flame}
+        title="Pomodoro Deep Work Station"
+        subtitle="Uninterrupted flow state linked with tasks, habits & daily focus metrics"
+      >
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           {/* Today's Focus KPI */}
           <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs">
@@ -395,8 +384,7 @@ export default function PomodoroWorkspace({
             <span>Database</span>
           </button>
         </div>
-
-      </div>
+      </SectionHeader>
 
       {/* 2. MAIN 2-COLUMN WORKSPACE: LEFT = TIMER & OBJECTIVE, RIGHT = SCRATCHPAD & HABIT */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
