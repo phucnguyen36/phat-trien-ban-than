@@ -147,8 +147,8 @@ export default function TodoHub({
     return { type: tagType, key: tagKey, isToday, isOverdue, displayDate };
   };
 
-  // View mode toggle: Board vs Master Table View vs Grouped View vs Gantt Roadmap vs Calendar Grid vs Weekly Review
-  type ViewMode = 'board' | 'table' | 'grouped' | 'gantt' | 'calendar' | 'review';
+  // View mode toggle: Board vs Master Table View vs Gantt Roadmap vs Calendar Grid vs Weekly Review
+  type ViewMode = 'board' | 'table' | 'gantt' | 'calendar' | 'review';
   const [viewMode, setViewMode] = useState<ViewMode>('board');
   const [databaseSearchQuery, setDatabaseSearchQuery] = useState('');
   const [databaseStatusFilter, setDatabaseStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -930,17 +930,6 @@ export default function TodoHub({
             <span>Table</span>
           </button>
           <button
-            onClick={() => setViewMode('grouped')}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
-              viewMode === 'grouped'
-                ? 'bg-white text-black font-semibold shadow-sm'
-                : 'text-[#9496a1] hover:text-white'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Grouped</span>
-          </button>
-          <button
             onClick={() => setViewMode('gantt')}
             className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium transition-all rounded-full cursor-pointer ${
               viewMode === 'gantt'
@@ -976,8 +965,8 @@ export default function TodoHub({
         </div>
       </SectionHeader>
 
-      {/* Unified Action Bar & Filter Controls (Active in Board, Table, Grouped, and Gantt views) */}
-      {(viewMode === 'board' || viewMode === 'table' || viewMode === 'grouped' || viewMode === 'gantt') && (
+      {/* Unified Action Bar & Filter Controls (Active in Board, Table, and Gantt views) */}
+      {(viewMode === 'board' || viewMode === 'table' || viewMode === 'gantt') && (
         <div className="space-y-3 mb-6 animate-fadeIn font-sans">
           <div className="glass-panel-true p-3 md:p-3.5 rounded-2xl border border-white/10 space-y-2.5">
             {/* Row 1: Search + Quick Filter Dropdowns + Reset */}
@@ -1124,8 +1113,8 @@ export default function TodoHub({
             </div>
           </div>
 
-          {/* Master Inline Quick-Add (Only for Table and Grouped view) */}
-          {(viewMode === 'table' || viewMode === 'grouped') && (
+          {/* Master Inline Quick-Add (Only for Table view) */}
+          {viewMode === 'table' && (
             <form 
               onSubmit={handleMasterQuickAdd}
               className="glass-panel-true p-2.5 rounded-2xl border border-white/10 flex flex-wrap items-center gap-2 focus-within:border-white/25 transition-colors"
@@ -1535,186 +1524,6 @@ export default function TodoHub({
                         })
                       )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : viewMode === 'grouped' ? (
-            /* Database Grouped View Mode: Clean Collapsible Timeframe Groups */
-            <div className="space-y-4">
-              {/* Collapsible Timeframe Groups */}
-              {DATABASE_COLUMNS.filter(col => {
-                if (databaseTimeframeFilter === 'all') return true;
-                if (databaseTimeframeFilter === 'today') return col.id === 'daily';
-                return col.id === databaseTimeframeFilter;
-              }).map(col => {
-                const isCollapsed = !!dbCollapsedGroups[col.id];
-                const isDailyCol = col.id === 'daily';
-                const isTodayOnly = isDailyCol && (dbDailyViewScope === 'today' || databaseTimeframeFilter === 'today') && databaseTimeframeFilter !== 'daily';
-                const colGoals = filteredDatabaseGoals.filter(g => {
-                  if (g.timeframe !== col.id) return false;
-                  if (isTodayOnly) {
-                    const info = getGoalDateInfo(g);
-                    return info.isToday || !g.text?.startsWith('[D:');
-                  }
-                  return true;
-                });
-                const totalCount = colGoals.length;
-                const completedCount = colGoals.filter(g => g.completed).length;
-                const rate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-                const ColIcon = col.icon;
-
-                return (
-                  <div key={col.id} className="glass-panel-true border border-white/15 rounded-2xl overflow-hidden shadow-sm">
-                    {/* Group Header Bar */}
-                    <div 
-                      onClick={() => toggleGroupCollapse(col.id)}
-                      className="flex items-center justify-between p-3.5 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors border-b border-white/[0.06]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-[#9496a1]">
-                          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </span>
-                        <div className={`w-7 h-7 rounded-lg ${col.bgAccent} border ${col.borderAccent} flex items-center justify-center ${col.color}`}>
-                          <ColIcon className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-white tracking-tight">{col.label}</span>
-                          <span className="text-[11px] text-[#9496a1] hidden sm:inline">({col.sublabel})</span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/[0.06] text-[#ededf3] tabular-nums border border-white/[0.08]">
-                            {completedCount}/{totalCount}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="w-24 bg-white/[0.06] rounded-full h-1.5 overflow-hidden hidden sm:block">
-                          <div 
-                            className={`h-full ${col.progressBar} transition-all duration-300`} 
-                            style={{ width: `${rate}%` }} 
-                          />
-                        </div>
-                        <span className="text-xs font-mono text-[#9496a1] tabular-nums min-w-[36px] text-right">
-                          {rate}%
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Group Table */}
-                    {!isCollapsed && (
-                      <div className="p-2 sm:p-3">
-                        {colGoals.length === 0 ? (
-                          <div className="py-6 text-center text-xs text-[#9496a1]">
-                            No tasks in this section.
-                          </div>
-                        ) : (
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[760px] font-sans">
-                              <thead>
-                                <tr className="border-b border-white/[0.06] text-[11px] text-[#9496a1]">
-                                  <th className="py-2 px-2 w-8 text-center"></th>
-                                  <th className="py-2 px-3 w-12 text-center font-medium">Status</th>
-                                  <th className="py-2 px-3 font-medium">Task Name</th>
-                                  <th className="py-2 px-3 w-28 font-medium">Priority</th>
-                                  <th className="py-2 px-3 w-24 font-medium">Time Est</th>
-                                  <th className="py-2 px-3 w-20 font-medium">Sub-tasks</th>
-                                  <th className="py-2 px-3 w-20 text-center font-medium">Focus</th>
-                                  <th className="py-2 px-3 w-20 text-right font-medium">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-white/[0.03] text-xs text-[#ededf3]">
-                                {colGoals.map(g => {
-                                  const cleanText = getDisplayGoalText(g.text);
-                                  const subCount = g.subTasks ? g.subTasks.length : 0;
-                                  const subDone = g.subTasks ? g.subTasks.filter(s => s.completed).length : 0;
-                                  const estMeta = g.timeEstimate ? TIME_ESTIMATES.find(e => e.value === g.timeEstimate) : null;
-                                  const prio = g.priority || 'Medium';
-                                  const prioColor = prio === 'The One Thing' || prio === 'High'
-                                    ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
-                                    : prio === 'Medium'
-                                      ? 'bg-white/[0.06] text-zinc-300 border-white/[0.1]'
-                                      : 'bg-white/[0.02] text-zinc-500 border-white/[0.05]';
-
-                                  return (
-                                    <tr 
-                                      key={g.id}
-                                      onClick={() => setActivePanelGoalId(g.id)}
-                                      className={`hover:bg-white/[0.03] transition-colors cursor-pointer group select-none ${g.completed ? 'opacity-50' : ''}`}
-                                    >
-                                      <td className="py-2.5 px-2 text-center" onClick={e => e.stopPropagation()}>
-                                        <div className="text-zinc-600 group-hover:text-zinc-400 flex justify-center">
-                                          <GripVertical className="w-3.5 h-3.5" />
-                                        </div>
-                                      </td>
-                                      <td className="py-2.5 px-3 text-center" onClick={e => e.stopPropagation()}>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleToggle(g.id, !g.completed)}
-                                          className={`transition-transform active:scale-90 cursor-pointer ${g.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'}`}
-                                        >
-                                          {g.completed ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                                        </button>
-                                      </td>
-                                      <td className="py-2.5 px-3 font-medium text-white">
-                                        <span className={g.completed ? 'line-through text-[#9496a1]' : ''}>
-                                          {cleanText}
-                                        </span>
-                                      </td>
-                                      <td className="py-2.5 px-3">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${prioColor}`}>
-                                          {prio}
-                                        </span>
-                                      </td>
-                                      <td className="py-2.5 px-3 text-[11px] text-[#9496a1] tabular-nums">
-                                        {estMeta ? estMeta.label : '-'}
-                                      </td>
-                                      <td className="py-2.5 px-3 text-[11px] text-[#9496a1] tabular-nums">
-                                        {subCount > 0 ? (
-                                          <span className={subDone === subCount ? 'text-white' : ''}>
-                                            {subDone}/{subCount}
-                                          </span>
-                                        ) : '-'}
-                                      </td>
-                                      <td className="py-2.5 px-2 text-center" onClick={e => e.stopPropagation()}>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleStartFocus(g.id)}
-                                          className="px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/[0.08] hover:border-white/20 transition-all cursor-pointer inline-flex items-center gap-1 shadow-sm group/btn"
-                                          title="Start Pomodoro Focus on this task"
-                                        >
-                                          <Flame className="w-3 h-3 text-zinc-400 group-hover/btn:text-white group-hover/btn:scale-110 transition-transform" />
-                                          <span className="text-[10px] font-semibold">Focus</span>
-                                        </button>
-                                      </td>
-                                      <td className="py-2.5 px-3 text-right" onClick={e => e.stopPropagation()}>
-                                        <div className="flex items-center justify-end gap-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => setActivePanelGoalId(g.id)}
-                                            className="p-1 text-[#9496a1] hover:text-white glass-button-true rounded cursor-pointer"
-                                            title="Task Details & Notes"
-                                          >
-                                            <SlidersHorizontal className="w-3.5 h-3.5" />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleDelete(g.id)}
-                                            className="p-1 text-[#9496a1] hover:text-rose-400 glass-button-true rounded cursor-pointer"
-                                            title="Delete task"
-                                          >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                          </button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { GoalTodo, TimeframeType, TimeEstimate, PriorityLevel } from '../types';
 import { 
   GanttChart, 
@@ -15,20 +15,18 @@ import {
   Square, 
   Flame, 
   SlidersHorizontal, 
-  Trash2, 
   Plus, 
   Search, 
-  Filter, 
   Check, 
   Clock, 
   Sparkles, 
   Target, 
   Sun, 
   Trophy, 
-  Flag, 
   Layers, 
   ArrowRight,
-  Maximize2
+  GripVertical,
+  MoveHorizontal
 } from 'lucide-react';
 import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
 
@@ -49,6 +47,18 @@ interface GanttRoadmapViewProps {
 }
 
 type GanttZoom = '2weeks' | 'month' | 'quarter';
+
+interface DragState {
+  type: 'move' | 'resize-start' | 'resize-end';
+  goalId: string;
+  startX: number;
+  originalOffsetIndex: number;
+  originalSpanDays: number;
+  originalStartDate: Date;
+  originalEndDate: Date;
+  hasMoved: boolean;
+  currentDeltaDays: number;
+}
 
 export default function GanttRoadmapView({
   goals,
@@ -77,17 +87,20 @@ export default function GanttRoadmapView({
     setCollapsedGroups(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Interactive Drag & Resize State
+  const [dragState, setDragState] = useState<DragState | null>(null);
+
   // Helper to format date YYYY-MM-DD
-  const formatDateKey = (date: Date): string => {
+  const formatDateKey = useCallback((date: Date): string => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
-  };
+  }, []);
 
   // Today reference
   const today = useMemo(() => new Date(), []);
-  const todayKey = useMemo(() => formatDateKey(today), [today]);
+  const todayKey = useMemo(() => formatDateKey(today), [today, formatDateKey]);
 
   // Anchor date based on offset
   const anchorDate = useMemo(() => {
@@ -97,10 +110,10 @@ export default function GanttRoadmapView({
   }, [today, dayOffset]);
 
   // Strip context tag from display text
-  const cleanGoalText = (text?: string | null): string => {
+  const cleanGoalText = useCallback((text?: string | null): string => {
     if (!text || typeof text !== 'string') return '';
     return text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '');
-  };
+  }, []);
 
   // Timeline configuration according to zoom
   const timelineConfig = useMemo(() => {
@@ -120,19 +133,19 @@ export default function GanttRoadmapView({
 
     if (zoom === '2weeks') {
       totalDays = 14;
-      startDate.setDate(anchorDate.getDate() - 3); // 3 days in the past, 10 days in the future
+      startDate.setDate(anchorDate.getDate() - 3); // 3 days in the past, 10 days in future
     } else if (zoom === 'month') {
       // Current month view
       startDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
       const lastDay = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 0).getDate();
       totalDays = lastDay;
     } else if (zoom === 'quarter') {
-      // 90 days
-      totalDays = 84; // 12 full weeks
+      // 90 days / 12 weeks
+      totalDays = 84;
       startDate.setDate(anchorDate.getDate() - 14);
     }
 
-    const dayWidth = zoom === '2weeks' ? 52 : zoom === 'month' ? 36 : 28;
+    const dayWidth = zoom === '2weeks' ? 54 : zoom === 'month' ? 36 : 28;
 
     for (let i = 0; i < totalDays; i++) {
       const cur = new Date(startDate);
@@ -161,7 +174,7 @@ export default function GanttRoadmapView({
       startDate: days[0]?.date || new Date(),
       endDate: days[days.length - 1]?.date || new Date()
     };
-  }, [anchorDate, zoom, todayKey]);
+  }, [anchorDate, zoom, todayKey, formatDateKey]);
 
   // Timeline date range header string
   const rangeHeaderString = useMemo(() => {
@@ -211,7 +224,7 @@ export default function GanttRoadmapView({
   }, [goals, searchQuery, statusFilter, priorityFilter, timeframeFilter, todayKey]);
 
   // Compute Task Start Date, End Date, and Span in days
-  const getTaskTimelineCoordinates = (goal: GoalTodo) => {
+  const getTaskTimelineCoordinates = useCallback((goal: GoalTodo) => {
     const text = goal.text || '';
     let startDate = new Date(goal.createdAt || Date.now());
     let spanDays = 1;
@@ -226,7 +239,6 @@ export default function GanttRoadmapView({
       startDate = new Date(today);
       spanDays = 1;
     } else if (goal.timeframe === 'weekly') {
-      // Current week anchor (start at Monday of current anchor or createdAt)
       const base = goal.createdAt ? new Date(goal.createdAt) : new Date(today);
       const day = base.getDay();
       const diff = base.getDate() - day + (day === 0 ? -6 : 1);
@@ -266,6 +278,142 @@ export default function GanttRoadmapView({
       spanDays: Math.max(1, spanDays),
       offsetIndex: diffFromTlStart
     };
+  }, [today, timelineConfig.startDate]);
+
+  // Window Listeners for Smooth Drag & Resize Interactivity
+  useEffect(() => {
+    if (!dragState) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragState.startX;
+      const deltaDays = Math.round(deltaX / timelineConfig.dayWidth);
+      const hasMoved = dragState.hasMoved || Math.abs(deltaX) > 4;
+
+      setDragState(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          hasMoved,
+          currentDeltaDays: deltaDays
+        };
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (dragState.hasMoved && dragState.currentDeltaDays !== 0) {
+        const targetGoal = goals.find(g => g.id === dragState.goalId);
+        if (targetGoal) {
+          const updatedGoal: GoalTodo = { ...targetGoal };
+
+          if (dragState.type === 'resize-end') {
+            // Dragging right edge extends / shortens deadline
+            const newSpan = Math.max(1, dragState.originalSpanDays + dragState.currentDeltaDays);
+            const newEnd = new Date(dragState.originalStartDate);
+            newEnd.setDate(dragState.originalStartDate.getDate() + newSpan - 1);
+            updatedGoal.deadline = formatDateKey(newEnd);
+          } else if (dragState.type === 'resize-start') {
+            // Dragging left edge shifts start date
+            const newOffset = dragState.originalOffsetIndex + dragState.currentDeltaDays;
+            const newStart = new Date(timelineConfig.startDate);
+            newStart.setDate(timelineConfig.startDate.getDate() + newOffset);
+            const startKey = formatDateKey(newStart);
+
+            if (updatedGoal.timeframe === 'daily') {
+              const clean = cleanGoalText(updatedGoal.text);
+              updatedGoal.text = `[D:${startKey}] ${clean}`;
+            }
+            if (!updatedGoal.deadline) {
+              updatedGoal.deadline = formatDateKey(dragState.originalEndDate);
+            }
+          } else if (dragState.type === 'move') {
+            // Dragging whole bar shifts both start date and deadline
+            const newOffset = dragState.originalOffsetIndex + dragState.currentDeltaDays;
+            const newStart = new Date(timelineConfig.startDate);
+            newStart.setDate(timelineConfig.startDate.getDate() + newOffset);
+            const startKey = formatDateKey(newStart);
+
+            const newEnd = new Date(newStart);
+            newEnd.setDate(newStart.getDate() + dragState.originalSpanDays - 1);
+            const deadKey = formatDateKey(newEnd);
+
+            if (updatedGoal.timeframe === 'daily') {
+              const clean = cleanGoalText(updatedGoal.text);
+              updatedGoal.text = `[D:${startKey}] ${clean}`;
+            }
+            updatedGoal.deadline = deadKey;
+          }
+
+          if (onUpdateGoal) {
+            onUpdateGoal(updatedGoal);
+          }
+        }
+      } else if (!dragState.hasMoved && dragState.type === 'move') {
+        // Plain click without movement opens details drawer
+        onOpenDetails(dragState.goalId);
+      }
+
+      setDragState(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragState, goals, onUpdateGoal, onOpenDetails, timelineConfig, cleanGoalText, formatDateKey]);
+
+  // Handler to initiate drag or resize
+  const handleStartDrag = (
+    e: React.MouseEvent,
+    goal: GoalTodo,
+    type: 'move' | 'resize-start' | 'resize-end',
+    coords: { startDate: Date; spanDays: number; offsetIndex: number }
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const endDate = new Date(coords.startDate);
+    endDate.setDate(coords.startDate.getDate() + coords.spanDays - 1);
+
+    setDragState({
+      type,
+      goalId: goal.id,
+      startX: e.clientX,
+      originalOffsetIndex: coords.offsetIndex,
+      originalSpanDays: coords.spanDays,
+      originalStartDate: coords.startDate,
+      originalEndDate: endDate,
+      hasMoved: false,
+      currentDeltaDays: 0
+    });
+  };
+
+  // 1-Click Cell Click to quickly set deadline or move
+  const handleCellClick = (goal: GoalTodo, clickedDateKey: string) => {
+    const coords = getTaskTimelineCoordinates(goal);
+    const parts = clickedDateKey.split('-');
+    const clickedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+
+    const updatedGoal = { ...goal };
+    if (clickedDate.getTime() >= coords.startDate.getTime()) {
+      // Clicked date is after start date: set as new deadline
+      updatedGoal.deadline = clickedDateKey;
+    } else {
+      // Clicked date is before start date: shift start date to clicked date
+      if (goal.timeframe === 'daily') {
+        const clean = cleanGoalText(goal.text);
+        updatedGoal.text = `[D:${clickedDateKey}] ${clean}`;
+      }
+      const origEnd = new Date(coords.startDate);
+      origEnd.setDate(coords.startDate.getDate() + coords.spanDays - 1);
+      updatedGoal.deadline = formatDateKey(origEnd);
+    }
+
+    if (onUpdateGoal) {
+      onUpdateGoal(updatedGoal);
+    }
   };
 
   // Group goals by Timeframe for structured Swiss roadmap
@@ -331,11 +479,10 @@ export default function GanttRoadmapView({
     setDayOffset(0);
   };
 
-  // Synchronized scroll ref
   const timelineScrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="space-y-4 animate-fadeIn font-sans">
+    <div className="space-y-4 animate-fadeIn font-sans select-none">
       
       {/* 1. GANTT CONTROL TOOLBAR */}
       <div className="glass-panel-true p-3.5 md:p-4 rounded-2xl border border-white/10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-lg">
@@ -380,14 +527,20 @@ export default function GanttRoadmapView({
 
           {/* Quick Metrics Badge */}
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs">
-            <span className="text-zinc-500">Timeline:</span>
+            <span className="text-zinc-500">Scheduled:</span>
             <span className="font-bold text-white tabular-nums">
-              {filteredGoals.filter(g => g.completed).length}/{filteredGoals.length} done
+              {filteredGoals.filter(g => g.completed).length}/{filteredGoals.length}
             </span>
             <span className="text-zinc-600">•</span>
             <span className="text-cyan-400 font-semibold tabular-nums">
               {filteredGoals.length > 0 ? Math.round((filteredGoals.filter(g => g.completed).length / filteredGoals.length) * 100) : 0}% on-track
             </span>
+          </div>
+
+          {/* Interactive Hint */}
+          <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-zinc-400 pl-2">
+            <MoveHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Drag bar edges to resize deadline • Drag bar center to reschedule</span>
           </div>
         </div>
 
@@ -453,7 +606,7 @@ export default function GanttRoadmapView({
               </span>
             </div>
 
-            {/* Right Header: Days Grid Header (Horizontally scrollable together) */}
+            {/* Right Header: Days Grid Header (Horizontally scrollable) */}
             <div 
               ref={timelineScrollContainerRef}
               className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar"
@@ -468,20 +621,20 @@ export default function GanttRoadmapView({
                     style={{ width: `${timelineConfig.dayWidth}px` }}
                     className={`shrink-0 py-2.5 px-1 text-center border-r border-white/[0.04] flex flex-col items-center justify-center transition-colors ${
                       d.isToday 
-                        ? 'bg-white/[0.06] border-b-2 border-b-white' 
+                        ? 'bg-white/[0.06] border-b-2 border-b-cyan-400' 
                         : d.isWeekend 
                           ? 'bg-white/[0.01]' 
                           : ''
                     }`}
                   >
                     <span className={`text-[10px] font-semibold uppercase tracking-wider ${
-                      d.isToday ? 'text-white font-bold' : 'text-zinc-500'
+                      d.isToday ? 'text-cyan-400 font-bold' : 'text-zinc-500'
                     }`}>
                       {d.dayName}
                     </span>
                     <span className={`text-xs font-mono font-bold mt-0.5 ${
                       d.isToday 
-                        ? 'w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shadow-md' 
+                        ? 'w-6 h-6 rounded-full bg-cyan-400 text-black flex items-center justify-center shadow-md' 
                         : 'text-zinc-300'
                     }`}>
                       {d.dayNumber}
@@ -532,7 +685,7 @@ export default function GanttRoadmapView({
                     <div className="flex items-center gap-3">
                       <div className="w-20 bg-white/[0.06] rounded-full h-1.5 overflow-hidden hidden sm:block">
                         <div 
-                          className="h-full bg-white/40 transition-all duration-300" 
+                          className="h-full bg-cyan-400/60 transition-all duration-300" 
                           style={{ width: `${rate}%` }} 
                         />
                       </div>
@@ -559,12 +712,34 @@ export default function GanttRoadmapView({
                           const subTotal = goal.subTasks ? goal.subTasks.length : 0;
                           const subProgress = subTotal > 0 ? (subDone / subTotal) * 100 : goal.completed ? 100 : 0;
 
+                          // Real-time geometry calculation when dragging or resizing
+                          const isDraggingThis = dragState?.goalId === goal.id;
+                          let effectiveOffset = coords.offsetIndex;
+                          let effectiveSpan = coords.spanDays;
+
+                          if (isDraggingThis && dragState) {
+                            if (dragState.type === 'resize-end') {
+                              effectiveSpan = Math.max(1, dragState.originalSpanDays + dragState.currentDeltaDays);
+                            } else if (dragState.type === 'resize-start') {
+                              effectiveOffset = dragState.originalOffsetIndex + dragState.currentDeltaDays;
+                              effectiveSpan = Math.max(1, dragState.originalSpanDays - dragState.currentDeltaDays);
+                            } else if (dragState.type === 'move') {
+                              effectiveOffset = dragState.originalOffsetIndex + dragState.currentDeltaDays;
+                            }
+                          }
+
                           // Compute pixel bar geometry
-                          const barLeft = coords.offsetIndex * timelineConfig.dayWidth;
+                          const barLeft = effectiveOffset * timelineConfig.dayWidth;
                           const barWidth = Math.max(
-                            timelineConfig.dayWidth * coords.spanDays - 6,
+                            timelineConfig.dayWidth * effectiveSpan - 6,
                             28
                           );
+
+                          // Computed preview dates for tooltip
+                          const previewStartDate = new Date(timelineConfig.startDate);
+                          previewStartDate.setDate(timelineConfig.startDate.getDate() + effectiveOffset);
+                          const previewEndDate = new Date(previewStartDate);
+                          previewEndDate.setDate(previewStartDate.getDate() + effectiveSpan - 1);
 
                           return (
                             <div 
@@ -637,25 +812,27 @@ export default function GanttRoadmapView({
 
                               </div>
 
-                              {/* Right Timeline Grid Cell with Floating Gantt Bar */}
+                              {/* Right Timeline Grid Cell with Interactive Floating Gantt Bar */}
                               <div 
                                 className="flex-1 overflow-x-hidden relative flex items-center"
                                 style={{ width: `${timelineConfig.totalWidth}px` }}
                               >
                                 
-                                {/* Background Day Grid Lines */}
-                                <div className="absolute inset-0 flex pointer-events-none">
+                                {/* Background Day Grid Lines (Interactive 1-Click to set date/deadline) */}
+                                <div className="absolute inset-0 flex">
                                   {timelineConfig.days.map(d => (
                                     <div
                                       key={d.dateKey}
+                                      onClick={() => handleCellClick(goal, d.dateKey)}
                                       style={{ width: `${timelineConfig.dayWidth}px` }}
-                                      className={`shrink-0 h-full border-r border-white/[0.02] ${
+                                      className={`shrink-0 h-full border-r border-white/[0.02] transition-colors cursor-pointer hover:bg-white/[0.04] ${
                                         d.isToday 
                                           ? 'bg-white/[0.03]' 
                                           : d.isWeekend 
                                             ? 'bg-white/[0.005]' 
                                             : ''
                                       }`}
+                                      title={`Click to set schedule / deadline to ${d.dateKey}`}
                                     />
                                   ))}
                                 </div>
@@ -673,56 +850,102 @@ export default function GanttRoadmapView({
                                   );
                                 })()}
 
-                                {/* The Gantt Bar */}
+                                {/* Floating Live Drag Tooltip */}
+                                {isDraggingThis && dragState.hasMoved && (
+                                  <div 
+                                    className="absolute -top-7 z-50 px-2.5 py-1 rounded-lg bg-[#0e1015] border border-cyan-400 text-white text-[11px] font-mono shadow-2xl flex items-center gap-1.5 whitespace-nowrap pointer-events-none"
+                                    style={{ left: `${Math.max(4, barLeft)}px` }}
+                                  >
+                                    <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                                    <span>
+                                      {dragState.type === 'resize-end' ? 'Deadline: ' : dragState.type === 'resize-start' ? 'Start: ' : 'Move: '}
+                                      {formatDateKey(previewStartDate)} → {formatDateKey(previewEndDate)}
+                                    </span>
+                                    <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
+                                      dragState.currentDeltaDays > 0 ? 'bg-cyan-500/20 text-cyan-300' : dragState.currentDeltaDays < 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-white/10 text-white'
+                                    }`}>
+                                      {dragState.currentDeltaDays > 0 ? `+${dragState.currentDeltaDays}d` : `${dragState.currentDeltaDays}d`}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* The Interactive Gantt Bar */}
                                 <div
-                                  onClick={() => onOpenDetails(goal.id)}
                                   style={{
                                     left: `${Math.max(4, barLeft + 3)}px`,
                                     width: `${barWidth}px`
                                   }}
-                                  className={`absolute h-7 rounded-lg border transition-all cursor-pointer flex items-center px-2 select-none z-20 group/bar ${
+                                  className={`absolute h-7 rounded-lg border transition-shadow flex items-center select-none z-20 group/bar ${
+                                    isDraggingThis
+                                      ? 'ring-2 ring-cyan-400 shadow-[0_0_16px_rgba(6,182,212,0.4)] z-40'
+                                      : ''
+                                  } ${
                                     goal.completed
                                       ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
                                       : isHighPrio
                                         ? 'bg-[#182338] border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.2)] text-white hover:border-cyan-300'
                                         : 'bg-[#141720] border-white/15 text-zinc-200 hover:border-white/30'
                                   }`}
-                                  title={`${cleanText} • ${goal.timeframe} • ${goal.priority || 'Medium'}`}
+                                  title={`${cleanText} • Drag center to shift, drag edges to resize deadline`}
                                 >
-                                  {/* Inner Progress Bar (For Subtasks or Completion) */}
-                                  {subProgress > 0 && !goal.completed && (
-                                    <div 
-                                      className="absolute left-0 top-0 bottom-0 bg-white/[0.08] rounded-l-lg pointer-events-none"
-                                      style={{ width: `${subProgress}%` }}
-                                    />
-                                  )}
+                                  {/* Left Resize Handle (Start Date) */}
+                                  <div
+                                    onMouseDown={(e) => handleStartDrag(e, goal, 'resize-start', coords)}
+                                    className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/30 rounded-l-lg flex items-center justify-center opacity-0 group-hover/bar:opacity-100 transition-opacity z-30"
+                                    title="Drag to change start date"
+                                  >
+                                    <div className="w-0.5 h-3 rounded-full bg-white/60" />
+                                  </div>
 
-                                  {/* Bar Content */}
-                                  <div className="relative z-10 flex items-center justify-between w-full min-w-0 gap-1.5">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                      {goal.completed ? (
-                                        <Check className="w-3 h-3 text-emerald-400 shrink-0" />
-                                      ) : isHighPrio ? (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 shadow-sm" />
-                                      ) : null}
-                                      <span className="text-[11px] font-semibold truncate leading-none">
-                                        {cleanText}
-                                      </span>
-                                    </div>
+                                  {/* Center Drag-to-Move Body */}
+                                  <div
+                                    onMouseDown={(e) => handleStartDrag(e, goal, 'move', coords)}
+                                    className="flex-1 h-full cursor-grab active:cursor-grabbing flex items-center px-2 min-w-0 overflow-hidden relative"
+                                  >
+                                    {/* Inner Progress Fill (For Subtasks or Completion) */}
+                                    {subProgress > 0 && !goal.completed && (
+                                      <div 
+                                        className="absolute left-0 top-0 bottom-0 bg-white/[0.08] rounded-l-lg pointer-events-none"
+                                        style={{ width: `${subProgress}%` }}
+                                      />
+                                    )}
 
-                                    {/* Subtasks or Estimate Indicator inside bar */}
-                                    <div className="flex items-center gap-1 shrink-0 text-[10px] text-zinc-400 tabular-nums">
-                                      {subTotal > 0 && (
-                                        <span className="hidden sm:inline px-1 py-0.2 rounded bg-black/40 text-zinc-300">
-                                          {subDone}/{subTotal}
+                                    {/* Bar Content */}
+                                    <div className="relative z-10 flex items-center justify-between w-full min-w-0 gap-1.5">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        {goal.completed ? (
+                                          <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                                        ) : isHighPrio ? (
+                                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 shadow-sm" />
+                                        ) : null}
+                                        <span className="text-[11px] font-semibold truncate leading-none">
+                                          {cleanText}
                                         </span>
-                                      )}
-                                      {goal.timeEstimate && (
-                                        <span className="hidden md:inline px-1 py-0.2 rounded bg-black/40 text-zinc-400">
-                                          {goal.timeEstimate}
-                                        </span>
-                                      )}
+                                      </div>
+
+                                      {/* Subtasks or Estimate Indicator inside bar */}
+                                      <div className="flex items-center gap-1 shrink-0 text-[10px] text-zinc-400 tabular-nums">
+                                        {subTotal > 0 && (
+                                          <span className="hidden sm:inline px-1 py-0.2 rounded bg-black/40 text-zinc-300">
+                                            {subDone}/{subTotal}
+                                          </span>
+                                        )}
+                                        {goal.timeEstimate && (
+                                          <span className="hidden md:inline px-1 py-0.2 rounded bg-black/40 text-zinc-400">
+                                            {goal.timeEstimate}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
+                                  </div>
+
+                                  {/* Right Resize Handle (Deadline Extension / Shortening) */}
+                                  <div
+                                    onMouseDown={(e) => handleStartDrag(e, goal, 'resize-end', coords)}
+                                    className="absolute right-0 top-0 bottom-0 w-3.5 cursor-ew-resize hover:bg-cyan-400/40 rounded-r-lg flex items-center justify-center opacity-40 group-hover/bar:opacity-100 transition-opacity z-30"
+                                    title="Drag to extend or shorten deadline"
+                                  >
+                                    <div className="w-1 h-3.5 rounded-full bg-white/70 group-hover/bar:bg-cyan-300 transition-colors shadow-sm" />
                                   </div>
 
                                 </div>
@@ -769,8 +992,9 @@ export default function GanttRoadmapView({
         </div>
 
         {/* Quick Navigation Hint */}
-        <div className="flex items-center gap-1 text-[11px] text-zinc-500">
-          <span>Click any milestone bar to view details or launch deep work flow</span>
+        <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
+          <span className="font-semibold text-zinc-400">Interaction:</span>
+          <span>Drag right edge to change deadline • Drag bar to move • Click empty grid cell to set date</span>
         </div>
 
       </div>
