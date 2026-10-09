@@ -21,6 +21,7 @@ import {
   LayoutDashboard
 } from 'lucide-react';
 import SectionHeader from './SectionHeader';
+import { parseGoalPeriod, getWeekKey, getMonthKey, getYearKey } from '../utils/goalDateHelpers';
 
 interface ExecutiveDashboardProps {
   goals: GoalTodo[];
@@ -67,6 +68,9 @@ export default function ExecutiveDashboard({
   const [quickEstimate, setQuickEstimate] = useState<TimeEstimate | ''>('');
   const [todayTaskFilter, setTodayTaskFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [strategicFilter, setStrategicFilter] = useState<'all' | 'weekly' | 'monthly' | 'yearly'>('all');
+  const [strategicViewScope, setStrategicViewScope] = useState<'current' | 'all'>('current');
+  const [strategicAddText, setStrategicAddText] = useState('');
+  const [strategicAddTimeframe, setStrategicAddTimeframe] = useState<TimeframeType>('weekly');
 
   // Drag-and-drop reordering state
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -176,19 +180,51 @@ export default function ExecutiveDashboard({
     });
   }, [habits, todayDay]);
 
+  // Strategic Quick Add Handler
+  const handleAddStrategicGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = strategicAddText.trim();
+    if (!clean || !onAddGoal) return;
+
+    let tag = '';
+    if (strategicAddTimeframe === 'weekly') {
+      tag = `[W:${getWeekKey(todayDate)}] `;
+    } else if (strategicAddTimeframe === 'monthly') {
+      tag = `[M:${getMonthKey(todayDate)}] `;
+    } else if (strategicAddTimeframe === 'yearly') {
+      tag = `[Y:${getYearKey(todayDate)}] `;
+    }
+    onAddGoal(`${tag}${clean}`, strategicAddTimeframe);
+    setStrategicAddText('');
+  };
+
   // Strategic Objectives (Weekly / Monthly / Yearly)
   const strategicGoalsAll = useMemo(() => {
     return goals.filter(g => g.timeframe !== 'daily');
   }, [goals]);
 
+  // Scoped strategic goals: in 'current' mode, only show current period or uncompleted past tasks.
+  // Past completed tasks are archived into history so they never linger forever.
+  const scopedStrategicGoals = useMemo(() => {
+    if (strategicViewScope === 'all') return strategicGoalsAll;
+
+    return strategicGoalsAll.filter(g => {
+      const period = parseGoalPeriod(g, todayDate);
+      if (period.isCurrent) return true;
+      if (!g.completed && period.isPast) return true;
+      if (!g.completed && period.isFuture) return true;
+      return false;
+    });
+  }, [strategicGoalsAll, strategicViewScope, todayDate]);
+
   const filteredStrategicGoals = useMemo(() => {
-    const list = strategicGoalsAll.filter(g => {
+    const list = scopedStrategicGoals.filter(g => {
       if (strategicFilter === 'all') return true;
       return g.timeframe === strategicFilter;
     });
     // Incomplete first
     return [...list].sort((a, b) => (a.completed === b.completed ? 0 : a.completed ? 1 : -1));
-  }, [strategicGoalsAll, strategicFilter]);
+  }, [scopedStrategicGoals, strategicFilter]);
 
   // Monthly Expenses
   const currentMonth = todayDate.getMonth();
@@ -541,11 +577,36 @@ export default function ExecutiveDashboard({
           {/* Strategic Objectives (Weekly • Monthly • Yearly) */}
           <div className="kuldeep-card p-5 md:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-white/[0.08]">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <CheckSquare className="w-4 h-4 text-zinc-300" />
                 <h3 className="text-sm font-semibold text-white">
-                  Strategic Roadmap ({strategicGoalsAll.length})
+                  Strategic Roadmap
                 </h3>
+                {/* Scope Switcher: Current vs All */}
+                <div className="inline-flex p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                  <button
+                    type="button"
+                    onClick={() => setStrategicViewScope('current')}
+                    className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                      strategicViewScope === 'current'
+                        ? 'bg-white text-black shadow-sm font-semibold'
+                        : 'text-[#9496a1] hover:text-white'
+                    }`}
+                  >
+                    Current ({scopedStrategicGoals.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStrategicViewScope('all')}
+                    className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                      strategicViewScope === 'all'
+                        ? 'bg-white text-black shadow-sm font-semibold'
+                        : 'text-[#9496a1] hover:text-white'
+                    }`}
+                  >
+                    All ({strategicGoalsAll.length})
+                  </button>
+                </div>
               </div>
 
               {/* Timeframe Filter Pills */}
@@ -565,6 +626,42 @@ export default function ExecutiveDashboard({
               </div>
             </div>
 
+            {/* Direct Quick Add for Strategic Goals */}
+            {onAddGoal && (
+              <form onSubmit={handleAddStrategicGoal} className="flex items-center gap-2 pt-0.5">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={strategicAddText}
+                    onChange={(e) => setStrategicAddText(e.target.value)}
+                    placeholder={`+ Quick add ${strategicAddTimeframe} goal...`}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-white/30 px-3 py-1.5 text-xs text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors"
+                  />
+                </div>
+                <div className="flex items-center gap-0.5 bg-white/[0.03] p-0.5 rounded-lg border border-white/[0.06] shrink-0">
+                  {(['weekly', 'monthly', 'yearly'] as const).map(tf => (
+                    <button
+                      key={tf}
+                      type="button"
+                      onClick={() => setStrategicAddTimeframe(tf)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider transition-colors cursor-pointer ${
+                        strategicAddTimeframe === tf ? 'bg-white text-black font-semibold' : 'text-[#9496a1] hover:text-white'
+                      }`}
+                    >
+                      {tf === 'weekly' ? 'Week' : tf === 'monthly' ? 'Month' : 'Year'}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="submit"
+                  disabled={!strategicAddText.trim()}
+                  className="px-3 py-1.5 bg-white text-black hover:bg-zinc-200 disabled:opacity-40 text-xs font-semibold rounded-xl transition-all shrink-0 cursor-pointer"
+                >
+                  Add
+                </button>
+              </form>
+            )}
+
             {filteredStrategicGoals.length === 0 ? (
               <div className="py-8 text-center text-[#9496a1] space-y-2">
                 <CheckCircle2 className="w-7 h-7 mx-auto text-zinc-500" />
@@ -572,61 +669,76 @@ export default function ExecutiveDashboard({
               </div>
             ) : (
               <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                {filteredStrategicGoals.map((goal) => (
-                  <div
-                    key={goal.id}
-                    draggable={true}
-                    onDragStart={(e) => handleTaskDragStart(e, goal.id)}
-                    onDragOver={(e) => handleTaskDragOver(e, goal.id)}
-                    onDragLeave={(e) => handleTaskDragLeave(e, goal.id)}
-                    onDrop={(e) => handleTaskDrop(e, goal.id)}
-                    className={`flex items-center justify-between p-3 rounded-xl transition-all group select-none ${
-                      dragOverTaskId === goal.id ? 'border-t-2 border-white/40 bg-white/[0.04]' : ''
-                    } ${
-                      goal.completed
-                        ? 'bg-white/[0.02] border border-white/[0.04] opacity-60'
-                        : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div 
-                        className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
-                        title="Drag to reorder priority"
-                      >
-                        <GripVertical className="w-3.5 h-3.5" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onToggleGoal(goal.id, !goal.completed)}
-                        className={`shrink-0 transition-colors cursor-pointer ${goal.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'}`}
-                      >
-                        {goal.completed ? <CheckSquare className="w-4 h-4 text-zinc-300" /> : <Square className="w-4 h-4" />}
-                      </button>
-                      <div className="min-w-0">
-                        <span className={`text-xs font-medium block truncate ${goal.completed ? 'line-through text-[#9496a1]' : 'text-[#ededf3]'}`}>
-                          {getDisplayGoalText(goal.text)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[9px] uppercase px-2 py-0.5 rounded-full border bg-white/[0.05] text-zinc-300 border-white/[0.08]">
-                        {goal.timeframe}
-                      </span>
-
-                      {onDeleteGoal && (
+                {filteredStrategicGoals.map((goal) => {
+                  const period = parseGoalPeriod(goal, todayDate);
+                  return (
+                    <div
+                      key={goal.id}
+                      draggable={true}
+                      onDragStart={(e) => handleTaskDragStart(e, goal.id)}
+                      onDragOver={(e) => handleTaskDragOver(e, goal.id)}
+                      onDragLeave={(e) => handleTaskDragLeave(e, goal.id)}
+                      onDrop={(e) => handleTaskDrop(e, goal.id)}
+                      className={`flex items-center justify-between p-3 rounded-xl transition-all group select-none ${
+                        dragOverTaskId === goal.id ? 'border-t-2 border-white/40 bg-white/[0.04]' : ''
+                      } ${
+                        goal.completed
+                          ? 'bg-white/[0.02] border border-white/[0.04] opacity-60'
+                          : 'bg-[#0e1015] border border-white/[0.06] hover:border-white/[0.15]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div 
+                          className="cursor-grab active:cursor-grabbing p-0.5 text-zinc-600 hover:text-white transition-colors shrink-0"
+                          title="Drag to reorder priority"
+                        >
+                          <GripVertical className="w-3.5 h-3.5" />
+                        </div>
                         <button
                           type="button"
-                          onClick={() => onDeleteGoal(goal.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-[#9496a1] hover:text-rose-400 transition-opacity cursor-pointer"
-                          title="Delete goal"
+                          onClick={() => onToggleGoal(goal.id, !goal.completed)}
+                          className={`shrink-0 transition-colors cursor-pointer ${goal.completed ? 'text-zinc-300' : 'text-[#9496a1] hover:text-white'}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          {goal.completed ? <CheckSquare className="w-4 h-4 text-zinc-300" /> : <Square className="w-4 h-4" />}
                         </button>
-                      )}
+                        <div className="min-w-0">
+                          <span className={`text-xs font-medium block truncate ${goal.completed ? 'line-through text-[#9496a1]' : 'text-[#ededf3]'}`}>
+                            {getDisplayGoalText(goal.text)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {period.displayTag && (
+                          <span className={`text-[9px] px-2 py-0.5 rounded-full border ${
+                            period.isCurrent
+                              ? 'bg-white/10 text-white border-white/20 font-semibold'
+                              : period.isPast && !goal.completed
+                                ? 'bg-amber-500/10 text-amber-300 border-amber-500/20 font-medium'
+                                : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
+                          }`}>
+                            {period.displayTag}
+                          </span>
+                        )}
+
+                        <span className="text-[9px] uppercase px-2 py-0.5 rounded-full border bg-white/[0.05] text-zinc-300 border-white/[0.08]">
+                          {goal.timeframe}
+                        </span>
+
+                        {onDeleteGoal && (
+                          <button
+                            type="button"
+                            onClick={() => onDeleteGoal(goal.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-[#9496a1] hover:text-rose-400 transition-opacity cursor-pointer"
+                            title="Delete goal"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

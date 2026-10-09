@@ -67,6 +67,17 @@ import WeeklyReviewProtocol from './WeeklyReviewProtocol';
 import SectionHeader from './SectionHeader';
 import GanttRoadmapView from './GanttRoadmapView';
 import { SIGNATURE_ACCENT_COLOR } from '../utils/themeColors';
+import { 
+  parseGoalPeriod, 
+  getWeekKey, 
+  getMonthKey, 
+  getDayKey, 
+  getYearKey, 
+  getISOWeekNumber, 
+  getISOWeekDateRange, 
+  formatMonthDisplay,
+  GoalPeriodInfo
+} from '../utils/goalDateHelpers';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -120,34 +131,20 @@ export default function TodoHub({
     return text.replace(/^\[(D|W|M|Y):[^\]]+\]\s*/, '');
   };
 
-  // Extract date info from goal text tag: [D:YYYY-MM-DD], [W:...], [M:...], [Y:...]
+  // Extract date info from goal text tag or period: [D:YYYY-MM-DD], [W:...], [M:...], [Y:...]
   const getGoalDateInfo = (g: GoalTodo) => {
-    const text = g.text || '';
-    const match = text.match(/^\[([DWMY]):([^\]]+)\]/);
-    const todayKey = todayCtxKey;
+    const period = parseGoalPeriod(g, today);
+    const isToday = period.timeframe === 'daily' && period.isCurrent;
+    const isOverdue = !g.completed && period.isPast;
 
-    if (!match) {
-      return {
-        type: g.timeframe || 'daily',
-        key: g.timeframe === 'daily' ? todayKey : '',
-        isToday: g.timeframe === 'daily',
-        isOverdue: false,
-        displayDate: g.timeframe === 'daily' ? 'Today' : ''
-      };
-    }
-    const tagType = match[1];
-    const tagKey = match[2];
-    const isToday = tagType === 'D' && tagKey === todayKey;
-    const isOverdue = tagType === 'D' && !g.completed && tagKey < todayKey;
-
-    let displayDate = tagKey;
-    if (tagType === 'D') {
-      const parts = tagKey.split('-');
-      if (parts.length === 3) {
-        displayDate = isToday ? 'Today' : `${parts[2]}/${parts[1]}`;
-      }
-    }
-    return { type: tagType, key: tagKey, isToday, isOverdue, displayDate };
+    return { 
+      type: period.timeframe === 'daily' ? 'D' : period.timeframe === 'weekly' ? 'W' : period.timeframe === 'monthly' ? 'M' : 'Y', 
+      key: period.key, 
+      isToday, 
+      isOverdue, 
+      displayDate: period.displayTag,
+      period 
+    };
   };
 
   // View mode toggle: Board vs Master Table View vs Gantt Roadmap vs Calendar Grid vs Weekly Review
@@ -159,6 +156,8 @@ export default function TodoHub({
   const [databaseContextFilter, setDatabaseContextFilter] = useState<string>('all');
   const [databaseTimeframeFilter, setDatabaseTimeframeFilter] = useState<'all' | 'today' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('all');
   const [dbDailyViewScope, setDbDailyViewScope] = useState<'today' | 'all'>('today');
+  const [dbWeeklyViewScope, setDbWeeklyViewScope] = useState<'current' | 'all'>('current');
+  const [dbMonthlyViewScope, setDbMonthlyViewScope] = useState<'current' | 'all'>('current');
   const [databaseSortBy, setDatabaseSortBy] = useState<
     'manual' | 'priority-desc' | 'priority-asc' | 'created-desc' | 'created-asc' | 'alpha-asc' | 'alpha-desc' | 'status' | 'estimate'
   >('manual');
@@ -192,13 +191,13 @@ export default function TodoHub({
 
     let fullText = clean;
     if (dbMasterAddTimeframe === 'daily') {
-      fullText = `[D:${todayCtxKey}] ${clean}`;
+      fullText = `[D:${getDayKey(today)}] ${clean}`;
     } else if (dbMasterAddTimeframe === 'weekly') {
-      fullText = `[W:${todayYearStr}-${todayWeekStr}] ${clean}`;
+      fullText = `[W:${getWeekKey(today)}] ${clean}`;
     } else if (dbMasterAddTimeframe === 'monthly') {
-      fullText = `[M:${todayYearStr}-${todayMonthStr}] ${clean}`;
+      fullText = `[M:${getMonthKey(today)}] ${clean}`;
     } else if (dbMasterAddTimeframe === 'yearly') {
-      fullText = `[Y:${todayYearStr}] ${clean}`;
+      fullText = `[Y:${getYearKey(today)}] ${clean}`;
     }
 
     onAddGoal(fullText, dbMasterAddTimeframe, dbMasterAddEstimate, dbMasterAddPriority);
@@ -238,6 +237,80 @@ export default function TodoHub({
   const allDailyGoalsCount = useMemo(() => {
     return (goals || []).filter(g => g && g.timeframe === 'daily').length;
   }, [goals]);
+
+  // Weekly goals counts & past incomplete detection
+  const currentWeeklyGoalsCount = useMemo(() => {
+    return (goals || []).filter(g => {
+      if (!g || g.timeframe !== 'weekly') return false;
+      const period = parseGoalPeriod(g, today);
+      return period.isCurrent;
+    }).length;
+  }, [goals, today]);
+
+  const allWeeklyGoalsCount = useMemo(() => {
+    return (goals || []).filter(g => g && g.timeframe === 'weekly').length;
+  }, [goals]);
+
+  const pastIncompleteWeeklyGoals = useMemo(() => {
+    return (goals || []).filter(g => {
+      if (!g || g.completed || g.timeframe !== 'weekly') return false;
+      const period = parseGoalPeriod(g, today);
+      return period.isPast;
+    });
+  }, [goals, today]);
+
+  // Monthly goals counts & past incomplete detection
+  const currentMonthlyGoalsCount = useMemo(() => {
+    return (goals || []).filter(g => {
+      if (!g || g.timeframe !== 'monthly') return false;
+      const period = parseGoalPeriod(g, today);
+      return period.isCurrent;
+    }).length;
+  }, [goals, today]);
+
+  const allMonthlyGoalsCount = useMemo(() => {
+    return (goals || []).filter(g => g && g.timeframe === 'monthly').length;
+  }, [goals]);
+
+  const pastIncompleteMonthlyGoals = useMemo(() => {
+    return (goals || []).filter(g => {
+      if (!g || g.completed || g.timeframe !== 'monthly') return false;
+      const period = parseGoalPeriod(g, today);
+      return period.isPast;
+    });
+  }, [goals, today]);
+
+  // Rollover past weekly tasks to current week
+  const handleRolloverWeeklyTasks = async () => {
+    const curWeekKey = getWeekKey(today);
+    for (const g of pastIncompleteWeeklyGoals) {
+      const cleanText = getDisplayGoalText(g.text);
+      if (onUpdateGoal) {
+        onUpdateGoal({
+          ...g,
+          text: `[W:${curWeekKey}] ${cleanText}`
+        });
+      } else if (onEditGoal) {
+        onEditGoal(g.id, `[W:${curWeekKey}] ${cleanText}`);
+      }
+    }
+  };
+
+  // Rollover past monthly tasks to current month
+  const handleRolloverMonthlyTasks = async () => {
+    const curMonthKey = getMonthKey(today);
+    for (const g of pastIncompleteMonthlyGoals) {
+      const cleanText = getDisplayGoalText(g.text);
+      if (onUpdateGoal) {
+        onUpdateGoal({
+          ...g,
+          text: `[M:${curMonthKey}] ${cleanText}`
+        });
+      } else if (onEditGoal) {
+        onEditGoal(g.id, `[M:${curMonthKey}] ${cleanText}`);
+      }
+    }
+  };
 
   // Unique context tags extracted from existing goals
   const availableContextTags = useMemo(() => {
@@ -786,10 +859,10 @@ export default function TodoHub({
     if (sourceGoal.timeframe !== targetTimeframe) {
       const cleanText = getDisplayGoalText(sourceGoal.text);
       let tag = '';
-      if (targetTimeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
-      else if (targetTimeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
-      else if (targetTimeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
-      else if (targetTimeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+      if (targetTimeframe === 'daily') tag = `[D:${getDayKey(today)}] `;
+      else if (targetTimeframe === 'weekly') tag = `[W:${getWeekKey(today)}] `;
+      else if (targetTimeframe === 'monthly') tag = `[M:${getMonthKey(today)}] `;
+      else if (targetTimeframe === 'yearly') tag = `[Y:${getYearKey(today)}] `;
 
       updatedSource = {
         ...sourceGoal,
@@ -828,10 +901,10 @@ export default function TodoHub({
     if (targetGoal.timeframe !== targetTimeframe) {
       const cleanText = getDisplayGoalText(targetGoal.text);
       let tag = '';
-      if (targetTimeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
-      else if (targetTimeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
-      else if (targetTimeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
-      else if (targetTimeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+      if (targetTimeframe === 'daily') tag = `[D:${getDayKey(today)}] `;
+      else if (targetTimeframe === 'weekly') tag = `[W:${getWeekKey(today)}] `;
+      else if (targetTimeframe === 'monthly') tag = `[M:${getMonthKey(today)}] `;
+      else if (targetTimeframe === 'yearly') tag = `[Y:${getYearKey(today)}] `;
 
       const updatedGoal: GoalTodo = {
         ...targetGoal,
@@ -853,10 +926,10 @@ export default function TodoHub({
     if (!text) return;
 
     let tag = '';
-    if (timeframe === 'daily') tag = `[D:${todayYearStr}-${todayMonthStr}-${todayDayStr}] `;
-    else if (timeframe === 'weekly') tag = `[W:${todayYearStr}-${todayMonthStr}-${todayWeekStr}] `;
-    else if (timeframe === 'monthly') tag = `[M:${todayYearStr}-${todayMonthStr}] `;
-    else if (timeframe === 'yearly') tag = `[Y:${todayYearStr}] `;
+    if (timeframe === 'daily') tag = `[D:${getDayKey(today)}] `;
+    else if (timeframe === 'weekly') tag = `[W:${getWeekKey(today)}] `;
+    else if (timeframe === 'monthly') tag = `[M:${getMonthKey(today)}] `;
+    else if (timeframe === 'yearly') tag = `[Y:${getYearKey(today)}] `;
 
     const est = dbQuickAddEstimates[timeframe] || undefined;
     onAddGoal(`${tag}${text}`, timeframe, est as TimeEstimate | undefined);
@@ -1203,12 +1276,24 @@ export default function TodoHub({
                 const ColIcon = col.icon;
                 const isDailyCol = col.id === 'daily';
                 const isTodayOnly = isDailyCol && (dbDailyViewScope === 'today' || databaseTimeframeFilter === 'today') && databaseTimeframeFilter !== 'daily';
+                const isWeeklyCol = col.id === 'weekly';
+                const isWeeklyCurrentOnly = isWeeklyCol && dbWeeklyViewScope === 'current';
+                const isMonthlyCol = col.id === 'monthly';
+                const isMonthlyCurrentOnly = isMonthlyCol && dbMonthlyViewScope === 'current';
 
                 const colGoals = filteredDatabaseGoals.filter(g => {
                   if (g.timeframe !== col.id) return false;
                   if (isTodayOnly) {
                     const info = getGoalDateInfo(g);
                     return info.isToday || !g.text?.startsWith('[D:');
+                  }
+                  if (isWeeklyCurrentOnly) {
+                    const info = getGoalDateInfo(g);
+                    return info.period.isCurrent || (!g.completed && info.period.isPast);
+                  }
+                  if (isMonthlyCurrentOnly) {
+                    const info = getGoalDateInfo(g);
+                    return info.period.isCurrent || (!g.completed && info.period.isPast);
                   }
                   return true;
                 });
@@ -1245,13 +1330,27 @@ export default function TodoHub({
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
-                              <span>{isDailyCol ? (isTodayOnly ? 'Today' : 'Daily Tasks') : col.label}</span>
+                              <span>
+                                {isDailyCol 
+                                  ? (isTodayOnly ? 'Today' : 'Daily Tasks') 
+                                  : isWeeklyCol 
+                                    ? (isWeeklyCurrentOnly ? 'This Week' : 'Weekly Tasks')
+                                    : isMonthlyCol
+                                      ? (isMonthlyCurrentOnly ? 'This Month' : 'Monthly Tasks')
+                                      : col.label}
+                              </span>
                               <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/[0.06] text-[#ededf3] tabular-nums font-semibold">
                                 {totalCount}
                               </span>
                             </h4>
                             <p className="text-[10px] text-[#9496a1] font-normal">
-                              {isDailyCol ? (isTodayOnly ? 'Daily Priorities (Today)' : `All Daily Tasks (${allDailyGoalsCount})`) : col.sublabel}
+                              {isDailyCol 
+                                ? (isTodayOnly ? 'Daily Priorities (Today)' : `All Daily Tasks (${allDailyGoalsCount})`) 
+                                : isWeeklyCol
+                                  ? (isWeeklyCurrentOnly ? `Sprint W${getISOWeekNumber(today)} (${getISOWeekDateRange(today.getFullYear(), getISOWeekNumber(today))})` : `All Weekly Sprints (${allWeeklyGoalsCount})`)
+                                  : isMonthlyCol
+                                    ? (isMonthlyCurrentOnly ? `${formatMonthDisplay(getMonthKey(today))} Objectives` : `All Monthly Objectives (${allMonthlyGoalsCount})`)
+                                    : col.sublabel}
                             </p>
                           </div>
                         </div>
@@ -1293,6 +1392,94 @@ export default function TodoHub({
                               All Days ({allDailyGoalsCount})
                             </button>
                           </div>
+                        </div>
+                      )}
+
+                      {/* Weekly Column This Week vs All Weeks Toggle */}
+                      {isWeeklyCol && databaseTimeframeFilter === 'all' && (
+                        <div className="flex items-center justify-between pt-0.5">
+                          <div className="inline-flex p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                            <button
+                              type="button"
+                              onClick={() => setDbWeeklyViewScope('current')}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                                isWeeklyCurrentOnly
+                                  ? 'bg-white text-black shadow-sm font-semibold'
+                                  : 'text-[#9496a1] hover:text-white'
+                              }`}
+                            >
+                              This Week ({currentWeeklyGoalsCount})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDbWeeklyViewScope('all')}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                                !isWeeklyCurrentOnly
+                                  ? 'bg-white text-black shadow-sm font-semibold'
+                                  : 'text-[#9496a1] hover:text-white'
+                              }`}
+                            >
+                              All Weeks ({allWeeklyGoalsCount})
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Weekly Rollover Banner for Past Incomplete Tasks */}
+                      {isWeeklyCol && isWeeklyCurrentOnly && pastIncompleteWeeklyGoals.length > 0 && (
+                        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300">
+                          <span className="font-medium truncate">{pastIncompleteWeeklyGoals.length} past carry-over</span>
+                          <button
+                            type="button"
+                            onClick={handleRolloverWeeklyTasks}
+                            className="underline hover:text-amber-100 font-semibold cursor-pointer shrink-0 ml-1.5"
+                          >
+                            Rollover to this week
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Monthly Column This Month vs All Months Toggle */}
+                      {isMonthlyCol && databaseTimeframeFilter === 'all' && (
+                        <div className="flex items-center justify-between pt-0.5">
+                          <div className="inline-flex p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+                            <button
+                              type="button"
+                              onClick={() => setDbMonthlyViewScope('current')}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                                isMonthlyCurrentOnly
+                                  ? 'bg-white text-black shadow-sm font-semibold'
+                                  : 'text-[#9496a1] hover:text-white'
+                              }`}
+                            >
+                              This Month ({currentMonthlyGoalsCount})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDbMonthlyViewScope('all')}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-all cursor-pointer ${
+                                !isMonthlyCurrentOnly
+                                  ? 'bg-white text-black shadow-sm font-semibold'
+                                  : 'text-[#9496a1] hover:text-white'
+                              }`}
+                            >
+                              All Months ({allMonthlyGoalsCount})
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Monthly Rollover Banner for Past Incomplete Tasks */}
+                      {isMonthlyCol && isMonthlyCurrentOnly && pastIncompleteMonthlyGoals.length > 0 && (
+                        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300">
+                          <span className="font-medium truncate">{pastIncompleteMonthlyGoals.length} past carry-over</span>
+                          <button
+                            type="button"
+                            onClick={handleRolloverMonthlyTasks}
+                            className="underline hover:text-amber-100 font-semibold cursor-pointer shrink-0 ml-1.5"
+                          >
+                            Rollover to this month
+                          </button>
                         </div>
                       )}
 

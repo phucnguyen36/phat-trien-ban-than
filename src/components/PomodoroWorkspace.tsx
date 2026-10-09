@@ -132,7 +132,7 @@ export default function PomodoroWorkspace({
   // Task selection drawer / popover state & search
   const [isTaskSelectorOpen, setIsTaskSelectorOpen] = useState<boolean>(false);
   const [taskSearchQuery, setTaskSearchQuery] = useState<string>('');
-  const [taskFilterTab, setTaskFilterTab] = useState<'today' | 'priority' | 'all'>('today');
+  const [taskFilterTab, setTaskFilterTab] = useState<'today' | 'weekly' | 'monthly' | 'priority' | 'all'>('today');
   const [newQuickTaskText, setNewQuickTaskText] = useState<string>('');
   const [rightColView, setRightColView] = useState<'pulse' | 'history' | 'all'>('pulse');
 
@@ -167,6 +167,16 @@ export default function PomodoroWorkspace({
     return goals.filter(g => !g.completed && g.timeframe === 'daily');
   }, [goals]);
 
+  // Weekly tasks
+  const weeklyTasks = useMemo(() => {
+    return goals.filter(g => !g.completed && g.timeframe === 'weekly');
+  }, [goals]);
+
+  // Monthly tasks
+  const monthlyTasks = useMemo(() => {
+    return goals.filter(g => !g.completed && g.timeframe === 'monthly');
+  }, [goals]);
+
   // Priority tasks
   const priorityTasks = useMemo(() => {
     return goals.filter(g => !g.completed && (g.priority === 'High' || g.priority === 'The One Thing'));
@@ -177,6 +187,10 @@ export default function PomodoroWorkspace({
     let list = candidateTasks;
     if (taskFilterTab === 'today') {
       list = list.filter(g => g.timeframe === 'daily');
+    } else if (taskFilterTab === 'weekly') {
+      list = list.filter(g => g.timeframe === 'weekly');
+    } else if (taskFilterTab === 'monthly') {
+      list = list.filter(g => g.timeframe === 'monthly');
     } else if (taskFilterTab === 'priority') {
       list = list.filter(g => g.priority === 'High' || g.priority === 'The One Thing');
     }
@@ -731,8 +745,7 @@ export default function PomodoroWorkspace({
                   )}
                 </div>
 
-                {/* Filter Tabs */}
-                <div className="flex items-center gap-1 text-[11px]">
+                <div className="flex flex-wrap items-center gap-1 text-[11px]">
                   <button
                     type="button"
                     onClick={() => setTaskFilterTab('today')}
@@ -744,6 +757,32 @@ export default function PomodoroWorkspace({
                   >
                     <span>⭐ Today</span>
                     <span className="text-[10px] px-1 rounded bg-white/10 tabular-nums">{todayTasks.length}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTaskFilterTab('weekly')}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                      taskFilterTab === 'weekly'
+                        ? 'bg-white/15 text-white font-semibold'
+                        : 'text-[#9496a1] hover:text-white bg-white/[0.02]'
+                    }`}
+                  >
+                    <span>📅 This Week</span>
+                    <span className="text-[10px] px-1 rounded bg-white/10 tabular-nums">{weeklyTasks.length}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTaskFilterTab('monthly')}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                      taskFilterTab === 'monthly'
+                        ? 'bg-white/15 text-white font-semibold'
+                        : 'text-[#9496a1] hover:text-white bg-white/[0.02]'
+                    }`}
+                  >
+                    <span>🎯 This Month</span>
+                    <span className="text-[10px] px-1 rounded bg-white/10 tabular-nums">{monthlyTasks.length}</span>
                   </button>
 
                   <button
