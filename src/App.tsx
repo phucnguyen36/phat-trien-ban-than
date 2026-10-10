@@ -97,8 +97,10 @@ import {
   Flame,
   Play,
   Pause,
-  ArrowRight
+  ArrowRight,
+  Zap
 } from 'lucide-react';
+import ProUpgradeModal, { DEFAULT_WHOP_STORE_URL } from './components/ProUpgradeModal';
 
 interface UserProfile {
   name: string;
@@ -467,6 +469,48 @@ export default function App() {
     message: string;
     onConfirm?: () => void;
   } | null>(null);
+
+  // Pro Lifetime License State & Activation Modal
+  const [isProModalOpen, setIsProModalOpen] = useState(false);
+  const [activeLicenseKey, setActiveLicenseKey] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('df_lifetime_license_key') || null;
+    } catch {
+      return null;
+    }
+  });
+  const [isProLifetime, setIsProLifetime] = useState<boolean>(() => {
+    try {
+      const key = localStorage.getItem('df_lifetime_license_key');
+      const active = localStorage.getItem('df_lifetime_license_active');
+      return !!(key || active === 'true');
+    } catch {
+      return false;
+    }
+  });
+
+  const handleActivateLicense = (key: string): boolean => {
+    try {
+      localStorage.setItem('df_lifetime_license_key', key);
+      localStorage.setItem('df_lifetime_license_active', 'true');
+      setActiveLicenseKey(key);
+      setIsProLifetime(true);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleDeactivateLicense = () => {
+    try {
+      localStorage.removeItem('df_lifetime_license_key');
+      localStorage.removeItem('df_lifetime_license_active');
+      setActiveLicenseKey(null);
+      setIsProLifetime(false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
 
   // Show a custom modal notice
@@ -1077,14 +1121,39 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5 transition-colors">
         <div className="max-w-[1760px] 2xl:max-w-[1920px] mx-auto w-full flex justify-between items-center gap-4">
           
-          {/* Studio Brand Mark with Official Vector Logo (Black background container) */}
-          <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setActiveSection('overview')}>
-            <div className="w-8 h-8 rounded-lg bg-black border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-sm">
-              <DeepFocusLogo size={18} />
+          {/* Studio Brand Mark with Official Vector Logo & Pro Badge */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setActiveSection('overview')}>
+              <div className="w-8 h-8 rounded-lg bg-black border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-sm">
+                <DeepFocusLogo size={18} />
+              </div>
+              <span className="font-semibold text-sm tracking-tight text-white leading-none">
+                DeepFocus
+              </span>
             </div>
-            <span className="font-semibold text-sm tracking-tight text-white leading-none">
-              DeepFocus
-            </span>
+
+            {/* Pro Upgrade / Pro Status Badge */}
+            <button
+              onClick={() => setIsProModalOpen(true)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide transition-all cursor-pointer ${
+                isProLifetime
+                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                  : 'bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 text-amber-300 hover:border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.12)] active:scale-95'
+              }`}
+              title={isProLifetime ? "DeepFocus Pro Lifetime Active" : "Upgrade to DeepFocus Pro Lifetime ($49)"}
+            >
+              {isProLifetime ? (
+                <>
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                  <span>PRO LIFETIME</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3 h-3 text-amber-400 animate-pulse" />
+                  <span>PRO $49</span>
+                </>
+              )}
+            </button>
           </div>
 
           {/* Quick Header Actions */}
@@ -2074,6 +2143,17 @@ export default function App() {
           </div>
         </aside>
       )}
+
+      {/* Pro Lifetime License & Whop Checkout Modal */}
+      <ProUpgradeModal
+        isOpen={isProModalOpen}
+        onClose={() => setIsProModalOpen(false)}
+        isPro={isProLifetime}
+        activeKey={activeLicenseKey}
+        onActivateKey={handleActivateLicense}
+        onDeactivateKey={handleDeactivateLicense}
+        accentColor={customAccentColor}
+      />
 
     </div>
   );
