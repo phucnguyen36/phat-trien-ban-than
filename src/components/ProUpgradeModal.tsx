@@ -31,9 +31,13 @@ interface ProUpgradeModalProps {
   onDeactivateKey?: () => void;
   accentColor?: string;
   whopStoreUrl?: string;
+  whopMonthlyUrl?: string;
+  whopLifetimeUrl?: string;
 }
 
 export const DEFAULT_WHOP_STORE_URL = 'https://whop.com/deepfocus-os';
+export const DEFAULT_WHOP_MONTHLY_URL = 'https://whop.com/checkout/deepfocus-monthly';
+export const DEFAULT_WHOP_LIFETIME_URL = 'https://whop.com/checkout/deepfocus-lifetime';
 
 export default function ProUpgradeModal({
   isOpen,
@@ -42,7 +46,9 @@ export default function ProUpgradeModal({
   activeKey,
   onActivateKey,
   onDeactivateKey,
-  whopStoreUrl = DEFAULT_WHOP_STORE_URL
+  whopStoreUrl = DEFAULT_WHOP_STORE_URL,
+  whopMonthlyUrl = DEFAULT_WHOP_MONTHLY_URL,
+  whopLifetimeUrl = DEFAULT_WHOP_LIFETIME_URL
 }: ProUpgradeModalProps) {
   const [inputKey, setInputKey] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -77,6 +83,14 @@ export default function ProUpgradeModal({
 
   const handleOpenStore = () => {
     window.open(whopStoreUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleOpenMonthly = () => {
+    window.open(whopMonthlyUrl || whopStoreUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleOpenLifetime = () => {
+    window.open(whopLifetimeUrl || whopStoreUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -157,7 +171,7 @@ export default function ProUpgradeModal({
 
             <button
               type="button"
-              onClick={handleOpenStore}
+              onClick={handleOpenMonthly}
               className="w-full py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/15 border border-white/15 text-white font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Subscribe ($29/mo)</span>
@@ -215,7 +229,7 @@ export default function ProUpgradeModal({
 
             <button
               type="button"
-              onClick={handleOpenStore}
+              onClick={handleOpenLifetime}
               className="w-full py-2.5 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-2"
             >
               <span>Own Forever ($99)</span>
