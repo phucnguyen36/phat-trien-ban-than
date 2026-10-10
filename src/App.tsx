@@ -1140,17 +1140,17 @@ export default function App() {
                   ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
                   : 'bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 text-amber-300 hover:border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.12)] active:scale-95'
               }`}
-              title={isProLifetime ? "DeepFocus Pro Lifetime Active" : "Upgrade to DeepFocus Pro Lifetime ($49)"}
+              title={isProLifetime ? "DeepFocus Pro Lifetime Active" : "Upgrade to DeepFocus Pro: $29/mo or $99 Lifetime"}
             >
               {isProLifetime ? (
                 <>
                   <Sparkles className="w-3 h-3 text-emerald-400" />
-                  <span>PRO LIFETIME</span>
+                  <span>PRO ACTIVE</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-3 h-3 text-amber-400 animate-pulse" />
-                  <span>PRO $49</span>
+                  <span>UPGRADE PRO</span>
                 </>
               )}
             </button>

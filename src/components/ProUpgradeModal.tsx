@@ -17,7 +17,9 @@ import {
   Calendar, 
   RotateCcw,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Infinity
 } from 'lucide-react';
 
 interface ProUpgradeModalProps {
@@ -66,10 +68,10 @@ export default function ProUpgradeModal({
 
     const success = onActivateKey(clean);
     if (success) {
-      setSuccessMsg('DeepFocus Pro Lifetime successfully activated! Welcome to the craft.');
+      setSuccessMsg('DeepFocus Pro successfully activated! Welcome to the craft.');
       setInputKey('');
     } else {
-      setErrorMsg('Invalid license key. Please verify your purchase email or Whop receipt.');
+      setErrorMsg('Invalid license key. Please verify your purchase receipt or Whop dashboard.');
     }
   };
 
@@ -77,32 +79,9 @@ export default function ProUpgradeModal({
     window.open(whopStoreUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const features = [
-    {
-      icon: Laptop,
-      title: '100% Offline Desktop OS (.exe)',
-      desc: 'Your data lives only on your hardware. Zero telemetry, zero tracking, zero cloud outages.'
-    },
-    {
-      icon: Music,
-      title: '40Hz Gamma & Pure Focus Soundscapes',
-      desc: 'Scientifically calibrated audio streams: 40Hz Gamma binaural, Brown Noise, Rain & Cafe.'
-    },
-    {
-      icon: Calendar,
-      title: 'Interactive Gantt Roadmap & Task Rollover',
-      desc: 'Drag-and-drop timeline planning with 1-click automatic carry-over for weekly & monthly sprints.'
-    },
-    {
-      icon: ShieldCheck,
-      title: 'One-Time $49 • Zero Subscriptions Forever',
-      desc: 'No monthly drain on your cash flow. Buy once, own forever, including all future updates.'
-    }
-  ];
-
   return (
     <div className="fixed inset-0 z-[9600] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn">
-      <div className="relative w-full max-w-2xl bg-[#0b0c10] border border-white/15 rounded-3xl p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-3xl bg-[#0b0c10] border border-white/15 rounded-3xl p-6 sm:p-8 shadow-[0_25px_80px_rgba(0,0,0,0.9)] max-h-[92vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -117,7 +96,7 @@ export default function ProUpgradeModal({
         <div className="flex items-center gap-2 mb-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold tracking-wider uppercase">
             <Zap className="w-3.5 h-3.5 text-amber-400" />
-            <span>DeepFocus Pro Lifetime</span>
+            <span>DeepFocus Pro Access</span>
           </div>
           {isPro && (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
@@ -129,62 +108,148 @@ export default function ProUpgradeModal({
 
         {/* Title & Philosophy */}
         <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
-          Reclaim Your Attention.<br />Own Your Tools For Life.
+          Reclaim Your Attention.<br />Choose Your Flow Engine.
         </h2>
         <p className="text-xs sm:text-sm text-zinc-400 mt-2 font-normal leading-relaxed">
-          Notion is bloatware. Subscriptions are a tax on focus. DeepFocus OS is built for high-agency builders who demand ruthless simplicity and permanent ownership.
+          Notion is bloatware. Cluttered apps tax your mental runway. DeepFocus OS gives high-agency creators ruthless clarity, 100% offline security, and zero distraction.
         </p>
 
-        {/* Pricing Offer Banner */}
-        <div className="mt-5 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-white tracking-tight">$49</span>
-              <span className="text-sm text-zinc-500 line-through font-mono">$79</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                SAVE $30 TODAY
-              </span>
+        {/* DUAL PRICING TIERS: $29/MONTH VS $99 BUY-OUT */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* TIER 1: MONTHLY PLAN ($29/mo) */}
+          <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex flex-col justify-between space-y-4 hover:border-white/20 transition-all">
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Monthly Pass</h3>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">Flexible, pay-as-you-go flow</p>
+                </div>
+                <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-zinc-300">
+                  <Clock className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-1.5 pt-1">
+                <span className="text-3xl font-extrabold text-white tracking-tight">$29</span>
+                <span className="text-xs text-zinc-400 font-medium">/ month</span>
+              </div>
+
+              <ul className="space-y-2 text-[11px] text-zinc-300 pt-2 border-t border-white/[0.06]">
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span>Full access to web & desktop workspaces</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span>All 40Hz Gamma soundscapes & binaurals</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span>Gantt roadmap & automatic task rollover</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span>Cancel anytime with 1 click on Whop</span>
+                </li>
+              </ul>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-0.5">
-              One-time payment • Lifetime access to desktop app & web • No recurring fees
-            </p>
+
+            <button
+              type="button"
+              onClick={handleOpenStore}
+              className="w-full py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/15 border border-white/15 text-white font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Subscribe ($29/mo)</span>
+              <ExternalLink className="w-3 h-3 text-zinc-400" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenStore}
-            className="px-5 py-3 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95 shrink-0"
-          >
-            <span>Get Pro On Whop ($49)</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </button>
+          {/* TIER 2: LIFETIME BUY-OUT ($99 ONE-TIME - BEST VALUE) */}
+          <div className="relative p-5 rounded-2xl bg-gradient-to-b from-amber-500/[0.06] to-white/[0.02] border border-amber-500/30 flex flex-col justify-between space-y-4 shadow-[0_0_25px_rgba(245,158,11,0.08)] hover:border-amber-400/50 transition-all">
+            
+            {/* Best Value Highlight Pill */}
+            <div className="absolute -top-3 right-5 px-2.5 py-0.5 rounded-full bg-amber-400 text-black font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
+              Best Value • Save 72%
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Lifetime Buy-Out</span>
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  </h3>
+                  <p className="text-[11px] text-zinc-300 mt-0.5">Pay once. Own it forever.</p>
+                </div>
+                <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300">
+                  <Infinity className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-2 pt-1">
+                <span className="text-3xl font-extrabold text-white tracking-tight">$99</span>
+                <span className="text-xs text-zinc-400 font-medium">one-time payment</span>
+                <span className="text-[10px] text-amber-300 font-mono">Zero rent forever</span>
+              </div>
+
+              <ul className="space-y-2 text-[11px] text-zinc-200 pt-2 border-t border-amber-500/20">
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 font-bold" />
+                  <span className="font-medium text-white">100% Offline Standalone Desktop App (.exe)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 font-bold" />
+                  <span>Permanent Whop License Key inside receipt</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 font-bold" />
+                  <span>All future v5.x & v6.x major updates included</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-amber-400 shrink-0 font-bold" />
+                  <span>Personal & Commercial license rights</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleOpenStore}
+              className="w-full py-2.5 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>Own Forever ($99)</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
         </div>
 
         {/* Core Value Props Grid */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          {features.map((feat, idx) => {
-            const Icon = feat.icon;
-            return (
-              <div 
-                key={idx} 
-                className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1.5 hover:border-white/15 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-200">
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <h4 className="text-xs font-semibold text-white">{feat.title}</h4>
-                </div>
-                <p className="text-[11px] text-zinc-400 leading-normal pl-8">
-                  {feat.desc}
-                </p>
-              </div>
-            );
-          })}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-2">
+              <Laptop className="w-3.5 h-3.5 text-zinc-300" />
+              <h4 className="text-xs font-semibold text-white">100% Offline Architecture</h4>
+            </div>
+            <p className="text-[11px] text-zinc-400 leading-normal pl-5">
+              Zero cloud telemetry. Your notes, goals, and financials stay locked on your device.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-2">
+              <Music className="w-3.5 h-3.5 text-zinc-300" />
+              <h4 className="text-xs font-semibold text-white">40Hz Gamma Soundscapes</h4>
+            </div>
+            <p className="text-[11px] text-zinc-400 leading-normal pl-5">
+              Acoustic neuro-entrainment streams for prefrontal cortex focus and deep flow.
+            </p>
+          </div>
         </div>
 
         {/* License Key Activation Section */}
-        <div className="mt-6 pt-6 border-t border-white/[0.08]">
+        <div className="mt-6 pt-5 border-t border-white/[0.08]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Key className="w-3.5 h-3.5 text-zinc-400" />
@@ -208,10 +273,10 @@ export default function ProUpgradeModal({
               <div className="space-y-0.5">
                 <p className="text-emerald-300 font-semibold flex items-center gap-1.5">
                   <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Pro Lifetime License is active</span>
+                  <span>Pro License is active</span>
                 </p>
                 <p className="text-[11px] text-zinc-400 font-mono">
-                  Key: {activeKey || 'DF-PRO-LIFETIME'}
+                  Key: {activeKey || 'DF-PRO-ACTIVE'}
                 </p>
               </div>
               <span className="text-[10px] uppercase font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-300">
@@ -252,7 +317,7 @@ export default function ProUpgradeModal({
               )}
 
               <p className="text-[10px] text-zinc-500 leading-normal">
-                After purchasing on Whop, your license key is sent immediately via email and displayed on your Whop dashboard.
+                Whether you choose Monthly ($29/mo) or Lifetime Buy-Out ($99), your key is delivered instantly via email and visible on your Whop dashboard.
               </p>
             </form>
           )}
@@ -260,9 +325,9 @@ export default function ProUpgradeModal({
 
         {/* Footer Guarantee */}
         <div className="mt-5 flex items-center justify-between text-[10px] text-zinc-500 pt-3 border-t border-white/[0.04]">
-          <span>⚡ Delivered instantly via Whop.com</span>
+          <span>⚡ Instant delivery via Whop.com</span>
           <span>🛡️ 30-Day Money-Back Guarantee</span>
-          <span>🔒 256-bit Encrypted Checkout</span>
+          <span>🔒 Apple Pay / Google Pay / Visa</span>
         </div>
 
       </div>
