@@ -76,7 +76,7 @@ export default async function handler(req, res) {
     const licensesCol = collection(db, 'licenses');
 
     // 1. Membership activated / renewed / valid
-    if (action === 'membership.went_valid' || action === 'payment.succeeded') {
+    if (action === 'membership.went_valid' || action === 'membership.activated' || action === 'payment.succeeded') {
       if (!membershipId && !email) {
         return res.status(400).json({ error: 'Invalid membership or user data' });
       }
@@ -136,7 +136,7 @@ export default async function handler(req, res) {
     }
 
     // 2. Membership canceled / payment expired
-    if (action === 'membership.went_invalid') {
+    if (action === 'membership.went_invalid' || action === 'membership.deactivated') {
       if (membershipId) {
         const queryExisting = query(licensesCol, where('whopMembershipId', '==', membershipId));
         const snap = await getDocs(queryExisting);
