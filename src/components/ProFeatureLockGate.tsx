@@ -58,16 +58,16 @@ export default function ProFeatureLockGate({
 
         {/* Top Badges */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold tracking-wider uppercase">
-            <Lock className="w-3.5 h-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold tracking-wider uppercase">
+            <Lock className="w-3.5 h-3.5 text-white" />
             <span>DeepFocus Pro Exclusive</span>
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-zinc-400 text-xs">
             <span>Free Tier: </span>
             <span className="text-white font-medium flex items-center gap-1.5">
-              <Flame className="w-3 h-3 text-amber-400 inline" /> Pomodoro + 
-              <BookOpen className="w-3 h-3 text-cyan-400 inline" /> Journal
+              <Flame className="w-3 h-3 text-white inline" /> Pomodoro + 
+              <BookOpen className="w-3 h-3 text-white inline" /> Journal
             </span>
           </div>
         </div>
@@ -122,23 +122,23 @@ export default function ProFeatureLockGate({
           </div>
 
           {/* Lifetime Buyout (Featured) */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/[0.08] to-transparent border border-amber-500/30 hover:border-amber-500/50 transition-all flex flex-col justify-between relative shadow-[0_0_30px_rgba(245,158,11,0.05)]">
-            <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-amber-400 text-black text-[10px] font-bold uppercase tracking-wider">
-              Best Value • Save 72%
+          <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/20 hover:border-white/40 transition-all flex flex-col justify-between relative shadow-[0_0_20px_rgba(255,255,255,0.03)]">
+            <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-wider">
+              Save 72% • Best Value
             </div>
             <div className="space-y-1 mb-4">
-              <div className="flex items-center justify-between text-xs text-amber-300/80 font-medium">
+              <div className="flex items-center justify-between text-xs text-zinc-300 font-medium">
                 <span>Lifetime Buy-Out</span>
-                <span className="flex items-center gap-1"><InfinityIcon className="w-3 h-3" /> Own forever</span>
+                <span className="flex items-center gap-1"><InfinityIcon className="w-3 h-3 text-white" /> Own forever</span>
               </div>
               <div className="flex items-baseline gap-1.5 text-white">
                 <span className="text-3xl font-black font-mono tracking-tight">$99</span>
-                <span className="text-xs text-amber-300 font-medium">one-time payment</span>
+                <span className="text-xs text-zinc-400 font-medium">one-time payment</span>
               </div>
             </div>
             <button
               onClick={handleDirectLifetime}
-              className="w-full py-2.5 px-4 bg-white text-black hover:bg-zinc-200 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-white/5"
+              className="w-full py-2.5 px-4 bg-white text-black hover:bg-zinc-200 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md active:scale-95"
             >
               <Zap className="w-3.5 h-3.5 fill-black text-black" />
               <span>Own Forever ($99)</span>
