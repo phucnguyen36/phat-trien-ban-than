@@ -18,6 +18,7 @@ import {
 // DeepFocus OS Whop Plan IDs
 const PLAN_LIFETIME_ID = 'plan_vrUwKeR11Yh0T'; // $99 Lifetime Buyout
 const PLAN_MONTHLY_ID = 'plan_6rzHyaaNhKAaU';  // $29.99/mo Membership
+const WHOP_WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET || 'ws_935ab20eae1ba25bfabfef7c5517f49e7ed18eafffcaf4f7c0d94f2f3bbee0be';
 
 /**
  * Generate human-friendly, uppercase alphanumeric license key
