@@ -1140,7 +1140,7 @@ export default function App() {
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide transition-all cursor-pointer ${
                 isProLifetime
                   ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
-                  : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.12)] active:scale-95'
+                  : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-sm active:scale-95'
               }`}
               title={isProLifetime ? "DeepFocus Pro Lifetime Active" : "Upgrade to DeepFocus Pro: $29/mo or $99 Lifetime"}
             >
@@ -1151,7 +1151,7 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <Zap className="w-3 h-3 text-emerald-400" />
+                  <Zap className="w-3 h-3 text-white" />
                   <span>UPGRADE PRO</span>
                 </>
               )}
@@ -1246,7 +1246,11 @@ export default function App() {
                   <Icon className="w-3.5 h-3.5" />
                   <span>{section.label}</span>
                   {isLocked && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold tracking-wider">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider border ${
+                      isActive 
+                        ? 'bg-black/10 border-black/20 text-black' 
+                        : 'bg-white/10 border-white/20 text-white'
+                    }`}>
                       PRO
                     </span>
                   )}
@@ -1316,8 +1320,12 @@ export default function App() {
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-xs font-sans font-medium leading-tight">{section.label}</span>
                           {isLocked && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[9px] font-bold uppercase tracking-wider flex items-center gap-0.5">
-                              <Lock className="w-2.5 h-2.5" />
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-0.5 border ${
+                              isActive 
+                                ? 'bg-black/10 border-black/20 text-black' 
+                                : 'bg-white/10 border-white/20 text-white'
+                            }`}>
+                              <Lock className={`w-2.5 h-2.5 ${isActive ? 'text-black' : 'text-white'}`} />
                               PRO
                             </span>
                           )}

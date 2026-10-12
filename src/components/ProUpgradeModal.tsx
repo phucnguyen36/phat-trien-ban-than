@@ -181,7 +181,7 @@ export default function ProUpgradeModal({
           </div>
 
           {/* Tier 2: Lifetime Buyout ($99) */}
-          <div className="relative p-4 sm:p-4.5 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/30 hover:border-emerald-500/50 transition-all flex flex-col justify-between shadow-[0_0_20px_rgba(16,185,129,0.04)]">
+          <div className="relative p-4 sm:p-4.5 rounded-2xl bg-white/[0.03] border border-white/20 hover:border-white/40 transition-all flex flex-col justify-between shadow-[0_0_20px_rgba(255,255,255,0.02)]">
             
             {/* White Badge (Huy hiệu màu trắng theo yêu cầu) */}
             <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
@@ -193,14 +193,14 @@ export default function ProUpgradeModal({
                 <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">
                   Lifetime Buy-Out
                 </span>
-                <InfinityIcon className="w-3.5 h-3.5 text-emerald-400" />
+                <InfinityIcon className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-white font-mono">$99</span>
                 <span className="text-xs text-zinc-400">one-time</span>
-                <span className="text-[10px] text-emerald-400/90 font-mono">• zero rent</span>
+                <span className="text-[10px] text-zinc-400 font-mono">• zero rent</span>
               </div>
-              <ul className="space-y-1.5 text-[11px] text-zinc-200 pt-2 border-t border-emerald-500/20">
+              <ul className="space-y-1.5 text-[11px] text-zinc-200 pt-2 border-t border-white/10">
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span className="font-medium text-white">Standalone Desktop App (.exe)</span>
@@ -219,7 +219,7 @@ export default function ProUpgradeModal({
             <button
               type="button"
               onClick={handleOpenLifetime}
-              className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+              className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
             >
               <span>Own Forever ($99)</span>
               <ExternalLink className="w-3 h-3 text-black" />
