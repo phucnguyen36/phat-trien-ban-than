@@ -369,6 +369,13 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Security Guard: Prevent non-admin users from accessing or remaining on admin-portal
+  useEffect(() => {
+    if (currentUser && currentUser.role !== 'admin' && activeSection === 'admin-portal') {
+      setActiveSection('overview');
+    }
+  }, [currentUser, activeSection]);
+
   // Persistent Pomodoro Engine (Runs non-stop across all tabs)
   const {
     activeFocusGoalId,
@@ -490,6 +497,13 @@ export default function App() {
       return false;
     }
   });
+
+  // Effective Pro status: Auto-grant full Pro/VIP lifetime access to Admin and VIP users
+  const effectiveIsPro = useMemo(() => {
+    if (currentUser?.role === 'admin') return true;
+    if (currentUser?.tier === 'VIP') return true;
+    return isProLifetime;
+  }, [currentUser, isProLifetime]);
 
   const handleActivateLicense = (key: string): boolean => {
     try {
@@ -1136,15 +1150,32 @@ export default function App() {
 
             {/* Pro Upgrade / Pro Status Badge */}
             <button
-              onClick={() => setIsProModalOpen(true)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide transition-all cursor-pointer ${
-                isProLifetime
-                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
-                  : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-sm active:scale-95'
+              onClick={() => {
+                if (currentUser?.role !== 'admin') {
+                  setIsProModalOpen(true);
+                }
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide transition-all ${
+                currentUser?.role === 'admin'
+                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-default shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                  : effectiveIsPro
+                  ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                  : 'bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-sm active:scale-95 cursor-pointer'
               }`}
-              title={isProLifetime ? "DeepFocus Pro Lifetime Active" : "Upgrade to DeepFocus Pro: $29/mo or $99 Lifetime"}
+              title={
+                currentUser?.role === 'admin' 
+                  ? "Master Administrator (Full Lifetime System Access)" 
+                  : effectiveIsPro 
+                  ? "DeepFocus Pro Lifetime Active" 
+                  : "Upgrade to DeepFocus Pro: $29/mo or $99 Lifetime"
+              }
             >
-              {isProLifetime ? (
+              {currentUser?.role === 'admin' ? (
+                <>
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span>ADMIN LIFETIME</span>
+                </>
+              ) : effectiveIsPro ? (
                 <>
                   <Sparkles className="w-3 h-3 text-emerald-400" />
                   <span>PRO ACTIVE</span>
@@ -1190,6 +1221,30 @@ export default function App() {
               <span className="text-[10px] tracking-wider uppercase font-semibold text-zinc-200">COLOR</span>
             </button>
 
+            {/* Active User Account Badge */}
+            {currentUser && (
+              <div 
+                className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-medium border border-white/10 bg-white/[0.04] text-zinc-300"
+                title={`Active Session: ${currentUser.email} (${currentUser.role === 'admin' ? 'Master Admin' : currentUser.tier === 'VIP' ? 'VIP Pro' : 'Free Account'})`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${currentUser.role === 'admin' || effectiveIsPro ? 'bg-emerald-400' : 'bg-zinc-400'}`} />
+                <span className="truncate max-w-[130px] font-mono text-[11px] text-zinc-200">
+                  {currentUser.email}
+                </span>
+                {currentUser.role === 'admin' ? (
+                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 bg-white/10 text-white rounded border border-white/20">
+                    Admin
+                  </span>
+                ) : (
+                  <span className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border ${
+                    effectiveIsPro ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-white/5 text-zinc-400 border-white/10'
+                  }`}>
+                    {effectiveIsPro ? 'Pro' : 'Free'}
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Profile Settings */}
             <button
               onClick={() => {
@@ -1232,7 +1287,7 @@ export default function App() {
             ].map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
-              const isLocked = !isProLifetime && section.isPro;
+              const isLocked = !effectiveIsPro && section.isPro;
               return (
                 <button
                   key={section.id}
@@ -1304,7 +1359,7 @@ export default function App() {
                 ].map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
-                  const isLocked = !isProLifetime && section.isPro;
+                  const isLocked = !effectiveIsPro && section.isPro;
                   return (
                     <button
                       key={section.id}
@@ -1434,7 +1489,7 @@ export default function App() {
                 {/* Module 1: Tactical Roadmap & To-Do Hub */}
                 {activeSection === 'todo-hub' && (
                   <section id="todo-hub">
-                    {!isProLifetime ? (
+                    {!effectiveIsPro ? (
                       <ProFeatureLockGate
                         featureId="todo-hub"
                         title="Tactical Tasks & Multi-Horizon Roadmap"
@@ -1506,7 +1561,7 @@ export default function App() {
                 {/* Module 2: Self-Mastery Habit Matrix */}
                 {activeSection === 'habit-matrix' && (
                   <section id="habit-matrix">
-                    {!isProLifetime ? (
+                    {!effectiveIsPro ? (
                       <ProFeatureLockGate
                         featureId="habit-matrix"
                         title="Self-Mastery Habit Matrix"
@@ -1549,7 +1604,7 @@ export default function App() {
                 {/* Module 4: Personal Cash Burn-Rate Ledger */}
                 {activeSection === 'expense-ledger' && (
                   <section id="expense-ledger">
-                    {!isProLifetime ? (
+                    {!effectiveIsPro ? (
                       <ProFeatureLockGate
                         featureId="expense-ledger"
                         title="Personal Cash Burn-Rate & Outflow Ledger"
@@ -2221,7 +2276,7 @@ export default function App() {
       <ProUpgradeModal
         isOpen={isProModalOpen}
         onClose={() => setIsProModalOpen(false)}
-        isPro={isProLifetime}
+        isPro={effectiveIsPro}
         activeKey={activeLicenseKey}
         onActivateKey={handleActivateLicense}
         onDeactivateKey={handleDeactivateLicense}
