@@ -120,19 +120,19 @@ export default function ProFeatureLockGate({
             </button>
           </div>
 
-          {/* Lifetime Buyout (Featured) */}
+          {/* 6 Months Pass (Featured) */}
           <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/20 hover:border-white/40 transition-all flex flex-col justify-between relative shadow-[0_0_20px_rgba(255,255,255,0.03)]">
             <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-wider">
-              Save 72% • Best Value
+              Save 43% • Best Value
             </div>
             <div className="space-y-1 mb-4">
               <div className="flex items-center justify-between text-xs text-zinc-300 font-medium">
-                <span>Lifetime Buy-Out</span>
-                <span className="flex items-center gap-1"><InfinityIcon className="w-3 h-3 text-white" /> Own forever</span>
+                <span>6-Month Pass</span>
+                <span className="flex items-center gap-1 font-mono text-[11px] text-zinc-400">Save $75 vs monthly</span>
               </div>
               <div className="flex items-baseline gap-1.5 text-white">
                 <span className="text-3xl font-black font-mono tracking-tight">$99</span>
-                <span className="text-xs text-zinc-400 font-medium">one-time payment</span>
+                <span className="text-xs text-zinc-400 font-medium">/ 6 months (~$16.5/mo)</span>
               </div>
             </div>
             <button
@@ -140,7 +140,7 @@ export default function ProFeatureLockGate({
               className="w-full py-2.5 px-4 bg-white text-black hover:bg-zinc-200 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md active:scale-95"
             >
               <Zap className="w-3.5 h-3.5 fill-black text-black" />
-              <span>Own Forever ($99)</span>
+              <span>Get 6 Months ($99)</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>

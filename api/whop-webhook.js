@@ -16,15 +16,15 @@ import {
 } from './_firebase.js';
 
 // DeepFocus OS Whop Plan IDs
-const PLAN_LIFETIME_ID = 'plan_vrUwKeR11Yh0T'; // $99 Lifetime Buyout
-const PLAN_MONTHLY_ID = 'plan_6rzHyaaNhKAaU';  // $29.99/mo Membership
+const PLAN_6MONTHS_ID = 'plan_vrUwKeR11Yh0T'; // $99 6-Month Pass
+const PLAN_MONTHLY_ID = 'plan_6rzHyaaNhKAaU';  // $29/mo Membership
 const WHOP_WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET || 'ws_935ab20eae1ba25bfabfef7c5517f49e7ed18eafffcaf4f7c0d94f2f3bbee0be';
 
 /**
  * Generate human-friendly, uppercase alphanumeric license key
- * Format: DFOS-LIFE-XXXX-XXXX or DFOS-PASS-XXXX-XXXX
+ * Format: DFOS-6MON-XXXX-XXXX, DFOS-LIFE-XXXX-XXXX, or DFOS-PASS-XXXX-XXXX
  */
-function generateKey(prefix = 'LIFE') {
+function generateKey(prefix = '6MON') {
   const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   const getChunk = (len = 4) => {
     let res = '';
@@ -106,10 +106,15 @@ export default async function handler(req, res) {
       }
 
       // Generate new license key
-      const isLifetime = planId === PLAN_LIFETIME_ID;
-      const planType = isLifetime ? 'lifetime' : 'monthly';
-      const keyPrefix = isLifetime ? 'LIFE' : 'PASS';
+      const is6Months = planId === PLAN_6MONTHS_ID || planId === 'plan_vrUwKeR11Yh0T';
+      const planType = is6Months ? '6months' : 'monthly';
+      const keyPrefix = is6Months ? '6MON' : 'PASS';
       const licenseKey = generateKey(keyPrefix);
+
+      // 6 months is approx 180 days, monthly is 30 days
+      const defaultDurationDays = is6Months ? 180 : 30;
+      const defaultExpiresMs = Date.now() + defaultDurationDays * 24 * 60 * 60 * 1000;
+      const expiresAt = data.expires_at ? Number(data.expires_at) : defaultExpiresMs;
 
       const licenseData = {
         key: licenseKey,
@@ -120,7 +125,7 @@ export default async function handler(req, res) {
         whopUserId: userId,
         whopUsername: username,
         status: 'active',
-        expiresAt: data.expires_at ? Number(data.expires_at) : null,
+        expiresAt: expiresAt,
         createdAt: Date.now(),
         lastVerifiedAt: Date.now()
       };
@@ -132,10 +137,10 @@ export default async function handler(req, res) {
         password: generateKey('PASS'),
         name: username || email.split('@')[0],
         role: 'customer',
-        tier: isLifetime ? 'VIP' : 'Standard',
+        tier: is6Months ? 'VIP' : 'Standard',
         status: 'active',
         createdAt: Date.now(),
-        pricePaid: isLifetime ? 99 : 29,
+        pricePaid: is6Months ? 99 : 29,
         licenseKey: licenseKey
       };
 

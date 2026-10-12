@@ -1195,8 +1195,8 @@ export default function App() {
                 currentUser?.role === 'admin' 
                   ? "Master Administrator (Full Lifetime System Access)" 
                   : effectiveIsPro 
-                  ? "DeepFocus Pro Lifetime Active" 
-                  : "Upgrade to DeepFocus Pro: $29/mo or $99 Lifetime"
+                  ? "DeepFocus Pro Active" 
+                  : "Upgrade to DeepFocus Pro: $29/mo or $99 / 6 Months"
               }
             >
               {currentUser?.role === 'admin' ? (

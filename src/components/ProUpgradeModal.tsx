@@ -187,25 +187,25 @@ export default function ProUpgradeModal({
             </button>
           </div>
 
-          {/* Tier 2: Lifetime Buyout ($99) */}
+          {/* Tier 2: 6 Months Pass ($99) */}
           <div className="relative p-4 sm:p-4.5 rounded-2xl bg-white/[0.03] border border-white/20 hover:border-white/40 transition-all flex flex-col justify-between shadow-[0_0_20px_rgba(255,255,255,0.02)]">
             
             {/* White Badge (Huy hiệu màu trắng theo yêu cầu) */}
             <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
-              Save 72% • Best Value
+              Save 43% • Best Value
             </div>
 
             <div className="space-y-2 mb-4">
               <div className="flex justify-between items-start">
                 <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">
-                  Lifetime Buy-Out
+                  6-Month Pass
                 </span>
-                <InfinityIcon className="w-3.5 h-3.5 text-white" />
+                <Clock className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-white font-mono">$99</span>
-                <span className="text-xs text-zinc-400">one-time</span>
-                <span className="text-[10px] text-zinc-400 font-mono">• zero rent</span>
+                <span className="text-xs text-zinc-400">/ 6 mos</span>
+                <span className="text-[10px] text-zinc-400 font-mono">• ~$16.5/mo</span>
               </div>
               <ul className="space-y-1.5 text-[11px] text-zinc-200 pt-2 border-t border-white/10">
                 <li className="flex items-center gap-1.5">
@@ -214,11 +214,11 @@ export default function ProUpgradeModal({
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span>Permanent Whop license key</span>
+                  <span>Full 6-month sovereign access</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3 h-3 text-emerald-400 shrink-0" />
-                  <span>All future updates included</span>
+                  <span>Save $75 vs monthly billing</span>
                 </li>
               </ul>
             </div>
@@ -228,7 +228,7 @@ export default function ProUpgradeModal({
               onClick={handleOpenLifetime}
               className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
             >
-              <span>Own Forever ($99)</span>
+              <span>Get 6 Months ($99)</span>
               <ExternalLink className="w-3 h-3 text-black" />
             </button>
           </div>
