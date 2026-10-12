@@ -62,7 +62,7 @@ export default function ProUpgradeModal({
     }
 
     if (clean.length < 6) {
-      setErrorMsg('License key format is invalid. Keys are formatted as DFOS-LIFE-XXXX-XXXX.');
+      setErrorMsg('License key format is invalid. Keys are formatted as DFOS-LIFE-XXXX-XXXX or DFOS-PASS-XXXX-XXXX.');
       return;
     }
 
@@ -70,6 +70,7 @@ export default function ProUpgradeModal({
     try {
       let isSuccess = false;
       let serverError = '';
+      let detectedPlanType: string | undefined;
 
       try {
         const res = await fetch('/api/verify-license', {
@@ -80,6 +81,11 @@ export default function ProUpgradeModal({
         const data = await res.json();
         if (res.ok && data.valid) {
           isSuccess = true;
+          detectedPlanType = data.planType;
+          try {
+            if (data.planType) localStorage.setItem('df_license_plan_type', data.planType);
+            if (data.expiresAt) localStorage.setItem('df_license_expires_at', String(data.expiresAt));
+          } catch (e) {}
         } else {
           serverError = data.error || 'Invalid license key.';
         }
@@ -89,7 +95,8 @@ export default function ProUpgradeModal({
 
       if (isSuccess) {
         onActivateKey(clean);
-        setSuccessMsg('DeepFocus Pro successfully activated! Welcome to the craft.');
+        const planLabel = detectedPlanType === 'monthly' ? 'Monthly Pass' : 'Lifetime Buyout';
+        setSuccessMsg(`DeepFocus Pro (${planLabel}) successfully activated! Welcome to the craft.`);
         setInputKey('');
       } else {
         setErrorMsg(serverError || 'Invalid license key. Please verify your purchase receipt or Whop dashboard.');

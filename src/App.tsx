@@ -492,6 +492,14 @@ export default function App() {
     try {
       const key = localStorage.getItem('df_lifetime_license_key');
       const active = localStorage.getItem('df_lifetime_license_active');
+      const expiresAt = localStorage.getItem('df_license_expires_at');
+      if (expiresAt) {
+        const expMs = Number(expiresAt) > 10000000000 ? Number(expiresAt) : Number(expiresAt) * 1000;
+        if (Date.now() > expMs) {
+          localStorage.removeItem('df_lifetime_license_active');
+          return false;
+        }
+      }
       return !!(key || active === 'true');
     } catch {
       return false;
@@ -521,12 +529,33 @@ export default function App() {
     try {
       localStorage.removeItem('df_lifetime_license_key');
       localStorage.removeItem('df_lifetime_license_active');
+      localStorage.removeItem('df_license_expires_at');
+      localStorage.removeItem('df_license_plan_type');
       setActiveLicenseKey(null);
       setIsProLifetime(false);
     } catch (e) {
       console.error(e);
     }
   };
+
+  // Re-verify active license in background on mount (handles Monthly plan cancellations / renewals)
+  useEffect(() => {
+    const key = localStorage.getItem('df_lifetime_license_key');
+    if (key && currentUser?.role !== 'admin') {
+      fetch('/api/verify-license', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ licenseKey: key })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.valid === false) {
+          handleDeactivateLicense();
+        }
+      })
+      .catch(() => {});
+    }
+  }, [currentUser]);
 
 
   // Show a custom modal notice
