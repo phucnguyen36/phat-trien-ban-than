@@ -65,11 +65,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing webhook payload' });
     }
 
-    const action = payload.action;
-    const data = payload.data || {};
-    const membershipId = data.id || '';
+    const action = payload.action || payload.type || payload.event || '';
+    const data = payload.data || payload || {};
+    const membershipId = data.id || data.membership_id || `mem_${Date.now()}`;
     const planId = data.plan_id || '';
-    const email = data.email || (data.user && data.user.email) || '';
+    const email = data.email || (data.user && data.user.email) || (data.customer && data.customer.email) || 'customer@whop.com';
     const userId = data.user_id || (data.user && data.user.id) || '';
     const username = (data.user && data.user.username) || '';
 
