@@ -33,7 +33,7 @@ export default function ProFeatureLockGate({
   tagline,
   benefits,
   onOpenUpgradeModal,
-  accentColor = '#1591DC'
+  accentColor = '#10b981'
 }: ProFeatureLockGateProps) {
   const handleDirectLifetime = () => {
     window.open(DEFAULT_WHOP_LIFETIME_URL, '_blank', 'noopener,noreferrer');
@@ -47,13 +47,12 @@ export default function ProFeatureLockGate({
     <div className="w-full max-w-4xl mx-auto py-10 px-4 sm:px-6 animate-fadeIn select-none">
       <div className="relative bg-[#0b0c10] border border-white/15 rounded-3xl p-8 sm:p-12 shadow-[0_25px_80px_rgba(0,0,0,0.9)] overflow-hidden">
         
-        {/* Ambient Glow */}
+        {/* Ambient Glow (Pure Emerald, no amber) */}
         <div 
-          className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[120px] opacity-20 pointer-events-none"
-          style={{ backgroundColor: accentColor }}
+          className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[120px] opacity-20 pointer-events-none bg-emerald-500"
         />
         <div 
-          className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full blur-[120px] opacity-15 pointer-events-none bg-amber-500"
+          className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full blur-[120px] opacity-15 pointer-events-none bg-emerald-600/20"
         />
 
         {/* Top Badges */}

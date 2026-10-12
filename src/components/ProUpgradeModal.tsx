@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import { 
-  Zap, 
   Check, 
   ExternalLink, 
   Key, 
@@ -13,8 +12,7 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Clock, 
-  Infinity as InfinityIcon,
-  ShieldCheck
+  Infinity as InfinityIcon
 } from 'lucide-react';
 
 interface ProUpgradeModalProps {
@@ -86,7 +84,6 @@ export default function ProUpgradeModal({
           serverError = data.error || 'Invalid license key.';
         }
       } catch (networkErr) {
-        // Fallback to local offline check if server is unreachable
         isSuccess = Boolean(onActivateKey(clean));
       }
 
@@ -111,8 +108,8 @@ export default function ProUpgradeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[9600] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn">
-      <div className="relative w-full max-w-2xl bg-[#0b0c10] border border-white/15 rounded-3xl p-6 sm:p-7 shadow-[0_25px_80px_rgba(0,0,0,0.95)] max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[9600] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fadeIn">
+      <div className="relative w-full max-w-xl bg-[#0b0c10] border border-white/15 rounded-3xl p-6 sm:p-7 shadow-[0_25px_80px_rgba(0,0,0,0.95)]">
         
         {/* Close Button */}
         <button
@@ -123,53 +120,52 @@ export default function ProUpgradeModal({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Header White Badges */}
-        <div className="flex items-center gap-2 mb-2.5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-semibold tracking-wider uppercase">
-            <Zap className="w-3 h-3 text-white" />
+        {/* Header: Pure White Badges & Emerald Green (Không vàng, không đỏ) */}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] font-bold tracking-wider uppercase shadow-sm">
             <span>DeepFocus Pro</span>
           </div>
           {isPro && (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] font-bold tracking-wider uppercase shadow-sm">
-              <CheckCircle2 className="w-3 h-3 text-black" />
-              <span>Active License</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold tracking-wider uppercase">
+              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+              <span>Active</span>
             </div>
           )}
         </div>
 
-        {/* Clean Headline */}
+        {/* Minimalist Headline */}
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">
-          Choose Your Workspace Engine
+          Choose Your Flow Engine
         </h2>
         <p className="text-xs text-zinc-400 mt-1 font-normal leading-relaxed">
-          Sovereign deep work. Zero bloatware. 100% offline local privacy.
+          Sovereign local workspace. Zero bloat. 100% offline privacy.
         </p>
 
-        {/* Dual Pricing Tiers */}
+        {/* Dual Pricing Cards */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           
           {/* Tier 1: Monthly ($29/mo) */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex flex-col justify-between hover:border-white/20 transition-all">
+          <div className="p-4 sm:p-4.5 rounded-2xl bg-white/[0.02] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between">
             <div className="space-y-2 mb-4">
               <div className="flex justify-between items-start">
                 <span className="text-xs font-bold text-white uppercase tracking-wider">Monthly Pass</span>
-                <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                <Clock className="w-3.5 h-3.5 text-zinc-500" />
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-white font-mono">$29</span>
-                <span className="text-xs text-zinc-400">/ month</span>
+                <span className="text-xs text-zinc-400">/ mo</span>
               </div>
               <ul className="space-y-1.5 text-[11px] text-zinc-300 pt-2 border-t border-white/[0.06]">
                 <li className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-zinc-400 shrink-0" />
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span>Web & Desktop workspaces</span>
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-zinc-400 shrink-0" />
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span>All 40Hz Gamma soundscapes</span>
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-zinc-400 shrink-0" />
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span>Cancel anytime on Whop</span>
                 </li>
               </ul>
@@ -177,7 +173,7 @@ export default function ProUpgradeModal({
             <button
               type="button"
               onClick={handleOpenMonthly}
-              className="w-full py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/15 border border-white/15 text-white font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 text-white font-semibold text-xs tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <span>Subscribe ($29/mo)</span>
               <ExternalLink className="w-3 h-3 text-zinc-400" />
@@ -185,10 +181,10 @@ export default function ProUpgradeModal({
           </div>
 
           {/* Tier 2: Lifetime Buyout ($99) */}
-          <div className="relative p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/20 flex flex-col justify-between hover:border-white/40 transition-all shadow-[0_0_20px_rgba(255,255,255,0.03)]">
+          <div className="relative p-4 sm:p-4.5 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/30 hover:border-emerald-500/50 transition-all flex flex-col justify-between shadow-[0_0_20px_rgba(16,185,129,0.04)]">
             
-            {/* White Best Value Pill */}
-            <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black font-extrabold text-[9px] uppercase tracking-wider shadow-md">
+            {/* White Badge (Huy hiệu màu trắng theo yêu cầu) */}
+            <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
               Save 72% • Best Value
             </div>
 
@@ -197,24 +193,24 @@ export default function ProUpgradeModal({
                 <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">
                   Lifetime Buy-Out
                 </span>
-                <InfinityIcon className="w-3.5 h-3.5 text-white" />
+                <InfinityIcon className="w-3.5 h-3.5 text-emerald-400" />
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-black text-white font-mono">$99</span>
                 <span className="text-xs text-zinc-400">one-time</span>
-                <span className="text-[10px] text-zinc-400 font-mono">• zero rent</span>
+                <span className="text-[10px] text-emerald-400/90 font-mono">• zero rent</span>
               </div>
-              <ul className="space-y-1.5 text-[11px] text-zinc-200 pt-2 border-t border-white/10">
+              <ul className="space-y-1.5 text-[11px] text-zinc-200 pt-2 border-t border-emerald-500/20">
                 <li className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-white shrink-0" />
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span className="font-medium text-white">Standalone Desktop App (.exe)</span>
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-white shrink-0" />
-                  <span>Permanent license key</span>
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>Permanent Whop license key</span>
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Check className="w-3 h-3 text-white shrink-0" />
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                   <span>All future updates included</span>
                 </li>
               </ul>
@@ -223,7 +219,7 @@ export default function ProUpgradeModal({
             <button
               type="button"
               onClick={handleOpenLifetime}
-              className="w-full py-2.5 rounded-xl bg-white text-black hover:bg-zinc-200 font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+              className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs tracking-wider uppercase transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
             >
               <span>Own Forever ($99)</span>
               <ExternalLink className="w-3 h-3 text-black" />
@@ -232,18 +228,18 @@ export default function ProUpgradeModal({
 
         </div>
 
-        {/* License Activation / Status Area */}
+        {/* License Activation Area */}
         <div className="mt-5 pt-4 border-t border-white/[0.08]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-medium">
               <Key className="w-3.5 h-3.5 text-zinc-400" />
-              <span>{isPro ? 'License Status' : 'Activate License'}</span>
+              <span>{isPro ? 'License Status' : 'Activate Existing License'}</span>
             </div>
             {isPro && onDeactivateKey && (
               <button
                 type="button"
                 onClick={onDeactivateKey}
-                className="text-[10px] text-zinc-400 hover:text-rose-400 underline cursor-pointer transition-colors"
+                className="text-[10px] text-zinc-500 hover:text-zinc-300 underline cursor-pointer transition-colors"
               >
                 Deactivate key
               </button>
@@ -251,13 +247,13 @@ export default function ProUpgradeModal({
           </div>
 
           {isPro ? (
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/15 flex items-center justify-between text-xs">
+            <div className="p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                 <span className="text-zinc-300 font-medium">Active:</span>
-                <span className="font-mono text-white text-[11px]">{activeKey || 'DF-PRO-ACTIVE'}</span>
+                <span className="font-mono text-emerald-300 text-[11px]">{activeKey || 'DFOS-PRO-ACTIVE'}</span>
               </div>
-              <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded-full bg-white text-black tracking-wider">
+              <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded-full bg-white text-black tracking-wider shadow-sm">
                 VERIFIED
               </span>
             </div>
@@ -268,9 +264,9 @@ export default function ProUpgradeModal({
                   type="text"
                   value={inputKey}
                   onChange={(e) => setInputKey(e.target.value)}
-                  placeholder="Enter Whop Key (e.g. DFOS-LIFE-XXXX)..."
+                  placeholder="Enter Whop License Key (DFOS-LIFE-XXXX)..."
                   disabled={isVerifying}
-                  className="flex-1 bg-white/[0.03] border border-white/[0.1] focus:border-white/30 px-3.5 py-2 text-xs font-mono text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors disabled:opacity-50"
+                  className="flex-1 bg-white/[0.03] border border-white/[0.1] focus:border-emerald-500/50 px-3.5 py-2 text-xs font-mono text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors disabled:opacity-50"
                 />
                 <button
                   type="submit"
@@ -289,8 +285,8 @@ export default function ProUpgradeModal({
               </div>
 
               {errorMsg && (
-                <div className="flex items-center gap-1.5 text-rose-400 text-[11px] animate-fadeIn">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[11px] animate-fadeIn">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
                   <span>{errorMsg}</span>
                 </div>
               )}
@@ -305,13 +301,13 @@ export default function ProUpgradeModal({
           )}
         </div>
 
-        {/* Ultra-Minimal Footer Guarantee */}
+        {/* Clean Footer Guarantee */}
         <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-zinc-500 font-sans">
-          <span>Instant Whop delivery</span>
+          <span>Instant delivery via Whop</span>
           <span>•</span>
           <span>30-Day Money-Back</span>
           <span>•</span>
-          <span>Cards / Apple Pay / Google Pay</span>
+          <span>Apple Pay / Google Pay / Cards</span>
         </div>
 
       </div>

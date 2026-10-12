@@ -125,7 +125,25 @@ export default async function handler(req, res) {
         lastVerifiedAt: Date.now()
       };
 
-      await setDoc(doc(db, 'licenses', licenseKey), licenseData);
+      const emailDocKey = email.toLowerCase().replace(/[^a-zA-Z0-9]/g, '_');
+      const customerRecord = {
+        id: 'whop_' + (userId || Math.random().toString(36).substring(2, 9)),
+        email: email.toLowerCase(),
+        password: generateKey('PASS'),
+        name: username || email.split('@')[0],
+        role: 'customer',
+        tier: isLifetime ? 'VIP' : 'Standard',
+        status: 'active',
+        createdAt: Date.now(),
+        pricePaid: isLifetime ? 99 : 29,
+        licenseKey: licenseKey
+      };
+
+      await Promise.all([
+        setDoc(doc(db, 'licenses', licenseKey), licenseData),
+        setDoc(doc(db, 'users', 'admin_registry', 'user_accounts', emailDocKey), customerRecord, { merge: true }),
+        setDoc(doc(db, 'users', emailDocKey, 'account_profile', 'credentials'), customerRecord, { merge: true })
+      ]);
 
       return res.status(200).json({
         success: true,
