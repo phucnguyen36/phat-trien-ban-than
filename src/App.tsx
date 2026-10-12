@@ -48,6 +48,7 @@ import DailyJournalPanel from './components/DailyJournal';
 import ExpenseLedger from './components/ExpenseLedger';
 import DeepWorkTimer from './components/DeepWorkTimer';
 import PomodoroWorkspace from './components/PomodoroWorkspace';
+import ProFeatureLockGate from './components/ProFeatureLockGate';
 import { DeepFocusLogo } from './components/DeepFocusLogo';
 import { usePomodoro } from './context/PomodoroContext';
 import AEPicker from './components/AEPicker';
@@ -98,6 +99,7 @@ import {
   Play,
   Pause,
   ArrowRight,
+  Lock,
   Zap
 } from 'lucide-react';
 import ProUpgradeModal, { DEFAULT_WHOP_STORE_URL } from './components/ProUpgradeModal';
@@ -1222,14 +1224,15 @@ export default function App() {
           <div className="lg:hidden flex overflow-x-auto gap-2 pb-3 mb-8 scrollbar-none border-b border-zinc-900/40">
             {[
               { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-              { id: 'todo-hub', label: 'Tasks', icon: CheckSquare },
+              { id: 'todo-hub', label: 'Tasks', icon: CheckSquare, isPro: true },
               { id: 'pomodoro-station', label: 'Pomodoro', icon: Flame },
-              { id: 'habit-matrix', label: 'Habits', icon: Activity },
+              { id: 'habit-matrix', label: 'Habits', icon: Activity, isPro: true },
               { id: 'daily-journal', label: 'Journal', icon: BookOpen },
-              { id: 'expense-ledger', label: 'Expenses', icon: DollarSign }
+              { id: 'expense-ledger', label: 'Expenses', icon: DollarSign, isPro: true }
             ].map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
+              const isLocked = !isProLifetime && section.isPro;
               return (
                 <button
                   key={section.id}
@@ -1242,6 +1245,11 @@ export default function App() {
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{section.label}</span>
+                  {isLocked && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-bold tracking-wider">
+                      PRO
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -1284,14 +1292,15 @@ export default function App() {
                 {[
                   ...(currentUser?.role === 'admin' ? [{ id: 'admin-portal', label: 'Admin Portal', sub: 'Customer management', icon: ShieldCheck }] : []),
                   { id: 'overview', label: 'Overview', sub: 'Dashboard & stats', icon: LayoutDashboard },
-                  { id: 'todo-hub', label: 'Tasks', sub: 'Roadmap & database', icon: CheckSquare },
+                  { id: 'todo-hub', label: 'Tasks', sub: 'Roadmap & database', icon: CheckSquare, isPro: true },
                   { id: 'pomodoro-station', label: 'Pomodoro', sub: 'Deep work & flow', icon: Flame },
-                  { id: 'habit-matrix', label: 'Habits', sub: 'Consistency & streaks', icon: Activity },
+                  { id: 'habit-matrix', label: 'Habits', sub: 'Consistency & streaks', icon: Activity, isPro: true },
                   { id: 'daily-journal', label: 'Journal', sub: 'Daily reflection', icon: BookOpen },
-                  { id: 'expense-ledger', label: 'Expenses', sub: 'Cash flow & budget', icon: DollarSign }
+                  { id: 'expense-ledger', label: 'Expenses', sub: 'Cash flow & budget', icon: DollarSign, isPro: true }
                 ].map((section) => {
                   const Icon = section.icon;
                   const isActive = activeSection === section.id;
+                  const isLocked = !isProLifetime && section.isPro;
                   return (
                     <button
                       key={section.id}
@@ -1303,8 +1312,16 @@ export default function App() {
                       }`}
                     >
                       <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-black' : 'text-[#9496a1]'}`} />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-sans font-medium leading-tight">{section.label}</span>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-xs font-sans font-medium leading-tight">{section.label}</span>
+                          {isLocked && (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[9px] font-bold uppercase tracking-wider flex items-center gap-0.5">
+                              <Lock className="w-2.5 h-2.5" />
+                              PRO
+                            </span>
+                          )}
+                        </div>
                         <span className={`text-[10px] font-sans font-normal leading-tight mt-0.5 truncate ${isActive ? 'text-zinc-600' : 'text-[#9496a1]'}`}>{section.sub}</span>
                       </div>
                     </button>
@@ -1409,27 +1426,43 @@ export default function App() {
                 {/* Module 1: Tactical Roadmap & To-Do Hub */}
                 {activeSection === 'todo-hub' && (
                   <section id="todo-hub">
-                    <TodoHub 
-                      goals={goals}
-                      onAddGoal={handleAddGoal}
-                      onToggleGoal={handleToggleGoal}
-                      onDeleteGoal={handleDeleteGoal}
-                      onEditGoal={handleEditGoal}
-                      onUpdateGoal={handleUpdateGoal}
-                      onReorderGoals={handleReorderGoals}
-                      onNavigate={(sec) => {
-                        if (sec === 'habits') setActiveSection('habit-matrix');
-                        else if (sec === 'journal') setActiveSection('daily-journal');
-                        else if (sec === 'expenses') setActiveSection('expense-ledger');
-                        else if (sec === 'pomodoro' || sec === 'pomodoro-station') setActiveSection('pomodoro-station');
-                        else setActiveSection(sec);
-                      }}
-                      onStartFocus={(goalId) => {
-                        setActiveFocusGoalId(goalId);
-                        setActiveSection('pomodoro-station');
-                      }}
-                      accentColor={customAccentColor}
-                    />
+                    {!isProLifetime ? (
+                      <ProFeatureLockGate
+                        featureId="todo-hub"
+                        title="Tactical Tasks & Multi-Horizon Roadmap"
+                        tagline="Align your daily deep work with weekly, monthly, and yearly strategic outcomes without cognitive clutter."
+                        benefits={[
+                          "Multi-horizon alignment (Day • Week • Month • Year)",
+                          "Interactive Gantt timeline with drag-to-reschedule",
+                          "Automated rollover for uncompleted deep work",
+                          "100% offline sovereign SQLite/IndexedDB persistence"
+                        ]}
+                        onOpenUpgradeModal={() => setIsProModalOpen(true)}
+                        accentColor={customAccentColor}
+                      />
+                    ) : (
+                      <TodoHub 
+                        goals={goals}
+                        onAddGoal={handleAddGoal}
+                        onToggleGoal={handleToggleGoal}
+                        onDeleteGoal={handleDeleteGoal}
+                        onEditGoal={handleEditGoal}
+                        onUpdateGoal={handleUpdateGoal}
+                        onReorderGoals={handleReorderGoals}
+                        onNavigate={(sec) => {
+                          if (sec === 'habits') setActiveSection('habit-matrix');
+                          else if (sec === 'journal') setActiveSection('daily-journal');
+                          else if (sec === 'expenses') setActiveSection('expense-ledger');
+                          else if (sec === 'pomodoro' || sec === 'pomodoro-station') setActiveSection('pomodoro-station');
+                          else setActiveSection(sec);
+                        }}
+                        onStartFocus={(goalId) => {
+                          setActiveFocusGoalId(goalId);
+                          setActiveSection('pomodoro-station');
+                        }}
+                        accentColor={customAccentColor}
+                      />
+                    )}
                   </section>
                 )}
 
@@ -1465,15 +1498,31 @@ export default function App() {
                 {/* Module 2: Self-Mastery Habit Matrix */}
                 {activeSection === 'habit-matrix' && (
                   <section id="habit-matrix">
-                    <HabitTracker
-                      habits={habits}
-                      goals={goals}
-                      onAddHabit={handleAddHabit}
-                      onToggleHabitDay={handleToggleHabitDay}
-                      onDeleteHabit={handleDeleteHabit}
-                      onEditHabit={handleEditHabit}
-                      accentColor={customAccentColor}
-                    />
+                    {!isProLifetime ? (
+                      <ProFeatureLockGate
+                        featureId="habit-matrix"
+                        title="Self-Mastery Habit Matrix"
+                        tagline="Track your daily discipline across 31-day visual matrices with biological weekday trend analytics."
+                        benefits={[
+                          "Unlimited custom discipline habits",
+                          "Day-of-week bio-rhythm performance analysis",
+                          "Weekly progression curves & streak records",
+                          "Zero cloud telemetry sovereign tracking"
+                        ]}
+                        onOpenUpgradeModal={() => setIsProModalOpen(true)}
+                        accentColor={customAccentColor}
+                      />
+                    ) : (
+                      <HabitTracker
+                        habits={habits}
+                        goals={goals}
+                        onAddHabit={handleAddHabit}
+                        onToggleHabitDay={handleToggleHabitDay}
+                        onDeleteHabit={handleDeleteHabit}
+                        onEditHabit={handleEditHabit}
+                        accentColor={customAccentColor}
+                      />
+                    )}
                   </section>
                 )}
 
@@ -1492,12 +1541,28 @@ export default function App() {
                 {/* Module 4: Personal Cash Burn-Rate Ledger */}
                 {activeSection === 'expense-ledger' && (
                   <section id="expense-ledger">
-                    <ExpenseLedger
-                      expenses={expenses}
-                      onAddExpense={handleAddExpense}
-                      onDeleteExpense={handleDeleteExpense}
-                      accentColor={customAccentColor}
-                    />
+                    {!isProLifetime ? (
+                      <ProFeatureLockGate
+                        featureId="expense-ledger"
+                        title="Personal Cash Burn-Rate & Outflow Ledger"
+                        tagline="Take ruthless control of your financial runway with daily outflow timelines and instant dual-currency conversion."
+                        benefits={[
+                          "Daily personal burn-rate outflow timeline",
+                          "Instant dual-currency switch (USD / VND)",
+                          "Expense category breakdown & savings metrics",
+                          "Sovereign financial data stored 100% locally"
+                        ]}
+                        onOpenUpgradeModal={() => setIsProModalOpen(true)}
+                        accentColor={customAccentColor}
+                      />
+                    ) : (
+                      <ExpenseLedger
+                        expenses={expenses}
+                        onAddExpense={handleAddExpense}
+                        onDeleteExpense={handleDeleteExpense}
+                        accentColor={customAccentColor}
+                      />
+                    )}
                   </section>
                 )}
 
