@@ -1140,7 +1140,7 @@ export default function App() {
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide transition-all cursor-pointer ${
                 isProLifetime
                   ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
-                  : 'bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 text-amber-300 hover:border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.12)] active:scale-95'
+                  : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.12)] active:scale-95'
               }`}
               title={isProLifetime ? "DeepFocus Pro Lifetime Active" : "Upgrade to DeepFocus Pro: $29/mo or $99 Lifetime"}
             >
@@ -1151,7 +1151,7 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <Zap className="w-3 h-3 text-amber-400 animate-pulse" />
+                  <Zap className="w-3 h-3 text-emerald-400" />
                   <span>UPGRADE PRO</span>
                 </>
               )}
