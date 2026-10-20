@@ -4,6 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
+import { PomodoroCompletionModal } from '../components/PomodoroCompletionModal';
 
 export type TimerMode = 'focus' | 'short_break' | 'long_break';
 export type AmbientSoundType = 'off' | 'brown' | 'white' | 'rain' | 'binaural';
@@ -73,65 +74,157 @@ interface PomodoroContextType {
   setAmbientSound: (type: AmbientSoundType) => void;
   setAmbientVolume: (vol: number) => void;
   setIsZenMode: (val: boolean | ((prev: boolean) => boolean)) => void;
-  playAlarmChime: () => void;
-  requestNotificationPermission: () => void;
+  playAlarmChime: (customVolume?: number) => void;
+  isAlarmSoundEnabled: boolean;
+  setIsAlarmSoundEnabled: (val: boolean) => void;
+  alarmVolume: number;
+  setAlarmVolume: (vol: number) => void;
+  notificationPermission: NotificationPermission;
+  requestNotificationPermission: () => Promise<NotificationPermission>;
+  testNotification: () => void;
+  testAlarmChime: () => void;
+  completionAlert: {
+    mode: TimerMode;
+    title: string;
+    completedMinutes: number;
+    timestamp: number;
+  } | null;
+  dismissCompletionAlert: () => void;
 }
 
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
 
-// Rich Harmonic Tibetan Singing Bowl & Chime Sound
-export const playPomodoroAlarmChime = () => {
-  try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-    const now = ctx.currentTime;
-    
-    // Wave 1: Resonant C5 Major Bell Chord (523Hz, 659Hz, 784Hz, 1046Hz, 1318Hz)
-    const bellFrequencies = [523.25, 659.25, 783.99, 1046.5, 1318.5];
-    bellFrequencies.forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.04);
-      
-      const startTime = now + idx * 0.04;
-      gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(0.22 / (idx + 1), startTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 2.8);
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.start(startTime);
-      osc.stop(startTime + 2.9);
-    });
+// Global warm singleton AudioContext to prevent modern browser background autoplay suspension
+let globalSharedAudioCtx: AudioContext | null = null;
 
-    // Wave 2: Echo chime after 1.2s to ensure the user hears it clearly even from another room/tab
-    setTimeout(() => {
+export const getSharedAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    if (!globalSharedAudioCtx || globalSharedAudioCtx.state === 'closed') {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        globalSharedAudioCtx = new AudioCtx();
+      }
+    }
+    if (globalSharedAudioCtx && globalSharedAudioCtx.state === 'suspended') {
+      globalSharedAudioCtx.resume().catch(() => {});
+    }
+    return globalSharedAudioCtx;
+  } catch (e) {
+    console.warn('AudioContext init error:', e);
+    return null;
+  }
+};
+
+// Automatic user interaction unlocker: unlocks AudioContext on first tap/click/keystroke
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    try {
+      const ctx = getSharedAudioContext();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+    } catch (e) {}
+  };
+  ['pointerdown', 'click', 'keydown', 'touchstart'].forEach(evt => {
+    window.addEventListener(evt, unlockAudio, { passive: true });
+  });
+}
+
+// Background Tab Title Alert Flasher
+let tabAlertInterval: any = null;
+export const triggerTabTitleNotification = (message: string) => {
+  if (typeof window === 'undefined') return;
+  if (tabAlertInterval) clearInterval(tabAlertInterval);
+
+  let toggle = false;
+  const originalTitle = document.title;
+  tabAlertInterval = setInterval(() => {
+    document.title = toggle ? `🔔 ${message}` : `🎯 DeepFocus OS`;
+    toggle = !toggle;
+  }, 1000);
+
+  const cleanUp = () => {
+    if (tabAlertInterval) {
+      clearInterval(tabAlertInterval);
+      tabAlertInterval = null;
+    }
+    document.title = originalTitle;
+    window.removeEventListener('focus', cleanUp);
+    window.removeEventListener('click', cleanUp);
+  };
+
+  window.addEventListener('focus', cleanUp, { once: true });
+  window.addEventListener('click', cleanUp, { once: true });
+};
+
+// Rich Harmonic Tibetan Singing Bowl & Chime Sound with Dual Waves
+export const playPomodoroAlarmChime = (volume: number = 0.8) => {
+  try {
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+
+    const playAudio = () => {
       try {
-        if (ctx.state === 'closed') return;
-        const now2 = ctx.currentTime;
-        [659.25, 783.99, 1046.5, 1318.5, 1567.98].forEach((freq, idx) => {
+        const now = ctx.currentTime;
+        const masterGain = ctx.createGain();
+        const safeVol = Math.max(0.05, Math.min(1, volume));
+        masterGain.gain.setValueAtTime(safeVol, now);
+        masterGain.connect(ctx.destination);
+
+        // Wave 1: Resonant C5 Major Bell Chord (523Hz, 659Hz, 784Hz, 1046Hz, 1318Hz)
+        const bellFrequencies = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+        bellFrequencies.forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now2 + idx * 0.04);
-          const startTime = now2 + idx * 0.04;
+          
+          osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+          
+          const startTime = now + idx * 0.04;
           gain.gain.setValueAtTime(0, startTime);
-          gain.gain.linearRampToValueAtTime(0.18 / (idx + 1), startTime + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 2.5);
+          gain.gain.linearRampToValueAtTime((0.26 / (idx + 1)), startTime + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 2.8);
+          
           osc.connect(gain);
-          gain.connect(ctx.destination);
+          gain.connect(masterGain);
+          
           osc.start(startTime);
-          osc.stop(startTime + 2.6);
+          osc.stop(startTime + 2.9);
         });
-      } catch (e) {}
-    }, 1200);
+
+        // Wave 2: Echo chime after 1.2s to ensure the user hears it clearly even from another room/tab
+        setTimeout(() => {
+          try {
+            if (ctx.state === 'closed') return;
+            const now2 = ctx.currentTime;
+            [659.25, 783.99, 1046.5, 1318.5, 1567.98].forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now2 + idx * 0.04);
+              const startTime = now2 + idx * 0.04;
+              gain.gain.setValueAtTime(0, startTime);
+              gain.gain.linearRampToValueAtTime((0.22 / (idx + 1)), startTime + 0.025);
+              gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 2.5);
+              osc.connect(gain);
+              gain.connect(masterGain);
+              osc.start(startTime);
+              osc.stop(startTime + 2.6);
+            });
+          } catch (e) {}
+        }, 1200);
+
+      } catch (err) {
+        console.warn('Audio chords playback error:', err);
+      }
+    };
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(playAudio).catch(playAudio);
+    } else {
+      playAudio();
+    }
 
   } catch (err) {
     console.warn('Audio chime failed:', err);
@@ -608,26 +701,119 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  // Notification helper
-  const requestNotificationPermission = () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+  // Notification permission state
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
     }
+    return 'default';
+  });
+
+  // Alarm sound enable state
+  const [isAlarmSoundEnabled, setIsAlarmSoundEnabled] = useState<boolean>(() => {
+    return localStorage.getItem('df_alarm_sound_enabled') !== 'false';
+  });
+
+  // Alarm volume state
+  const [alarmVolume, setAlarmVolume] = useState<number>(() => {
+    const saved = localStorage.getItem('df_alarm_volume');
+    return saved ? parseFloat(saved) : 0.8;
+  });
+
+  // Completion modal / alert state
+  const [completionAlert, setCompletionAlert] = useState<{
+    mode: TimerMode;
+    title: string;
+    completedMinutes: number;
+    timestamp: number;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('df_alarm_sound_enabled', String(isAlarmSoundEnabled));
+    } catch (e) {}
+  }, [isAlarmSoundEnabled]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('df_alarm_volume', String(alarmVolume));
+    } catch (e) {}
+  }, [alarmVolume]);
+
+  // Notification helper
+  const requestNotificationPermission = async (): Promise<NotificationPermission> => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const perm = await Notification.requestPermission();
+        setNotificationPermission(perm);
+        return perm;
+      } catch (e) {
+        return Notification.permission;
+      }
+    }
+    return 'denied';
   };
 
-  const notifyUserOnComplete = (finishedMode: TimerMode) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const title = finishedMode === 'focus' ? '🎯 Pomodoro Completed!' : '⚡ Break Ended!';
-      const body = finishedMode === 'focus'
-        ? 'Great session! You completed a deep focus block. Take a well-deserved break.'
-        : 'Break is over. Ready for your next deep work session?';
+  const testAlarmChime = () => {
+    getSharedAudioContext();
+    playPomodoroAlarmChime(alarmVolume);
+  };
+
+  const testNotification = async () => {
+    let perm = notificationPermission;
+    if (perm !== 'granted') {
+      perm = await requestNotificationPermission();
+    }
+
+    if (perm === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
       try {
-        new Notification(title, {
-          body,
-          icon: '/favicon.ico'
+        const notif = new Notification('🔔 DeepFocus OS: Thông Báo Hoạt Động Tốt!', {
+          body: 'Bạn sẽ nhận được thông báo này mỗi khi hết giờ Pomodoro hoặc hết giờ nghỉ giải lao.',
+          icon: '/favicon.ico',
+          tag: 'deepfocus-test'
         });
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
       } catch (e) {}
     }
+
+    // Play chime sound
+    testAlarmChime();
+  };
+
+  const dismissCompletionAlert = () => {
+    setCompletionAlert(null);
+  };
+
+  const notifyUserOnComplete = (finishedMode: TimerMode, taskName?: string) => {
+    const isFocus = finishedMode === 'focus';
+    const title = isFocus ? '🎯 Pomodoro Hoàn Tất!' : '⚡ Hết Giờ Giải Lao!';
+    const body = isFocus
+      ? `Tuyệt vời! Bạn vừa hoàn thành một khối tập trung sâu${taskName ? `: "${taskName}"` : ''}. Đã đến lúc nghỉ ngơi.`
+      : 'Thời gian giải lao đã kết thúc. Sẵn sàng cho phiên làm việc sâu tiếp theo?';
+
+    // 1. Native Browser / Desktop Notification
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        const notif = new Notification(title, {
+          body,
+          icon: '/favicon.ico',
+          tag: 'deepfocus-timer-finished',
+          requireInteraction: true
+        });
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+      } catch (e) {
+        console.warn('Notification error:', e);
+      }
+    }
+
+    // 2. Tab Title Alert Flasher
+    triggerTabTitleNotification(isFocus ? '[XONG] Nghỉ ngơi nào!' : '[HẾT GIỜ NGHỈ] Vào việc thôi!');
   };
 
   // Core Timer Engine using Timestamp tracking for immune-to-tab-throttle accuracy
@@ -645,14 +831,16 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         setIsRunning(false);
         setTargetEndTime(null);
 
-        // Sound Alarm Chime
-        playPomodoroAlarmChime();
+        // Sound Alarm Chime (if enabled)
+        if (isAlarmSoundEnabled) {
+          playPomodoroAlarmChime(alarmVolume);
+        }
 
-        // Browser notification
-        notifyUserOnComplete(mode);
+        // Browser & OS notification
+        notifyUserOnComplete(mode, activeTaskTitleRef.current || undefined);
 
         // Record history
-        const completedMins = Math.round(totalSessionSeconds / 60);
+        const completedMins = Math.max(1, Math.round(totalSessionSeconds / 60));
         const newRecord: FocusSessionRecord = {
           id: 's_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
           timestamp: Date.now(),
@@ -661,10 +849,18 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
           targetMinutes: completedMins,
           completed: true,
           interrupted: false,
-          taskTitle: activeTaskTitleRef.current || 'Deep Work Session',
+          taskTitle: activeTaskTitleRef.current || (mode === 'focus' ? 'Deep Work Session' : 'Rest Block'),
           mode
         };
         setAllSessions(prev => [newRecord, ...prev]);
+
+        // Show in-app completion modal/dialog
+        setCompletionAlert({
+          mode,
+          title: activeTaskTitleRef.current || (mode === 'focus' ? 'Deep Work Session' : 'Thời gian nghỉ'),
+          completedMinutes: completedMins,
+          timestamp: Date.now()
+        });
 
         // Auto transition to next mode
         if (mode === 'focus') {
@@ -879,11 +1075,21 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         setAmbientSound: handleSetAmbientSound,
         setAmbientVolume,
         setIsZenMode,
-        playAlarmChime: playPomodoroAlarmChime,
-        requestNotificationPermission
+        playAlarmChime: (vol?: number) => playPomodoroAlarmChime(vol ?? alarmVolume),
+        isAlarmSoundEnabled,
+        setIsAlarmSoundEnabled,
+        alarmVolume,
+        setAlarmVolume,
+        notificationPermission,
+        requestNotificationPermission,
+        testNotification,
+        testAlarmChime,
+        completionAlert,
+        dismissCompletionAlert
       }}
     >
       {children}
+      <PomodoroCompletionModal />
     </PomodoroContext.Provider>
   );
 };

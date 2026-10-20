@@ -112,6 +112,14 @@ export default function PomodoroWorkspace({
     ambientSound,
     ambientVolume,
     isZenMode,
+    isAlarmSoundEnabled,
+    setIsAlarmSoundEnabled,
+    alarmVolume,
+    setAlarmVolume,
+    notificationPermission,
+    requestNotificationPermission,
+    testNotification,
+    testAlarmChime,
     toggleTimer,
     resetTimer,
     addSeconds,
@@ -611,6 +619,75 @@ export default function PomodoroWorkspace({
                   />
                 </div>
               )}
+            </div>
+
+            {/* Alarm Chime & Browser Notification Bar */}
+            <div className="w-full pt-3 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs z-10">
+              <div className="flex items-center gap-2">
+                <Bell className="w-3.5 h-3.5 text-zinc-300" />
+                <span className="font-semibold text-white">Chuông & Thông báo hết giờ:</span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Alarm Sound Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsAlarmSoundEnabled(!isAlarmSoundEnabled)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isAlarmSoundEnabled
+                      ? 'bg-white text-black font-semibold shadow-sm'
+                      : 'bg-white/[0.03] border border-white/[0.06] text-[#9496a1] hover:text-white'
+                  }`}
+                  title={isAlarmSoundEnabled ? "Đang bật chuông báo Tây Tạng khi hết giờ" : "Đã tắt chuông báo"}
+                >
+                  {isAlarmSoundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+                  <span>{isAlarmSoundEnabled ? 'Chuông: Bật' : 'Chuông: Tắt'}</span>
+                </button>
+
+                {/* Test Chime Button */}
+                {isAlarmSoundEnabled && (
+                  <button
+                    type="button"
+                    onClick={testAlarmChime}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                    title="Bấm để nghe thử tiếng chuông bát Tây Tạng"
+                  >
+                    <span>Thử chuông</span>
+                    <span className="text-[10px]">🔔</span>
+                  </button>
+                )}
+
+                {/* Browser / System Notification Button */}
+                <button
+                  type="button"
+                  onClick={testNotification}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                    notificationPermission === 'granted'
+                      ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+                      : notificationPermission === 'denied'
+                      ? 'bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20'
+                      : 'bg-white text-black font-semibold shadow-sm'
+                  }`}
+                  title={
+                    notificationPermission === 'granted'
+                      ? 'Thông báo hệ thống đã bật. Bấm để gửi thử 1 thông báo.'
+                      : notificationPermission === 'denied'
+                      ? 'Trình duyệt đang chặn thông báo. Bấm vào icon ổ khóa cạnh URL để Cho phép (Allow).'
+                      : 'Bấm để cấp quyền thông báo khi hết giờ'
+                  }
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    notificationPermission === 'granted' ? 'bg-emerald-400' : notificationPermission === 'denied' ? 'bg-rose-400' : 'bg-amber-400'
+                  }`} />
+                  <span>
+                    {notificationPermission === 'granted'
+                      ? 'Thông báo: Bật'
+                      : notificationPermission === 'denied'
+                      ? 'Thông báo: Bị chặn'
+                      : 'Bật thông báo'}
+                  </span>
+                </button>
+              </div>
             </div>
 
           </div>

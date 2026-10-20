@@ -62,6 +62,12 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
     durations,
     sessionsCompleted,
     todaySessions,
+    isAlarmSoundEnabled,
+    setIsAlarmSoundEnabled,
+    notificationPermission,
+    requestNotificationPermission,
+    testNotification,
+    testAlarmChime,
     toggleTimer,
     resetTimer,
     switchMode,
@@ -331,6 +337,44 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
               </button>
             </div>
           </form>
+
+          {/* Quick Sound & Notification Controls */}
+          <div className="pt-2.5 mt-2.5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1.5 text-[#9496a1]">
+              <Bell className="w-3 h-3 text-zinc-400" />
+              <span>Chuông & Thông báo:</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={testAlarmChime}
+                className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                title="Nghe thử tiếng chuông"
+              >
+                🔔 Thử
+              </button>
+              <button
+                type="button"
+                onClick={testNotification}
+                className={`px-2 py-0.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                  notificationPermission === 'granted'
+                    ? 'text-emerald-400 bg-emerald-500/10'
+                    : notificationPermission === 'denied'
+                    ? 'text-rose-400 bg-rose-500/10'
+                    : 'text-amber-400 bg-amber-500/10'
+                }`}
+                title={
+                  notificationPermission === 'granted'
+                    ? 'Thông báo hệ thống: Đã bật'
+                    : notificationPermission === 'denied'
+                    ? 'Thông báo bị chặn trong cài đặt trình duyệt'
+                    : 'Nhấn để cấp quyền thông báo'
+                }
+              >
+                {notificationPermission === 'granted' ? 'Đã bật' : notificationPermission === 'denied' ? 'Bị chặn' : 'Bật'}
+              </button>
+            </div>
+          </div>
 
           {onOpenWorkspace && (
             <button

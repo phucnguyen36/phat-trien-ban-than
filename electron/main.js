@@ -52,6 +52,11 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Set App User Model ID on Windows so desktop notifications work in Action Center
+  if (process.platform === 'win32') {
+    app.setAppUserModelId('com.deepfocus.app');
+  }
+
   createWindow();
 
   app.on('activate', () => {
