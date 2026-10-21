@@ -346,16 +346,16 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
           <div className="pt-2.5 mt-2.5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
             <div className="flex items-center gap-1.5 text-[#9496a1]">
               <Bell className="w-3 h-3 text-zinc-400" />
-              <span>Chuông & Thông báo:</span>
+              <span>Sound & Alerts:</span>
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={testAlarmChime}
                 className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
-                title="Nghe thử tiếng chuông"
+                title="Test alarm sound"
               >
-                🔔 Thử
+                🔔 Test
               </button>
               <button
                 type="button"
@@ -369,20 +369,20 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
                 }`}
                 title={
                   notificationPermission === 'granted'
-                    ? 'Thông báo hệ thống: Đã bật'
+                    ? 'System notifications: Enabled'
                     : notificationPermission === 'denied'
-                    ? 'Thông báo bị chặn trong cài đặt trình duyệt'
-                    : 'Nhấn để cấp quyền thông báo'
+                    ? 'Notifications blocked in browser settings'
+                    : 'Click to enable notifications'
                 }
               >
-                {notificationPermission === 'granted' ? 'Đã bật' : notificationPermission === 'denied' ? 'Bị chặn' : 'Bật'}
+                {notificationPermission === 'granted' ? 'On' : notificationPermission === 'denied' ? 'Blocked' : 'Enable'}
               </button>
             </div>
           </div>
 
           {/* Quick Floating Mini Timer & PiP Action */}
           <div className="pt-2 mt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
-            <span className="text-[#9496a1]">Đồng hồ góc phải:</span>
+            <span className="text-[#9496a1]">Floating Mini Timer:</span>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -390,9 +390,9 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
                 className={`px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors cursor-pointer ${
                   isMiniTimerEnabled ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
-                title="Bật/tắt widget đồng hồ nhỏ góc phải"
+                title="Toggle in-app floating mini timer"
               >
-                {isMiniTimerEnabled ? 'Đang bật' : 'Đang tắt'}
+                {isMiniTimerEnabled ? 'On' : 'Off'}
               </button>
               <button
                 type="button"
@@ -402,10 +402,10 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
                     ? 'bg-white text-black font-semibold'
                     : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white'
                 }`}
-                title="Ghim nổi ngoài Desktop (Picture-in-Picture)"
+                title="Pin to Desktop (Picture-in-Picture)"
               >
                 <Pin className="w-2.5 h-2.5" />
-                <span>{isPiPActive ? 'Đang ghim' : 'Ghim PiP'}</span>
+                <span>{isPiPActive ? 'Pinned' : 'Pin PiP'}</span>
               </button>
             </div>
           </div>

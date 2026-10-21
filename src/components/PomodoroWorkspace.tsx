@@ -632,7 +632,7 @@ export default function PomodoroWorkspace({
             <div className="w-full pt-3 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs z-10">
               <div className="flex items-center gap-2">
                 <Bell className="w-3.5 h-3.5 text-zinc-300" />
-                <span className="font-semibold text-white">Chuông & Thông báo hết giờ:</span>
+                <span className="font-semibold text-white">Sound & Notifications:</span>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -645,10 +645,10 @@ export default function PomodoroWorkspace({
                       ? 'bg-white text-black font-semibold shadow-sm'
                       : 'bg-white/[0.03] border border-white/[0.06] text-[#9496a1] hover:text-white'
                   }`}
-                  title={isAlarmSoundEnabled ? "Đang bật chuông báo Tây Tạng khi hết giờ" : "Đã tắt chuông báo"}
+                  title={isAlarmSoundEnabled ? "Alarm chime enabled on completion" : "Alarm chime disabled"}
                 >
                   {isAlarmSoundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
-                  <span>{isAlarmSoundEnabled ? 'Chuông: Bật' : 'Chuông: Tắt'}</span>
+                  <span>{isAlarmSoundEnabled ? 'Chime: On' : 'Chime: Off'}</span>
                 </button>
 
                 {/* Test Chime Button */}
@@ -657,9 +657,9 @@ export default function PomodoroWorkspace({
                     type="button"
                     onClick={testAlarmChime}
                     className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1"
-                    title="Bấm để nghe thử tiếng chuông bát Tây Tạng"
+                    title="Play Tibetan singing bowl test chime"
                   >
-                    <span>Thử chuông</span>
+                    <span>Test Chime</span>
                     <span className="text-[10px]">🔔</span>
                   </button>
                 )}
@@ -677,10 +677,10 @@ export default function PomodoroWorkspace({
                   }`}
                   title={
                     notificationPermission === 'granted'
-                      ? 'Thông báo hệ thống đã bật. Bấm để gửi thử 1 thông báo.'
+                      ? 'System notifications: Enabled. Click to test.'
                       : notificationPermission === 'denied'
-                      ? 'Trình duyệt đang chặn thông báo. Bấm vào icon ổ khóa cạnh URL để Cho phép (Allow).'
-                      : 'Bấm để cấp quyền thông báo khi hết giờ'
+                      ? 'Notifications blocked by browser. Click lock icon next to URL to allow.'
+                      : 'Click to enable desktop notifications'
                   }
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${
@@ -688,10 +688,10 @@ export default function PomodoroWorkspace({
                   }`} />
                   <span>
                     {notificationPermission === 'granted'
-                      ? 'Thông báo: Bật'
+                      ? 'Notifications: On'
                       : notificationPermission === 'denied'
-                      ? 'Thông báo: Bị chặn'
-                      : 'Bật thông báo'}
+                      ? 'Notifications: Blocked'
+                      : 'Enable Notifications'}
                   </span>
                 </button>
 
@@ -704,10 +704,10 @@ export default function PomodoroWorkspace({
                       ? 'bg-white text-black font-semibold shadow-sm'
                       : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white'
                   }`}
-                  title="Ghim đồng hồ mini nổi ở góc dưới bên phải màn hình desktop (Picture-in-Picture luôn hiển thị đè lên các app khác)"
+                  title="Pin floating mini timer to desktop corner (always on top)"
                 >
                   <Pin className="w-3 h-3" />
-                  <span>{isPiPActive ? 'Đang ghim góc phải' : 'Ghim góc phải (PiP)'}</span>
+                  <span>{isPiPActive ? 'Pinned to Desktop' : 'Pin to Desktop (PiP)'}</span>
                 </button>
               </div>
             </div>

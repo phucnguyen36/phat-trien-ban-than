@@ -65,8 +65,8 @@ function createMiniTimerWindow() {
 
   const primaryDisplay = screen.getPrimaryDisplay();
   const workArea = primaryDisplay.workArea;
-  const winWidth = 270;
-  const winHeight = 96;
+  const winWidth = 282;
+  const winHeight = 98;
 
   // Position at bottom-right corner with 20px padding
   const posX = Math.round(workArea.x + workArea.width - winWidth - 20);

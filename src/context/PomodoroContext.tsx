@@ -988,8 +988,8 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     if (perm === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
       try {
-        const notif = new Notification('🔔 DeepFocus OS: Thông Báo Hoạt Động Tốt!', {
-          body: 'Bạn sẽ nhận được thông báo này mỗi khi hết giờ Pomodoro hoặc hết giờ nghỉ giải lao.',
+        const notif = new Notification('🔔 DeepFocus OS: Notifications Active!', {
+          body: 'You will receive desktop alerts when your focus session or break timer completes.',
           icon: '/favicon.ico',
           tag: 'deepfocus-test'
         });
@@ -1010,10 +1010,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const notifyUserOnComplete = (finishedMode: TimerMode, taskName?: string) => {
     const isFocus = finishedMode === 'focus';
-    const title = isFocus ? '🎯 Pomodoro Hoàn Tất!' : '⚡ Hết Giờ Giải Lao!';
+    const title = isFocus ? '🎯 Focus Session Complete!' : '⚡ Break Time Ended!';
     const body = isFocus
-      ? `Tuyệt vời! Bạn vừa hoàn thành một khối tập trung sâu${taskName ? `: "${taskName}"` : ''}. Đã đến lúc nghỉ ngơi.`
-      : 'Thời gian giải lao đã kết thúc. Sẵn sàng cho phiên làm việc sâu tiếp theo?';
+      ? `Great job! You completed a deep focus session${taskName ? `: "${taskName}"` : ''}. Time to recharge.`
+      : 'Break time has finished. Ready for your next deep focus block?';
 
     // 1. Native Browser / Desktop Notification
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
@@ -1034,7 +1034,7 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     // 2. Tab Title Alert Flasher
-    triggerTabTitleNotification(isFocus ? '[XONG] Nghỉ ngơi nào!' : '[HẾT GIỜ NGHỈ] Vào việc thôi!');
+    triggerTabTitleNotification(isFocus ? '[DONE] Time for a break!' : '[BREAK OVER] Ready to focus!');
   };
 
   // Core Timer Engine using Timestamp tracking for immune-to-tab-throttle accuracy
@@ -1070,7 +1070,7 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
           targetMinutes: completedMins,
           completed: true,
           interrupted: false,
-          taskTitle: activeTaskTitleRef.current || (mode === 'focus' ? 'Deep Work Session' : 'Rest Block'),
+          taskTitle: activeTaskTitleRef.current || (mode === 'focus' ? 'Deep Work Session' : 'Rest Break'),
           mode
         };
         setAllSessions(prev => [newRecord, ...prev]);
@@ -1078,7 +1078,7 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         // Show in-app completion modal/dialog
         setCompletionAlert({
           mode,
-          title: activeTaskTitleRef.current || (mode === 'focus' ? 'Deep Work Session' : 'Thời gian nghỉ'),
+          title: activeTaskTitleRef.current || (mode === 'focus' ? 'Deep Work Session' : 'Rest Break'),
           completedMinutes: completedMins,
           timestamp: Date.now()
         });

@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { Flame, Coffee, Sparkles, X, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Flame, Coffee, X, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { usePomodoro } from '../context/PomodoroContext';
 
 export const PomodoroCompletionModal: React.FC = () => {
@@ -16,9 +16,9 @@ export const PomodoroCompletionModal: React.FC = () => {
     durations
   } = usePomodoro();
 
+  // Close on ESC key
   useEffect(() => {
     if (!completionAlert) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         dismissCompletionAlert();
@@ -43,7 +43,7 @@ export const PomodoroCompletionModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="w-full max-w-md bg-[#09090b] border border-white/20 rounded-2xl p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative text-center space-y-5 animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md bg-[#090a0f] border border-white/20 rounded-2xl p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative text-center space-y-5 animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
       >
@@ -52,7 +52,7 @@ export const PomodoroCompletionModal: React.FC = () => {
           type="button"
           onClick={dismissCompletionAlert}
           className="absolute top-4 right-4 p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-          title="Đóng thông báo (Esc)"
+          title="Dismiss (Esc)"
         >
           <X className="w-4 h-4" />
         </button>
@@ -73,25 +73,25 @@ export const PomodoroCompletionModal: React.FC = () => {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-semibold text-zinc-200 uppercase tracking-wider">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{isFocus ? 'Phiên tập trung hoàn tất' : 'Hết giờ giải lao'}</span>
+            <span>{isFocus ? 'Focus Session Completed' : 'Break Time Finished'}</span>
           </div>
 
           <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            {isFocus ? 'Tuyệt vời! Đã đến lúc nghỉ ngơi' : 'Nạp năng lượng xong! Vào việc thôi'}
+            {isFocus ? 'Great Job! Time to recharge' : 'Recharged! Ready to focus'}
           </h3>
 
           <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">
             {isFocus ? (
               <>
-                Bạn vừa hoàn thành xuất sắc{' '}
-                <span className="text-white font-semibold">{completionAlert.completedMinutes} phút</span> làm việc sâu cho mục tiêu:{' '}
+                You completed a deep focus block of{' '}
+                <span className="text-white font-semibold">{completionAlert.completedMinutes} minutes</span> on:{' '}
                 <span className="text-zinc-200 font-medium italic block mt-1 line-clamp-1">
                   &ldquo;{completionAlert.title}&rdquo;
                 </span>
               </>
             ) : (
               <>
-                Thời gian giải lao đã kết thúc. Hãy giữ tâm trí tĩnh lặng và bước vào phiên làm việc sâu tiếp theo.
+                Your break has ended. Take a breath and step into your next deep work block.
               </>
             )}
           </p>
@@ -104,7 +104,7 @@ export const PomodoroCompletionModal: React.FC = () => {
             onClick={handleStartNext}
             className="w-full py-3 px-5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs sm:text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-98"
           >
-            <span>{isFocus ? `Bắt đầu nghỉ (${nextDuration} phút)` : `Bắt đầu Focus (${nextDuration} phút)`}</span>
+            <span>{isFocus ? `Start Break (${nextDuration} min)` : `Start Focus (${nextDuration} min)`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
@@ -113,7 +113,7 @@ export const PomodoroCompletionModal: React.FC = () => {
             onClick={dismissCompletionAlert}
             className="w-full sm:w-auto py-3 px-5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
           >
-            Đóng
+            Dismiss
           </button>
         </div>
       </div>
