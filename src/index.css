@@ -192,3 +192,22 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Frameless Transparent Mini Timer Window Mode */
+html.mini-window-html,
+body.mini-window-body {
+  background: transparent !important;
+  background-color: transparent !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+html.mini-window-html .noise-overlay,
+body.mini-window-body .noise-overlay,
+html.mini-window-html .ambient-glow,
+body.mini-window-body .ambient-glow {
+  display: none !important;
+}
+

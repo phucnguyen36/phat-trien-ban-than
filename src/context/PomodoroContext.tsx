@@ -436,11 +436,24 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     return localStorage.getItem('df_active_focus_goal_id') || null;
   });
 
-  // Active task title (for auto labeling completed sessions)
-  const [activeTaskTitle, setActiveTaskTitle] = useState<string | null>(null);
+  // Active task title (for auto labeling completed sessions & cross-window sync)
+  const [activeTaskTitle, setActiveTaskTitle] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('df_active_task_title') || null;
+    } catch (e) {
+      return null;
+    }
+  });
   const activeTaskTitleRef = useRef<string | null>(null);
   useEffect(() => {
     activeTaskTitleRef.current = activeTaskTitle;
+    try {
+      if (activeTaskTitle) {
+        localStorage.setItem('df_active_task_title', activeTaskTitle);
+      } else {
+        localStorage.removeItem('df_active_task_title');
+      }
+    } catch (e) {}
   }, [activeTaskTitle]);
 
   // All historical sessions across all dates with fallback & migration
@@ -579,6 +592,46 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
       localStorage.setItem(`df_focus_history_${todayDateStr}`, JSON.stringify(todaySessions));
     } catch (e) {}
   }, [allSessions, todaySessions, todayDateStr]);
+
+  // Cross-Window / Multi-Instance Realtime State Sync (Electron Mini Window <-> Main Window)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (!e.key) return;
+
+      if (e.key === 'df_timer_mode' && e.newValue) {
+        setMode(e.newValue as TimerMode);
+      } else if (e.key === 'df_timer_is_running') {
+        setIsRunning(e.newValue === 'true');
+      } else if (e.key === 'df_timer_target_end_time') {
+        setTargetEndTime(e.newValue ? parseInt(e.newValue, 10) : null);
+      } else if (e.key === 'df_timer_time_left' && e.newValue) {
+        setTimeLeft(parseInt(e.newValue, 10));
+      } else if (e.key === 'df_timer_total_session_seconds' && e.newValue) {
+        setTotalSessionSeconds(parseInt(e.newValue, 10));
+      } else if (e.key === 'df_active_task_title') {
+        setActiveTaskTitle(e.newValue || null);
+      } else if (e.key === 'df_active_focus_goal_id') {
+        setActiveFocusGoalId(e.newValue || null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Listen to Electron Mini Timer Status (syncs isPiPActive if opened or closed via Electron)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.onMiniTimerStatus) {
+      const unsub = (window as any).electronAPI.onMiniTimerStatus((isOpen: boolean) => {
+        setIsPiPActive(isOpen);
+      });
+      return () => {
+        if (typeof unsub === 'function') unsub();
+      };
+    }
+  }, []);
 
   // Ambient sound volume sync
   useEffect(() => {
@@ -775,6 +828,12 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [autoPiPOnFocus]);
 
   const closePiP = () => {
+    if ((window as any).electronAPI?.isElectron) {
+      try {
+        (window as any).electronAPI.closeMiniTimer();
+      } catch (e) {}
+    }
+
     if (pipWindow && !pipWindow.closed) {
       try {
         pipWindow.close();
@@ -787,6 +846,17 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   const openPiP = async () => {
     if (typeof window === 'undefined') return;
 
+    // 1. Electron Native Desktop App: Open 100% frameless always-on-top window
+    if ((window as any).electronAPI?.isElectron) {
+      try {
+        (window as any).electronAPI.openMiniTimer();
+        setIsPiPActive(true);
+        return;
+      } catch (err) {
+        console.warn('Electron openMiniTimer failed:', err);
+      }
+    }
+
     if (pipWindow && !pipWindow.closed) {
       try {
         pipWindow.focus();
@@ -794,12 +864,25 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
       return;
     }
 
+    // 2. Web Browser: Document Picture-in-Picture
     if ('documentPictureInPicture' in window) {
       try {
         const win: Window = await (window as any).documentPictureInPicture.requestWindow({
-          width: 290,
-          height: 125,
+          width: 280,
+          height: 110,
+          disallowReturnToOpener: true,
         });
+
+        // Dark color-scheme & theme-color so Windows renders a dark titlebar instead of bright white
+        const metaColorScheme = document.createElement('meta');
+        metaColorScheme.name = 'color-scheme';
+        metaColorScheme.content = 'dark';
+        win.document.head.appendChild(metaColorScheme);
+
+        const metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = 'theme-color';
+        metaThemeColor.content = '#09090b';
+        win.document.head.appendChild(metaThemeColor);
 
         // Copy styles from main document to PiP window
         Array.from(document.styleSheets).forEach((styleSheet) => {
@@ -839,13 +922,13 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
             width: 100vw;
             height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: stretch;
+            justify-content: stretch;
           }
           * { box-sizing: border-box; }
         `;
         win.document.head.appendChild(baseStyle);
-        win.document.title = 'DeepFocus Mini';
+        win.document.title = '';
 
         win.addEventListener('pagehide', () => {
           setPipWindow(null);
@@ -865,6 +948,12 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const togglePiP = () => {
+    if ((window as any).electronAPI?.isElectron) {
+      (window as any).electronAPI.toggleMiniTimer();
+      setIsPiPActive(prev => !prev);
+      return;
+    }
+
     if (isPiPActive) {
       closePiP();
     } else {

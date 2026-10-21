@@ -48,6 +48,7 @@ import DailyJournalPanel from './components/DailyJournal';
 import ExpenseLedger from './components/ExpenseLedger';
 import DeepWorkTimer from './components/DeepWorkTimer';
 import PomodoroWorkspace from './components/PomodoroWorkspace';
+import { MiniTimerStandalone } from './components/FloatingMiniTimer';
 import ProFeatureLockGate from './components/ProFeatureLockGate';
 import { DeepFocusLogo } from './components/DeepFocusLogo';
 import { usePomodoro } from './context/PomodoroContext';
@@ -193,6 +194,12 @@ export const THEMES: UITheme[] = [
 ];
 
 export default function App() {
+  const isMiniWindowMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mini') === 'true';
+
+  if (isMiniWindowMode) {
+    return <MiniTimerStandalone />;
+  }
+
   // Synchronous User & Session Recovery for Instant 0ms Load
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     const savedUser = localStorage.getItem('df_os_active_user') || sessionStorage.getItem('df_os_active_user');

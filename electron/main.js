@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, screen } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -6,6 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow = null;
+let miniTimerWindow = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -21,6 +22,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.cjs'),
       sandbox: false,
     },
   });
@@ -48,8 +50,87 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    if (miniTimerWindow && !miniTimerWindow.isDestroyed()) {
+      miniTimerWindow.close();
+    }
   });
 }
+
+// 100% Frameless Always-On-Top Floating Mini Timer Window
+function createMiniTimerWindow() {
+  if (miniTimerWindow && !miniTimerWindow.isDestroyed()) {
+    miniTimerWindow.focus();
+    return;
+  }
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const workArea = primaryDisplay.workArea;
+  const winWidth = 270;
+  const winHeight = 96;
+
+  // Position at bottom-right corner with 20px padding
+  const posX = Math.round(workArea.x + workArea.width - winWidth - 20);
+  const posY = Math.round(workArea.y + workArea.height - winHeight - 20);
+
+  miniTimerWindow = new BrowserWindow({
+    width: winWidth,
+    height: winHeight,
+    x: posX,
+    y: posY,
+    frame: false,                 // NO Windows titlebar or borders!
+    transparent: true,             // Translucent glass rounded corners!
+    alwaysOnTop: true,             // Floats above Slack, Premiere, etc.!
+    resizable: false,
+    skipTaskbar: true,             // Doesn't clutter the taskbar
+    hasShadow: true,
+    backgroundColor: '#00000000',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.cjs'),
+      sandbox: false,
+    },
+  });
+
+  const devServerUrl = process.env.VITE_DEV_SERVER_URL;
+  if (devServerUrl) {
+    miniTimerWindow.loadURL(`${devServerUrl}?mini=true`);
+  } else {
+    miniTimerWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
+      query: { mini: 'true' }
+    });
+  }
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('mini-timer-status', true);
+  }
+
+  miniTimerWindow.on('closed', () => {
+    miniTimerWindow = null;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('mini-timer-status', false);
+    }
+  });
+}
+
+// IPC Listeners for Mini Timer
+ipcMain.on('open-mini-timer', () => {
+  createMiniTimerWindow();
+});
+
+ipcMain.on('close-mini-timer', () => {
+  if (miniTimerWindow && !miniTimerWindow.isDestroyed()) {
+    miniTimerWindow.close();
+  }
+});
+
+ipcMain.on('toggle-mini-timer', () => {
+  if (miniTimerWindow && !miniTimerWindow.isDestroyed()) {
+    miniTimerWindow.close();
+  } else {
+    createMiniTimerWindow();
+  }
+});
 
 app.whenReady().then(() => {
   // Set App User Model ID on Windows so desktop notifications work in Action Center
