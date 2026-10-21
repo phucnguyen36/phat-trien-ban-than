@@ -49,6 +49,7 @@ import {
   PlusCircle,
   Sliders,
   Bell,
+  Pin,
   ChevronDown,
   Search,
   Target,
@@ -120,6 +121,12 @@ export default function PomodoroWorkspace({
     requestNotificationPermission,
     testNotification,
     testAlarmChime,
+    isPiPActive,
+    togglePiP,
+    isMiniTimerEnabled,
+    setIsMiniTimerEnabled,
+    autoPiPOnFocus,
+    setAutoPiPOnFocus,
     toggleTimer,
     resetTimer,
     addSeconds,
@@ -686,6 +693,21 @@ export default function PomodoroWorkspace({
                       ? 'Thông báo: Bị chặn'
                       : 'Bật thông báo'}
                   </span>
+                </button>
+
+                {/* Always-on-Top PiP Mini Timer Button */}
+                <button
+                  type="button"
+                  onClick={togglePiP}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isPiPActive
+                      ? 'bg-white text-black font-semibold shadow-sm'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white'
+                  }`}
+                  title="Ghim đồng hồ mini nổi ở góc dưới bên phải màn hình desktop (Picture-in-Picture luôn hiển thị đè lên các app khác)"
+                >
+                  <Pin className="w-3 h-3" />
+                  <span>{isPiPActive ? 'Đang ghim góc phải' : 'Ghim góc phải (PiP)'}</span>
                 </button>
               </div>
             </div>

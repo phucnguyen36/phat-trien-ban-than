@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronDown, Bell } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronDown, Bell, Pin } from 'lucide-react';
 
 import { usePomodoro, TimerMode } from '../context/PomodoroContext';
 
@@ -68,6 +68,10 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
     requestNotificationPermission,
     testNotification,
     testAlarmChime,
+    isPiPActive,
+    togglePiP,
+    isMiniTimerEnabled,
+    setIsMiniTimerEnabled,
     toggleTimer,
     resetTimer,
     switchMode,
@@ -372,6 +376,36 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
                 }
               >
                 {notificationPermission === 'granted' ? 'Đã bật' : notificationPermission === 'denied' ? 'Bị chặn' : 'Bật'}
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Floating Mini Timer & PiP Action */}
+          <div className="pt-2 mt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
+            <span className="text-[#9496a1]">Đồng hồ góc phải:</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsMiniTimerEnabled(!isMiniTimerEnabled)}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors cursor-pointer ${
+                  isMiniTimerEnabled ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+                title="Bật/tắt widget đồng hồ nhỏ góc phải"
+              >
+                {isMiniTimerEnabled ? 'Đang bật' : 'Đang tắt'}
+              </button>
+              <button
+                type="button"
+                onClick={togglePiP}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-medium flex items-center gap-1 transition-colors cursor-pointer ${
+                  isPiPActive
+                    ? 'bg-white text-black font-semibold'
+                    : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white'
+                }`}
+                title="Ghim nổi ngoài Desktop (Picture-in-Picture)"
+              >
+                <Pin className="w-2.5 h-2.5" />
+                <span>{isPiPActive ? 'Đang ghim' : 'Ghim PiP'}</span>
               </button>
             </div>
           </div>

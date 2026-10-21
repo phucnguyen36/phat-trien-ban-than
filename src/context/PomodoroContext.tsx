@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo, ReactNode } from 'react';
 import { PomodoroCompletionModal } from '../components/PomodoroCompletionModal';
+import { FloatingMiniTimer } from '../components/FloatingMiniTimer';
 
 export type TimerMode = 'focus' | 'short_break' | 'long_break';
 export type AmbientSoundType = 'off' | 'brown' | 'white' | 'rain' | 'binaural';
@@ -90,6 +91,15 @@ interface PomodoroContextType {
     timestamp: number;
   } | null;
   dismissCompletionAlert: () => void;
+  isMiniTimerEnabled: boolean;
+  setIsMiniTimerEnabled: (val: boolean) => void;
+  isPiPActive: boolean;
+  pipWindow: Window | null;
+  openPiP: () => Promise<void>;
+  closePiP: () => void;
+  togglePiP: () => void;
+  autoPiPOnFocus: boolean;
+  setAutoPiPOnFocus: (val: boolean) => void;
 }
 
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
@@ -740,6 +750,128 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
     } catch (e) {}
   }, [alarmVolume]);
 
+  // Floating Mini Timer & Always-On-Top Picture-in-Picture State
+  const [isMiniTimerEnabled, setIsMiniTimerEnabled] = useState<boolean>(() => {
+    return localStorage.getItem('df_mini_timer_enabled') !== 'false';
+  });
+
+  const [autoPiPOnFocus, setAutoPiPOnFocus] = useState<boolean>(() => {
+    return localStorage.getItem('df_auto_pip_on_focus') === 'true';
+  });
+
+  const [isPiPActive, setIsPiPActive] = useState<boolean>(false);
+  const [pipWindow, setPipWindow] = useState<Window | null>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('df_mini_timer_enabled', String(isMiniTimerEnabled));
+    } catch (e) {}
+  }, [isMiniTimerEnabled]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('df_auto_pip_on_focus', String(autoPiPOnFocus));
+    } catch (e) {}
+  }, [autoPiPOnFocus]);
+
+  const closePiP = () => {
+    if (pipWindow && !pipWindow.closed) {
+      try {
+        pipWindow.close();
+      } catch (e) {}
+    }
+    setPipWindow(null);
+    setIsPiPActive(false);
+  };
+
+  const openPiP = async () => {
+    if (typeof window === 'undefined') return;
+
+    if (pipWindow && !pipWindow.closed) {
+      try {
+        pipWindow.focus();
+      } catch (e) {}
+      return;
+    }
+
+    if ('documentPictureInPicture' in window) {
+      try {
+        const win: Window = await (window as any).documentPictureInPicture.requestWindow({
+          width: 290,
+          height: 125,
+        });
+
+        // Copy styles from main document to PiP window
+        Array.from(document.styleSheets).forEach((styleSheet) => {
+          try {
+            if (styleSheet.cssRules) {
+              const newStyleEl = document.createElement('style');
+              for (const rule of styleSheet.cssRules) {
+                newStyleEl.appendChild(document.createTextNode(rule.cssText));
+              }
+              win.document.head.appendChild(newStyleEl);
+            } else if (styleSheet.href) {
+              const newLinkEl = document.createElement('link');
+              newLinkEl.rel = 'stylesheet';
+              newLinkEl.href = styleSheet.href;
+              win.document.head.appendChild(newLinkEl);
+            }
+          } catch (e) {
+            if (styleSheet.href) {
+              const newLinkEl = document.createElement('link');
+              newLinkEl.rel = 'stylesheet';
+              newLinkEl.href = styleSheet.href;
+              win.document.head.appendChild(newLinkEl);
+            }
+          }
+        });
+
+        const baseStyle = document.createElement('style');
+        baseStyle.textContent = `
+          html, body {
+            margin: 0;
+            padding: 0;
+            background: #09090b !important;
+            color: #ededed;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          * { box-sizing: border-box; }
+        `;
+        win.document.head.appendChild(baseStyle);
+        win.document.title = 'DeepFocus Mini';
+
+        win.addEventListener('pagehide', () => {
+          setPipWindow(null);
+          setIsPiPActive(false);
+        });
+
+        setPipWindow(win);
+        setIsPiPActive(true);
+        return;
+      } catch (err) {
+        console.warn('Document Picture-in-Picture request failed:', err);
+      }
+    }
+
+    // Fallback: make sure in-app corner widget is enabled!
+    setIsMiniTimerEnabled(true);
+  };
+
+  const togglePiP = () => {
+    if (isPiPActive) {
+      closePiP();
+    } else {
+      openPiP();
+    }
+  };
+
   // Notification helper
   const requestNotificationPermission = async (): Promise<NotificationPermission> => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -976,6 +1108,9 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Timer Control Functions
   const startTimer = () => {
     requestNotificationPermission();
+    if (autoPiPOnFocus && !isPiPActive) {
+      openPiP().catch(() => {});
+    }
     let currentRemaining = timeLeft;
     if (currentRemaining <= 0) {
       currentRemaining = durations[mode] * 60;
@@ -1085,11 +1220,21 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         testNotification,
         testAlarmChime,
         completionAlert,
-        dismissCompletionAlert
+        dismissCompletionAlert,
+        isMiniTimerEnabled,
+        setIsMiniTimerEnabled,
+        isPiPActive,
+        pipWindow,
+        openPiP,
+        closePiP,
+        togglePiP,
+        autoPiPOnFocus,
+        setAutoPiPOnFocus
       }}
     >
       {children}
       <PomodoroCompletionModal />
+      <FloatingMiniTimer />
     </PomodoroContext.Provider>
   );
 };
