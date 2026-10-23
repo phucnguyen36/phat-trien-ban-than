@@ -14,7 +14,7 @@
 | **Trạng thái Build** | ✅ `tsc --noEmit` (0 lỗi), `vite build` (0 lỗi) | Đã kiểm thử tự động |
 | **Công nghệ cốt lõi** | React 19, TypeScript, Vite 6, Tailwind CSS v4, Electron, Firebase | Kiến trúc 2 tầng (Local 0ms + Cloud Firestore) |
 | **Mô hình kinh doanh** | Freemium + Whop Commercial Licensing | $29/tháng & $99/6 tháng |
-| **Lần cập nhật cuối** | **21/10/2026** | Cam kết: `534baf9` |
+| **Lần cập nhật cuối** | **23/10/2026** | Cam kết: `c0da8ac` |
 
 ---
 
@@ -96,6 +96,12 @@
 
 ## 📝 5. NHẬT KÝ COMMITS GẦN NHẤT (RECENT COMMITS CHANGELOG)
 
+- `c0da8ac` — **feat: integrate Anti-AI-Slop Manifesto and 7-Day Plan modal into app**  
+  *Tích hợp trực tiếp Sổ tay Anti-AI-Slop, 10 tiêu chuẩn kiểm định Quality Gate và Kế hoạch 7 ngày vào giao diện App (Sidebar, Settings modal, Command Palette Ctrl+K, phím tắt Ctrl+M).*
+- `98f33dd` — **docs: add comprehensive ANTI_AI_SLOP_GUIDE.md manifesto**  
+  *Đúc kết 7 quy chuẩn thép diệt AI Slop từ quá trình thiết kế DeepFocus OS.*
+- `a5551af` — **docs: add living HANDOFF.md progress master document**  
+  *Tạo tài liệu bàn giao và theo dõi tiến độ tổng thể kế hoạch 7 ngày.*
 - `534baf9` — **refactor(timer): clean up mini timer panel layout and enforce full English UI**  
   *Tinh giản thanh panel mini timer theo chuẩn Swiss/Linear, loại bỏ nút rườm rà, nhường không gian cho tên task, chuyển đổi 100% ngôn ngữ sang tiếng Anh.*
 - `1e94ecf` — **feat(timer): make floating mini timer clean and frameless without windows titlebar**  
