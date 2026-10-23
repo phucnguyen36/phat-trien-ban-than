@@ -11,9 +11,7 @@ import {
   X, 
   ArrowRight,
   Settings,
-  Flame,
-  ShieldCheck,
-  Clock
+  Flame
 } from 'lucide-react';
 import { GoalTodo, HabitData, PersonalExpense } from '../types';
 
@@ -25,7 +23,6 @@ interface CommandPaletteProps {
   habits: HabitData[];
   expenses: PersonalExpense[];
   onOpenSettings?: () => void;
-  onOpenManifesto?: () => void;
 }
 
 export default function CommandPalette({
@@ -35,8 +32,7 @@ export default function CommandPalette({
   goals,
   habits,
   expenses,
-  onOpenSettings,
-  onOpenManifesto
+  onOpenSettings
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
 
@@ -71,9 +67,7 @@ export default function CommandPalette({
     { id: 'habits', label: 'Habits & Consistency', icon: Activity },
     { id: 'journal', label: 'Daily Journal', icon: BookOpen },
     { id: 'expenses', label: 'Cash Flow & Expenses', icon: DollarSign },
-    { id: 'ae-picker', label: 'Theme & Accent', icon: Compass },
-    { id: 'manifesto', label: 'Anti-AI-Slop Manifesto & Standards', icon: ShieldCheck },
-    { id: 'handoff', label: 'System Progress & 7-Day Roadmap', icon: Clock }
+    { id: 'ae-picker', label: 'Theme & Accent', icon: Compass }
   ];
 
   const filteredNav = NAV_ITEMS.filter(item => 
@@ -127,13 +121,8 @@ export default function CommandPalette({
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === 'manifesto' || item.id === 'handoff') {
-                        onOpenManifesto?.();
-                        onClose();
-                      } else {
-                        onNavigate(item.id);
-                        onClose();
-                      }
+                      onNavigate(item.id);
+                      onClose();
                     }}
                     className="w-full flex items-center justify-between p-2.5 rounded-none glass-card glass-card-hover text-left transition-colors group"
                   >

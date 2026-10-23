@@ -49,7 +49,6 @@ import ExpenseLedger from './components/ExpenseLedger';
 import DeepWorkTimer from './components/DeepWorkTimer';
 import PomodoroWorkspace from './components/PomodoroWorkspace';
 import { MiniTimerStandalone } from './components/FloatingMiniTimer';
-import AntiSlopManifestoModal from './components/AntiSlopManifestoModal';
 import ProFeatureLockGate from './components/ProFeatureLockGate';
 import { DeepFocusLogo } from './components/DeepFocusLogo';
 import { usePomodoro } from './context/PomodoroContext';
@@ -430,9 +429,6 @@ export default function App() {
         setActiveSection('expense-ledger');
       } else if (e.key === 'n' || e.key === 'N' || e.key === 't' || e.key === 'T') {
         setActiveSection('todo-hub');
-      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'm' || e.key === 'M')) {
-        e.preventDefault();
-        setIsManifestoModalOpen(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -444,7 +440,6 @@ export default function App() {
 
   // Settings Panel Open State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isManifestoModalOpen, setIsManifestoModalOpen] = useState(false);
 
   // User Profile Settings State
   const [profile, setProfile] = useState<UserProfile>(() => {
@@ -1436,20 +1431,6 @@ export default function App() {
               {/* Streamlined Utility Controls */}
               <div className="pt-3 mt-2 border-t border-white/[0.08] grid grid-cols-2 gap-2 text-center">
                 <button
-                  onClick={() => setIsManifestoModalOpen(true)}
-                  className="col-span-2 py-2 px-2.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 text-zinc-200 hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-between group cursor-pointer"
-                  title="Anti-AI-Slop Manifesto & 7-Day Plan"
-                >
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-                    <span>Anti-AI-Slop Blueprint</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-                    v5.0.0
-                  </span>
-                </button>
-
-                <button
                   onClick={handleExportAllData}
                   className="py-2 px-2 glass-button-true text-[#ededf3] hover:text-white font-sans text-xs font-medium transition-all rounded-xl flex items-center justify-center gap-1.5"
                   title="Export Backup Data (JSON)"
@@ -1858,30 +1839,6 @@ export default function App() {
               Accent colors, data backup, and system configuration
             </p>
 
-            {/* Anti-AI-Slop Manifesto & Roadmap Quick Access Banner */}
-            <div 
-              onClick={() => {
-                setIsSettingsOpen(false);
-                setIsManifestoModalOpen(true);
-              }}
-              className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-emerald-500/40 transition-all cursor-pointer flex items-center justify-between mb-6 group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:scale-105 transition-transform">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-xs font-semibold text-white group-hover:text-emerald-300 transition-colors block">
-                    Anti-AI-Slop Manifesto & 7-Day Plan
-                  </span>
-                  <span className="text-[10px] text-zinc-400 block mt-0.5">
-                    7 Core Rules, 10-Point Checklist & System Architecture
-                  </span>
-                </div>
-              </div>
-              <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-all group-hover:translate-x-0.5" />
-            </div>
-
             {/* Section 1: Highlight & Graph Accent Color */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
@@ -2118,7 +2075,6 @@ export default function App() {
         habits={habits}
         expenses={expenses}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenManifesto={() => setIsManifestoModalOpen(true)}
       />
 
       {/* A4 — MORNING PRIORITY PROMPT MODAL */}
@@ -2319,12 +2275,6 @@ export default function App() {
         onActivateKey={handleActivateLicense}
         onDeactivateKey={handleDeactivateLicense}
         accentColor={customAccentColor}
-      />
-
-      {/* Engineering Standards & Anti-AI-Slop Manifesto Modal */}
-      <AntiSlopManifestoModal
-        isOpen={isManifestoModalOpen}
-        onClose={() => setIsManifestoModalOpen(false)}
       />
 
     </div>

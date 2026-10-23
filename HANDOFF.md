@@ -14,7 +14,7 @@
 | **Trạng thái Build** | ✅ `tsc --noEmit` (0 lỗi), `vite build` (0 lỗi) | Đã kiểm thử tự động |
 | **Công nghệ cốt lõi** | React 19, TypeScript, Vite 6, Tailwind CSS v4, Electron, Firebase | Kiến trúc 2 tầng (Local 0ms + Cloud Firestore) |
 | **Mô hình kinh doanh** | Freemium + Whop Commercial Licensing | $29/tháng & $99/6 tháng |
-| **Lần cập nhật cuối** | **23/10/2026** | Pomodoro HUD & Notification Overhaul |
+| **Lần cập nhật cuối** | **23/10/2026** | Clean UI: Purged in-app AI Slop panel |
 
 ---
 
@@ -100,6 +100,8 @@
 
 ## 📝 5. NHẬT KÝ COMMITS GẦN NHẤT (RECENT COMMITS CHANGELOG)
 
+- `d06894e` — **feat(pomodoro): redesign mini timer HUD to sleek Dynamic Island capsule and overhaul notifications**  
+  *Thu nhỏ Mini Timer HUD xuống 280x78px tối giản, thay modal che màn hình bằng Floating Notification Banner đếm ngược 15s tự động đóng, tích hợp Native Windows Action Center notification qua Electron IPC, xóa sạch emoji slop.*
 - `c0da8ac` — **feat: integrate Anti-AI-Slop Manifesto and 7-Day Plan modal into app**  
   *Tích hợp trực tiếp Sổ tay Anti-AI-Slop, 10 tiêu chuẩn kiểm định Quality Gate và Kế hoạch 7 ngày vào giao diện App (Sidebar, Settings modal, Command Palette Ctrl+K, phím tắt Ctrl+M).*
 - `98f33dd` — **docs: add comprehensive ANTI_AI_SLOP_GUIDE.md manifesto**  
