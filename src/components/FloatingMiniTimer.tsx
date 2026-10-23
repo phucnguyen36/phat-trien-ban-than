@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, Pause, X, Pin, Maximize2 } from 'lucide-react';
+import { Play, Pause, X, Pin, ChevronDown, ChevronUp } from 'lucide-react';
 import { usePomodoro } from '../context/PomodoroContext';
 
 interface MiniTimerCardProps {
@@ -42,12 +42,12 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
     ? Math.max(0, Math.min(1, (totalSessionSeconds - timeLeft) / totalSessionSeconds)) 
     : 0;
 
-  // Ultra-clean Swiss / Linear dark glass styling
+  // Ultra-clean Swiss Minimalist dark glass styling (Linear / Raycast standard)
   const containerClasses = isPiP
-    ? "w-full h-full bg-[#090a0f] text-white p-3 flex flex-col justify-between select-none"
+    ? "w-full h-full bg-[#090a10] text-white p-3 flex flex-col justify-between select-none overflow-hidden relative"
     : isFramelessNative
-    ? "w-[272px] h-[90px] rounded-2xl bg-[#090a0f]/95 text-white border border-white/15 p-3 shadow-2xl backdrop-blur-2xl flex flex-col justify-between select-none cursor-move"
-    : "relative w-[272px] select-none rounded-2xl bg-[#090a0f]/95 text-white border border-white/15 p-3 shadow-2xl backdrop-blur-2xl";
+    ? "w-[280px] h-[78px] rounded-2xl bg-[#090a10]/95 text-white border border-white/10 px-3.5 py-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col justify-between select-none cursor-move overflow-hidden relative group"
+    : "w-[280px] h-[78px] rounded-2xl bg-[#090a10]/95 text-white border border-white/10 px-3.5 py-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.7)] backdrop-blur-2xl flex flex-col justify-between select-none relative group transition-all duration-200 overflow-hidden";
 
   const dragStyle = isFramelessNative
     ? ({ WebkitAppRegion: 'drag' } as React.CSSProperties)
@@ -65,43 +65,56 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
         ...dragStyle
       }}
     >
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-2">
-        {/* Mode Badge & Task Title */}
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          {/* Subtle Status Pill Indicator */}
-          <div className={`px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0 transition-colors ${
-            isFocus 
-              ? 'bg-white/10 text-zinc-200 border border-white/10' 
-              : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${
-              isFocus 
-                ? (isRunning ? 'bg-amber-400 animate-pulse' : 'bg-amber-400/80') 
-                : (isRunning ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-400/80')
-            }`} />
-            <span>{isFocus ? 'Focus' : 'Break'}</span>
-          </div>
-
-          {/* Clean Task Title with ample room */}
+      {/* Top Meta Row */}
+      <div className="flex items-center justify-between gap-2 leading-none">
+        {/* Mode Indicator & Task Title */}
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          {/* Subtle Breathing Status Light */}
           <span 
-            className="text-xs text-zinc-300 font-medium truncate flex-1 min-w-0"
-            title={activeTaskTitle || (isFocus ? 'Deep Work' : 'Rest Break')}
+            className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+              isFocus 
+                ? (isRunning ? 'bg-amber-400 ring-2 ring-amber-400/20 animate-pulse' : 'bg-amber-400/70') 
+                : (isRunning ? 'bg-emerald-400 ring-2 ring-emerald-400/20 animate-pulse' : 'bg-emerald-400/70')
+            }`} 
+          />
+
+          {/* Clean Mode Label */}
+          <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 shrink-0">
+            {isFocus ? 'Focus' : 'Break'}
+          </span>
+
+          <span className="text-zinc-600 text-[10px] shrink-0 font-normal">•</span>
+
+          {/* Clean Task Title */}
+          <span 
+            className="text-[11px] text-zinc-300 font-medium truncate flex-1 min-w-0 tracking-tight"
+            title={activeTaskTitle || (isFocus ? 'Deep Work Session' : 'Rest Break')}
           >
-            {activeTaskTitle || (isFocus ? 'Deep Work' : 'Rest Break')}
+            {activeTaskTitle || (isFocus ? 'Deep Work Session' : 'Rest Break')}
           </span>
         </div>
 
-        {/* Action Buttons (Clean & minimal) */}
-        <div className="flex items-center gap-1 shrink-0" style={noDragStyle}>
+        {/* Minimalist Micro-Actions */}
+        <div className="flex items-center gap-0.5 shrink-0" style={noDragStyle}>
+          {onMinimize && (
+            <button
+              type="button"
+              onClick={onMinimize}
+              className="p-1 rounded text-zinc-500 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Minimize to pill"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {!isPiP && !isFramelessNative && onOpenPiP && (
             <button
               type="button"
               onClick={onOpenPiP}
-              className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-1 rounded text-zinc-500 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               title="Pin to Desktop (Picture-in-Picture)"
             >
-              <Pin className="w-3.5 h-3.5" />
+              <Pin className="w-3 h-3" />
             </button>
           )}
 
@@ -109,8 +122,8 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              title="Close"
+              className="p-1 rounded text-zinc-500 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Close HUD"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -119,21 +132,30 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
       </div>
 
       {/* Main Countdown & Quick Controls */}
-      <div className="flex items-center justify-between gap-3 my-0.5">
-        {/* Time Digits */}
-        <div className="text-[28px] font-bold tracking-tight tabular-nums font-mono text-white leading-none">
+      <div className="flex items-center justify-between gap-3 mt-1 leading-none">
+        {/* Time Digits (Pure Sans Tabular Numerals) */}
+        <div className="text-[25px] font-semibold tracking-tight tabular-nums text-white leading-none font-sans select-none">
           {timeFormatted}
         </div>
 
-        {/* Unified Controls Group */}
-        <div className="flex items-center gap-1.5" style={noDragStyle}>
+        {/* Controls Group */}
+        <div className="flex items-center gap-1.5 shrink-0" style={noDragStyle}>
+          <button
+            type="button"
+            onClick={() => addSeconds(300)}
+            className="h-6 px-2 text-[10px] font-semibold rounded-md bg-white/[0.05] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/[0.08] transition-all cursor-pointer active:scale-95 flex items-center justify-center"
+            title="Add 5 minutes"
+          >
+            +5m
+          </button>
+
           <button
             type="button"
             onClick={toggleTimer}
             className={`h-7 w-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-sm ${
               isRunning
                 ? 'bg-white text-black hover:bg-zinc-200'
-                : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                : 'bg-white/15 hover:bg-white/25 text-white border border-white/15'
             }`}
             title={isRunning ? "Pause" : "Start"}
           >
@@ -143,22 +165,13 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
               <Play className="w-3 h-3 fill-current ml-0.5" />
             )}
           </button>
-
-          <button
-            type="button"
-            onClick={() => addSeconds(300)}
-            className="h-7 px-2.5 text-[11px] font-semibold rounded-full bg-white/[0.08] hover:bg-white/[0.16] text-zinc-200 hover:text-white transition-all cursor-pointer border border-white/10 active:scale-95 flex items-center justify-center"
-            title="Add 5 minutes"
-          >
-            +5m
-          </button>
         </div>
       </div>
 
-      {/* Thin Bottom Progress Bar */}
-      <div className="w-full h-1 bg-white/[0.08] rounded-full overflow-hidden mt-1">
+      {/* Baseline Progress Rail */}
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.06] overflow-hidden rounded-b-2xl">
         <div 
-          className="h-full bg-white/90 transition-all duration-500 rounded-full"
+          className="h-full bg-white/70 transition-all duration-300 rounded-full"
           style={{ width: `${Math.round(progressRatio * 100)}%` }}
         />
       </div>
@@ -200,28 +213,38 @@ export const FloatingMiniTimer: React.FC = () => {
 
       {/* 2. In-App Corner Floating HUD (Bottom Right Corner) */}
       {isMiniTimerEnabled && !isPiPActive && (
-        <div className="fixed bottom-5 right-5 z-40 select-none animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-6 right-6 z-40 select-none animate-in fade-in slide-in-from-bottom-2 duration-200">
           {isCollapsed ? (
             /* Collapsed Minimal Pill */
-            <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#090a0f]/95 border border-white/15 shadow-xl backdrop-blur-md">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#090a10]/95 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl text-xs select-none">
+              <span 
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  isFocus ? 'bg-amber-400' : 'bg-emerald-400'
+                }`} 
+              />
+              <span className="tabular-nums font-semibold text-white tracking-tight">
+                {timeFormatted}
+              </span>
+              <span className="text-zinc-500 text-[10px] uppercase font-semibold tracking-wider">
+                {isFocus ? 'Focus' : 'Break'}
+              </span>
+
               <button
                 type="button"
                 onClick={() => setIsCollapsed(false)}
-                className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-white hover:text-zinc-200 transition-all cursor-pointer"
-                title="Expand timer"
+                className="p-0.5 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                title="Expand HUD"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${isFocus ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-                <span className="tabular-nums font-mono">{timeFormatted}</span>
-                <Maximize2 className="w-3 h-3 text-zinc-400 ml-0.5" />
+                <ChevronUp className="w-3.5 h-3.5" />
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsMiniTimerEnabled(false)}
-                className="p-1 rounded-full text-zinc-500 hover:text-white transition-colors cursor-pointer mr-1"
+                className="p-0.5 rounded text-zinc-500 hover:text-white transition-colors cursor-pointer ml-0.5"
                 title="Close"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
@@ -257,7 +280,7 @@ export const MiniTimerStandalone: React.FC = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-transparent select-none p-1 overflow-hidden">
+    <div className="w-screen h-screen flex items-center justify-center bg-transparent select-none overflow-hidden">
       <MiniTimerCard
         isFramelessNative={true}
         onClose={handleClose}

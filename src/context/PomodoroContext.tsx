@@ -150,9 +150,9 @@ export const triggerTabTitleNotification = (message: string) => {
   let toggle = false;
   const originalTitle = document.title;
   tabAlertInterval = setInterval(() => {
-    document.title = toggle ? `🔔 ${message}` : `🎯 DeepFocus OS`;
+    document.title = toggle ? message : 'DeepFocus';
     toggle = !toggle;
-  }, 1000);
+  }, 1200);
 
   const cleanUp = () => {
     if (tabAlertInterval) {
@@ -986,18 +986,31 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
       perm = await requestNotificationPermission();
     }
 
-    if (perm === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
+    const title = 'DeepFocus: Notifications Active';
+    const body = 'Desktop alerts are enabled. You will receive notifications when focus sessions and breaks complete.';
+
+    // 1. Electron Native Desktop Notification (100% reliable in desktop app)
+    if ((window as any).electronAPI?.showNotification) {
       try {
-        const notif = new Notification('🔔 DeepFocus OS: Notifications Active!', {
-          body: 'You will receive desktop alerts when your focus session or break timer completes.',
-          icon: '/favicon.ico',
-          tag: 'deepfocus-test'
+        (window as any).electronAPI.showNotification({ title, body });
+      } catch (e) {
+        console.warn('Electron notification error:', e);
+      }
+    } else if (perm === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
+      // 2. Web Browser HTML5 Notification
+      try {
+        const notif = new Notification(title, {
+          body,
+          icon: '/brand/deepfocus-app-icon-512.png',
+          tag: 'deepfocus-test-' + Date.now()
         });
         notif.onclick = () => {
           window.focus();
           notif.close();
         };
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Browser notification error:', e);
+      }
     }
 
     // Play chime sound
@@ -1010,19 +1023,26 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const notifyUserOnComplete = (finishedMode: TimerMode, taskName?: string) => {
     const isFocus = finishedMode === 'focus';
-    const title = isFocus ? '🎯 Focus Session Complete!' : '⚡ Break Time Ended!';
+    const title = isFocus ? 'Focus Session Completed' : 'Break Time Ended';
     const body = isFocus
-      ? `Great job! You completed a deep focus session${taskName ? `: "${taskName}"` : ''}. Time to recharge.`
-      : 'Break time has finished. Ready for your next deep focus block?';
+      ? `You completed a deep focus session${taskName ? `: "${taskName}"` : ''}. Time to step away for a break.`
+      : 'Break time has finished. Ready to begin your next deep focus session?';
 
-    // 1. Native Browser / Desktop Notification
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+    // 1. Electron Native Desktop Notification (100% reliable)
+    if ((window as any).electronAPI?.showNotification) {
+      try {
+        (window as any).electronAPI.showNotification({ title, body });
+      } catch (e) {
+        console.warn('Electron notification error:', e);
+      }
+    } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      // 2. Web Browser HTML5 Notification
       try {
         const notif = new Notification(title, {
           body,
-          icon: '/favicon.ico',
-          tag: 'deepfocus-timer-finished',
-          requireInteraction: true
+          icon: '/brand/deepfocus-app-icon-512.png',
+          tag: 'deepfocus-timer-' + Date.now(),
+          requireInteraction: false
         });
         notif.onclick = () => {
           window.focus();
@@ -1033,8 +1053,8 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
     }
 
-    // 2. Tab Title Alert Flasher
-    triggerTabTitleNotification(isFocus ? '[DONE] Time for a break!' : '[BREAK OVER] Ready to focus!');
+    // 3. Tab Title Alert Flasher (No emoji slop)
+    triggerTabTitleNotification(isFocus ? '[Session Complete] DeepFocus' : '[Break Ended] DeepFocus');
   };
 
   // Core Timer Engine using Timestamp tracking for immune-to-tab-throttle accuracy

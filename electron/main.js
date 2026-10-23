@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, screen, Notification } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -65,12 +65,12 @@ function createMiniTimerWindow() {
 
   const primaryDisplay = screen.getPrimaryDisplay();
   const workArea = primaryDisplay.workArea;
-  const winWidth = 282;
-  const winHeight = 98;
+  const winWidth = 280;
+  const winHeight = 82;
 
-  // Position at bottom-right corner with 20px padding
-  const posX = Math.round(workArea.x + workArea.width - winWidth - 20);
-  const posY = Math.round(workArea.y + workArea.height - winHeight - 20);
+  // Position at bottom-right corner with 24px padding
+  const posX = Math.round(workArea.x + workArea.width - winWidth - 24);
+  const posY = Math.round(workArea.y + workArea.height - winHeight - 24);
 
   miniTimerWindow = new BrowserWindow({
     width: winWidth,
@@ -113,7 +113,7 @@ function createMiniTimerWindow() {
   });
 }
 
-// IPC Listeners for Mini Timer
+// IPC Listeners for Mini Timer & Desktop Notifications
 ipcMain.on('open-mini-timer', () => {
   createMiniTimerWindow();
 });
@@ -129,6 +129,29 @@ ipcMain.on('toggle-mini-timer', () => {
     miniTimerWindow.close();
   } else {
     createMiniTimerWindow();
+  }
+});
+
+ipcMain.on('show-notification', (_event, { title, body }) => {
+  try {
+    if (Notification.isSupported()) {
+      const notif = new Notification({
+        title: title || 'DeepFocus',
+        body: body || '',
+        icon: path.join(__dirname, '../public/deepfocus-app-icon-512.png'),
+        urgency: 'critical',
+      });
+      notif.show();
+      notif.on('click', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Failed to show native desktop notification:', err);
   }
 });
 

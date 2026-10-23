@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openMiniTimer: () => ipcRenderer.send('open-mini-timer'),
   closeMiniTimer: () => ipcRenderer.send('close-mini-timer'),
   toggleMiniTimer: () => ipcRenderer.send('toggle-mini-timer'),
+  showNotification: (options) => ipcRenderer.send('show-notification', options),
   onMiniTimerStatus: (callback) => {
     const subscription = (_event, value) => callback(value);
     ipcRenderer.on('mini-timer-status', subscription);
@@ -11,3 +12,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   isElectron: true,
 });
+

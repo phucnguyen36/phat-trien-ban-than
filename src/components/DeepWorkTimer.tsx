@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronDown, Bell, Pin } from 'lucide-react';
+import { Play, Pause, RotateCcw, Flame, Coffee, Sparkles, CheckCircle2, ChevronDown, Bell, Pin, Volume2 } from 'lucide-react';
 
 import { usePomodoro, TimerMode } from '../context/PomodoroContext';
 
@@ -352,10 +352,11 @@ export const DeepWorkTimer: React.FC<DeepWorkTimerProps> = ({
               <button
                 type="button"
                 onClick={testAlarmChime}
-                className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
-                title="Test alarm sound"
+                className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
+                title="Test alarm sound chime"
               >
-                🔔 Test
+                <Volume2 className="w-3 h-3 text-zinc-400" />
+                <span>Test</span>
               </button>
               <button
                 type="button"

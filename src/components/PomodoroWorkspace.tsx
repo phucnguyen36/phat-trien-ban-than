@@ -656,11 +656,11 @@ export default function PomodoroWorkspace({
                   <button
                     type="button"
                     onClick={testAlarmChime}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
                     title="Play Tibetan singing bowl test chime"
                   >
+                    <Volume2 className="w-3 h-3 text-zinc-400" />
                     <span>Test Chime</span>
-                    <span className="text-[10px]">🔔</span>
                   </button>
                 )}
 

@@ -14,7 +14,7 @@
 | **Trạng thái Build** | ✅ `tsc --noEmit` (0 lỗi), `vite build` (0 lỗi) | Đã kiểm thử tự động |
 | **Công nghệ cốt lõi** | React 19, TypeScript, Vite 6, Tailwind CSS v4, Electron, Firebase | Kiến trúc 2 tầng (Local 0ms + Cloud Firestore) |
 | **Mô hình kinh doanh** | Freemium + Whop Commercial Licensing | $29/tháng & $99/6 tháng |
-| **Lần cập nhật cuối** | **23/10/2026** | Cam kết: `c0da8ac` |
+| **Lần cập nhật cuối** | **23/10/2026** | Pomodoro HUD & Notification Overhaul |
 
 ---
 
@@ -33,10 +33,14 @@
   - Khóa tính năng theo mô hình Freemium (Miễn phí Pomodoro & Journal; khóa Tasks, Habits, Expenses yêu cầu Pro).
   - Cập nhật chuẩn giá mới: **$29/tháng** (Monthly Pass) và **$99/6 tháng** (6 Months Pass).
   - Hỗ trợ kích hoạt License Key tức thì (tự động phát hiện gói tháng và kiểm tra hạn 30 ngày).
-- [x] **Day 5 — Desktop App & Frameless Floating Mini Timer (Vừa hoàn thành)**:
+- [x] **Day 5 — Desktop App & Frameless Floating Mini Timer (Cực kỳ tinh tế)**:
   - Cửa sổ Electron Mini Timer hoàn toàn **không có khung viền Windows (`frame: false`)**, trong suốt (`transparent: true`), ghim nổi (`alwaysOnTop: true`), hỗ trợ kéo thả (`-webkit-app-region: drag`).
   - Hỗ trợ Web Document Picture-in-Picture với dark color-scheme sạch sẽ.
-  - Tối ưu giao diện Mini Timer siêu gọn gàng (Swiss / Linear aesthetic), chuyển 100% sang tiếng Anh chuẩn quốc tế.
+  - **Tái thiết kế toàn diện Mini Timer HUD**: Giảm kích thước xuống `280px × 78px` cực kỳ gọn gàng, thanh lịch, loại bỏ hoàn toàn font thô monospace, thay bằng sans tabular số chuẩn cao cấp, dải tiến độ hairline 2px ở mép đáy, hỗ trợ thu gọn thành mini pill capsule.
+  - **Đại tu hệ thống thông báo (Notifications & Completion Alert)**:
+    - Loại bỏ hoàn toàn modal đen che kín toàn màn hình khi kết thúc phiên. Thay thế bằng **Floating Notification Banner** nổi ở góc phải trên với thanh đếm ngược tự động đóng 15s (tự tạm dừng khi rê chuột) và nút bấm trực tiếp chuyển phiên.
+    - Tích hợp thông báo Native Windows qua IPC Electron (`electronAPI.showNotification`), hiển thị đúng icon ứng dụng, không lo bị Windows Action Center chặn hay nuốt thông báo.
+    - Xóa sạch mọi emoji slop (`🎯`, `🔔`, `⚡`) trong thông báo hệ thống và tiêu đề tab nền, đưa về chuẩn typography Anh ngữ chuyên nghiệp.
 - [ ] **Day 6 — Whop Purchase Redirect Flow & Webhook Verification (TIÊU ĐIỂM TIẾP THEO)**:
   - Kiểm tra và tinh chỉnh trải nghiệm khách hàng sau khi thanh toán trên Whop: Hướng dẫn khách lấy License Key hoặc tự động kích hoạt tài khoản.
   - Hoàn thiện trang Landing Page và đường link thanh toán đồng bộ.
