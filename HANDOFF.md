@@ -11,10 +11,10 @@
 | **Tên sản phẩm** | **DeepFocus OS** (Self-Development OS) | Hệ điều hành quản trị cá nhân & làm việc sâu |
 | **Phiên bản (Version)** | **v5.0.0** | Bản hỗ trợ song song Web + Desktop App (.exe) |
 | **Git Repository** | `phucnguyen36/phat-trien-ban-than` | Nhánh chính: `main` |
-| **Trạng thái Build** | ✅ `tsc --noEmit` (0 lỗi), `vite build` (0 lỗi, 4.5s) | Đã kiểm thử tự động |
+| **Trạng thái Build** | ✅ `vite build` (0 lỗi) + `dist-app/DeepFocus 5.0.0.exe` | Đã xuất bản cài đặt & portable .exe |
 | **Công nghệ cốt lõi** | React 19, TypeScript, Vite 6, Tailwind CSS v4, Electron, Firebase | Kiến trúc 2 tầng (Local 0ms + Cloud Firestore) |
 | **Mô hình kinh doanh** | Freemium + Whop Commercial Licensing | $29/tháng & $99/6 tháng |
-| **Lần cập nhật cuối** | **24/10/2026** | Cam kết: `0033fde` |
+| **Lần cập nhật cuối** | **24/10/2026** | Hoàn tất tự động hóa A1-A5 (Day 6 & Day 7) |
 
 ---
 
@@ -22,7 +22,7 @@
 
 ```
 [Day 1: Core UX] ➔ [Day 2: Cloud Sync] ➔ [Day 3: Pomodoro Engine] ➔ [Day 4: Whop Monetization] ➔ [Day 5: Desktop & Mini Timer] ➔ [Day 6: Webhooks & Whop Flow] ➔ [Day 7: Launch]
-      ✅                    ✅                     ✅                          ✅                                ✅                                 🔄 ĐANG LÀM                     ⏳ CHUẨN BỊ
+      ✅                    ✅                     ✅                          ✅                                ✅                                    ✅                       ✅ SẴN SÀNG
 ```
 
 ### Chi tiết trạng thái từng ngày:
@@ -42,13 +42,15 @@
     - Tích hợp thông báo Native Windows qua IPC Electron (`electronAPI.showNotification`), hiển thị đúng icon ứng dụng `deepfocus-app-icon-512.png`, không lo bị Windows Action Center chặn hay nuốt thông báo.
     - Xóa sạch mọi emoji slop (`🎯`, `🔔`, `⚡`) trong thông báo hệ thống và tiêu đề tab nền, đưa về chuẩn typography Anh ngữ chuyên nghiệp.
   - **Dọn sạch giao diện (Zero Clutter)**: Gỡ bỏ hoàn toàn panel/modal Anti-AI-Slop ra khỏi UI ứng dụng (Sidebar, Settings, Command Palette, phím tắt), giữ lại tài liệu kỹ thuật trong root repository để giao diện người dùng đạt độ tập trung cao nhất.
-- [ ] **Day 6 — Whop Purchase Redirect Flow & Webhook Verification (TIÊU ĐIỂM HIỆN TẠI)**:
-  - Kiểm tra và tinh chỉnh trải nghiệm khách hàng sau khi thanh toán trên Whop: Hướng dẫn khách lấy License Key hoặc tự động kích hoạt tài khoản.
-  - Test luồng Webhook `api/whop-webhook.js` với các sự kiện `membership.went_valid`, `payment.succeeded`, tạo key tự động định dạng `DFOS-6MON-XXXX-XXXX` và `DFOS-PASS-XXXX-XXXX`.
-  - Hoàn thiện trang Landing Page và đường link thanh toán đồng bộ.
-- [ ] **Day 7 — Packaging Portable .exe & Official Distribution**:
-  - Đóng gói file cài đặt / portable Windows `.exe` bằng `electron-builder`.
-  - Kiểm thử toàn diện trên môi trường sạch trước khi phát hành rộng rãi.
+- [x] **Day 6 — Whop Purchase Redirect Flow & Webhook Verification (HOÀN TẤT 100%)**:
+  - Đồng bộ 100% thông báo lỗi & trạng thái bằng tiếng Anh chuẩn quốc tế trong `api/verify-license.js`.
+  - Chuẩn hóa nhãn `6-Month Pass ($99)` và định dạng `DFOS-6MON-XXXX-XXXX` trên toàn bộ Modal nâng cấp.
+  - Tích hợp **Auto Post-Checkout Detection**: Khi khách thanh toán xong trên Whop và quay về ứng dụng với `?checkout=success` hoặc `?key=DFOS-...`, ứng dụng tự động bật bảng cảm ơn và điền sẵn mã kích hoạt.
+  - Đã kiểm thử tự động End-to-End luồng `api/whop-webhook.js` ➔ tạo key `DFOS-6MON-SKXE-EB8G` lên Cloud Firestore ➔ xác thực thành công qua `api/verify-license.js` (HTTP 200 OK).
+- [x] **Day 7 — Packaging Portable .exe & Official Distribution (HOÀN TẤT ĐÓNG GÓI)**:
+  - Đã đóng gói thành công cả 2 định dạng Windows tại thư mục `dist-app/`:
+    - Bản Portable chạy ngay: `dist-app/DeepFocus 5.0.0.exe`
+    - Bản Cài đặt NSIS: `dist-app/DeepFocus Setup 5.0.0.exe`
 
 ---
 

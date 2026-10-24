@@ -488,6 +488,25 @@ export default function App() {
 
   // Pro Lifetime License State & Activation Modal
   const [isProModalOpen, setIsProModalOpen] = useState(false);
+  const [urlLicenseKey, setUrlLicenseKey] = useState<string>('');
+  const [isCheckoutSuccess, setIsCheckoutSuccess] = useState<boolean>(false);
+
+  // Auto-detect post-purchase redirect from Whop (?checkout=success or ?key=DFOS-...)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const keyParam = params.get('license_key') || params.get('key') || '';
+    const statusParam = params.get('checkout') || params.get('whop_status') || params.get('status') || '';
+
+    if (keyParam) {
+      setUrlLicenseKey(keyParam.trim().toUpperCase());
+      setIsCheckoutSuccess(true);
+      setIsProModalOpen(true);
+    } else if (statusParam === 'success' || statusParam === 'completed') {
+      setIsCheckoutSuccess(true);
+      setIsProModalOpen(true);
+    }
+  }, []);
   const [activeLicenseKey, setActiveLicenseKey] = useState<string | null>(() => {
     try {
       return localStorage.getItem('df_lifetime_license_key') || null;
@@ -2272,6 +2291,8 @@ export default function App() {
         onClose={() => setIsProModalOpen(false)}
         isPro={effectiveIsPro}
         activeKey={activeLicenseKey}
+        initialKey={urlLicenseKey}
+        checkoutSuccess={isCheckoutSuccess}
         onActivateKey={handleActivateLicense}
         onDeactivateKey={handleDeactivateLicense}
         accentColor={customAccentColor}

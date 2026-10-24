@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     if (!cleanKey) {
       return res.status(400).json({ 
         valid: false, 
-        error: 'Vui lòng cung cấp mã bản quyền (licenseKey).' 
+        error: 'Please provide a valid license key (licenseKey).' 
       });
     }
 
@@ -50,13 +50,13 @@ export default async function handler(req, res) {
     if (!snap.exists()) {
       return res.status(404).json({ 
         valid: false, 
-        error: 'Mã bản quyền không tồn tại trên hệ thống. Vui lòng kiểm tra lại email xác nhận từ Whop.' 
+        error: 'License key not found. Please check your Whop confirmation email or dashboard.' 
       });
     }
 
     const data = snap.data();
 
-    // Check expiration for monthly plans
+    // Check expiration for time-based plans (monthly / 6-month pass)
     if (data.status === 'active' && data.expiresAt) {
       // Whop timestamp can be seconds or milliseconds
       const expiresMs = data.expiresAt > 10000000000 ? data.expiresAt : data.expiresAt * 1000;
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
         return res.status(403).json({
           valid: false,
           status: 'expired',
-          error: 'Gói đăng ký hàng tháng đã hết hạn. Vui lòng gia hạn trên Whop.'
+          error: 'Your pass has expired. Please renew your subscription on Whop to continue Pro access.'
         });
       }
     }
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
       return res.status(403).json({
         valid: false,
         status: data.status,
-        error: `Mã bản quyền đang ở trạng thái không khả dụng (${data.status}).`
+        error: `This license key is currently ${data.status}.`
       });
     }
 
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       valid: true,
       licenseKey: cleanKey,
-      planType: data.planType || 'lifetime',
+      planType: data.planType || '6months',
       email: data.email || '',
       expiresAt: data.expiresAt || null,
       status: 'active'
@@ -94,7 +94,7 @@ export default async function handler(req, res) {
     console.error('License verification error:', error);
     return res.status(500).json({ 
       valid: false, 
-      error: 'Lỗi máy chủ khi xác thực bản quyền.',
+      error: 'Server error while verifying license key.',
       details: error.message 
     });
   }

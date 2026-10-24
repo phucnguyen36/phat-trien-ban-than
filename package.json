@@ -21,7 +21,8 @@
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "public/deepfocus-app-icon-512.png"
     ],
     "win": {
       "icon": "public/deepfocus-app-icon-512.png",

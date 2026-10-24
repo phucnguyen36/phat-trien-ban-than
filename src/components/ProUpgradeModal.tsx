@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Check, 
   ExternalLink, 
@@ -11,8 +11,7 @@ import {
   X, 
   CheckCircle2, 
   AlertCircle, 
-  Clock, 
-  Infinity as InfinityIcon
+  Clock
 } from 'lucide-react';
 
 interface ProUpgradeModalProps {
@@ -20,6 +19,8 @@ interface ProUpgradeModalProps {
   onClose: () => void;
   isPro: boolean;
   activeKey?: string | null;
+  initialKey?: string;
+  checkoutSuccess?: boolean;
   onActivateKey: (key: string) => boolean;
   onDeactivateKey?: () => void;
   accentColor?: string;
@@ -37,16 +38,24 @@ export default function ProUpgradeModal({
   onClose,
   isPro,
   activeKey,
+  initialKey = '',
+  checkoutSuccess = false,
   onActivateKey,
   onDeactivateKey,
   whopStoreUrl = DEFAULT_WHOP_STORE_URL,
   whopMonthlyUrl = DEFAULT_WHOP_MONTHLY_URL,
   whopLifetimeUrl = DEFAULT_WHOP_LIFETIME_URL
 }: ProUpgradeModalProps) {
-  const [inputKey, setInputKey] = useState('');
+  const [inputKey, setInputKey] = useState(initialKey);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  useEffect(() => {
+    if (initialKey) {
+      setInputKey(initialKey);
+    }
+  }, [initialKey]);
 
   if (!isOpen) return null;
 
@@ -62,7 +71,7 @@ export default function ProUpgradeModal({
     }
 
     if (clean.length < 6) {
-      setErrorMsg('License key format is invalid. Keys are formatted as DFOS-LIFE-XXXX-XXXX or DFOS-PASS-XXXX-XXXX.');
+      setErrorMsg('License key format is invalid. Keys are formatted as DFOS-6MON-XXXX-XXXX or DFOS-PASS-XXXX-XXXX.');
       return;
     }
 
@@ -95,7 +104,7 @@ export default function ProUpgradeModal({
 
       if (isSuccess) {
         onActivateKey(clean);
-        const planLabel = detectedPlanType === 'monthly' ? 'Monthly Pass' : 'Lifetime Buyout';
+        const planLabel = detectedPlanType === 'monthly' ? 'Monthly Pass' : '6-Month Pass';
         setSuccessMsg(`DeepFocus Pro (${planLabel}) successfully activated! Welcome to the craft.`);
         setInputKey('');
       } else {
@@ -127,7 +136,7 @@ export default function ProUpgradeModal({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Header: Pure White Badges & Emerald Green (Không vàng, không đỏ) */}
+        {/* Header Badges */}
         <div className="flex items-center gap-2 mb-2">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] font-bold tracking-wider uppercase shadow-sm">
             <span>DeepFocus Pro</span>
@@ -139,6 +148,17 @@ export default function ProUpgradeModal({
             </div>
           )}
         </div>
+
+        {/* Post-Checkout Thank You Banner (When redirected from Whop) */}
+        {checkoutSuccess && !isPro && (
+          <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2.5 text-xs text-emerald-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-white block">Thank you for your Whop purchase!</span>
+              <span className="text-zinc-300 text-[11px]">Copy the license key from your Whop confirmation email or dashboard and paste it below to unlock Pro immediately.</span>
+            </div>
+          </div>
+        )}
 
         {/* Minimalist Headline */}
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">
@@ -159,7 +179,7 @@ export default function ProUpgradeModal({
                 <Clock className="w-3.5 h-3.5 text-zinc-500" />
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-white font-mono">$29</span>
+                <span className="text-2xl font-bold text-white tabular-nums tracking-tight">$29</span>
                 <span className="text-xs text-zinc-400">/ mo</span>
               </div>
               <ul className="space-y-1.5 text-[11px] text-zinc-300 pt-2 border-t border-white/[0.06]">
@@ -190,7 +210,7 @@ export default function ProUpgradeModal({
           {/* Tier 2: 6 Months Pass ($99) */}
           <div className="relative p-4 sm:p-4.5 rounded-2xl bg-white/[0.03] border border-white/20 hover:border-white/40 transition-all flex flex-col justify-between shadow-[0_0_20px_rgba(255,255,255,0.02)]">
             
-            {/* White Badge (Huy hiệu màu trắng theo yêu cầu) */}
+            {/* White Badge */}
             <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-white text-black font-extrabold text-[9px] uppercase tracking-wider shadow-sm">
               Save 43% • Best Value
             </div>
@@ -203,9 +223,9 @@ export default function ProUpgradeModal({
                 <Clock className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-black text-white font-mono">$99</span>
+                <span className="text-2xl font-bold text-white tabular-nums tracking-tight">$99</span>
                 <span className="text-xs text-zinc-400">/ 6 mos</span>
-                <span className="text-[10px] text-zinc-400 font-mono">• ~$16.5/mo</span>
+                <span className="text-[10px] text-zinc-400 tabular-nums">• ~$16.5/mo</span>
               </div>
               <ul className="space-y-1.5 text-[11px] text-zinc-200 pt-2 border-t border-white/10">
                 <li className="flex items-center gap-1.5">
@@ -271,7 +291,7 @@ export default function ProUpgradeModal({
                   type="text"
                   value={inputKey}
                   onChange={(e) => setInputKey(e.target.value)}
-                  placeholder="Enter Whop License Key (DFOS-LIFE-XXXX)..."
+                  placeholder="Enter Whop License Key (DFOS-6MON-XXXX-XXXX)..."
                   disabled={isVerifying}
                   className="flex-1 bg-white/[0.03] border border-white/[0.1] focus:border-emerald-500/50 px-3.5 py-2 text-xs font-mono text-white placeholder-zinc-500 rounded-xl focus:outline-none transition-colors disabled:opacity-50"
                 />
