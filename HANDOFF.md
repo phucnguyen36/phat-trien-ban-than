@@ -11,10 +11,10 @@
 | **Tên sản phẩm** | **DeepFocus OS** (Self-Development OS) | Hệ điều hành quản trị cá nhân & làm việc sâu |
 | **Phiên bản (Version)** | **v5.0.0** | Bản hỗ trợ song song Web + Desktop App (.exe) |
 | **Git Repository** | `phucnguyen36/phat-trien-ban-than` | Nhánh chính: `main` |
-| **Trạng thái Build** | ✅ `tsc --noEmit` (0 lỗi), `vite build` (0 lỗi) | Đã kiểm thử tự động |
+| **Trạng thái Build** | ✅ `tsc --noEmit` (0 lỗi), `vite build` (0 lỗi, 4.5s) | Đã kiểm thử tự động |
 | **Công nghệ cốt lõi** | React 19, TypeScript, Vite 6, Tailwind CSS v4, Electron, Firebase | Kiến trúc 2 tầng (Local 0ms + Cloud Firestore) |
 | **Mô hình kinh doanh** | Freemium + Whop Commercial Licensing | $29/tháng & $99/6 tháng |
-| **Lần cập nhật cuối** | **23/10/2026** | Clean UI: Purged in-app AI Slop panel |
+| **Lần cập nhật cuối** | **24/10/2026** | Cam kết: `0033fde` |
 
 ---
 
@@ -33,19 +33,21 @@
   - Khóa tính năng theo mô hình Freemium (Miễn phí Pomodoro & Journal; khóa Tasks, Habits, Expenses yêu cầu Pro).
   - Cập nhật chuẩn giá mới: **$29/tháng** (Monthly Pass) và **$99/6 tháng** (6 Months Pass).
   - Hỗ trợ kích hoạt License Key tức thì (tự động phát hiện gói tháng và kiểm tra hạn 30 ngày).
-- [x] **Day 5 — Desktop App & Frameless Floating Mini Timer (Cực kỳ tinh tế)**:
+- [x] **Day 5 — Desktop App, Frameless Mini Timer & Dynamic Alert System (HOÀN TẤT 100%)**:
   - Cửa sổ Electron Mini Timer hoàn toàn **không có khung viền Windows (`frame: false`)**, trong suốt (`transparent: true`), ghim nổi (`alwaysOnTop: true`), hỗ trợ kéo thả (`-webkit-app-region: drag`).
   - Hỗ trợ Web Document Picture-in-Picture với dark color-scheme sạch sẽ.
-  - **Tái thiết kế toàn diện Mini Timer HUD**: Giảm kích thước xuống `280px × 78px` cực kỳ gọn gàng, thanh lịch, loại bỏ hoàn toàn font thô monospace, thay bằng sans tabular số chuẩn cao cấp, dải tiến độ hairline 2px ở mép đáy, hỗ trợ thu gọn thành mini pill capsule.
+  - **Tái thiết kế toàn diện Mini Timer HUD**: Giảm kích thước xuống `280px × 78px` cực kỳ gọn gàng, thanh lịch, loại bỏ hoàn toàn font thô monospace, thay bằng sans tabular số chuẩn cao cấp (`tabular-nums`), dải tiến độ hairline 2px ở mép đáy, hỗ trợ thu gọn thành mini pill capsule (`● 24:59 Focus ⤢ ✕`).
   - **Đại tu hệ thống thông báo (Notifications & Completion Alert)**:
-    - Loại bỏ hoàn toàn modal đen che kín toàn màn hình khi kết thúc phiên. Thay thế bằng **Floating Notification Banner** nổi ở góc phải trên với thanh đếm ngược tự động đóng 15s (tự tạm dừng khi rê chuột) và nút bấm trực tiếp chuyển phiên.
-    - Tích hợp thông báo Native Windows qua IPC Electron (`electronAPI.showNotification`), hiển thị đúng icon ứng dụng, không lo bị Windows Action Center chặn hay nuốt thông báo.
+    - Loại bỏ hoàn toàn modal đen che kín toàn màn hình khi kết thúc phiên. Thay thế bằng **Floating Notification Banner** nổi ở góc phải trên với thanh đếm ngược tự động đóng 15s (tự tạm dừng khi rê chuột) và nút bấm trực tiếp chuyển phiên (`Start Break (5m) →`).
+    - Tích hợp thông báo Native Windows qua IPC Electron (`electronAPI.showNotification`), hiển thị đúng icon ứng dụng `deepfocus-app-icon-512.png`, không lo bị Windows Action Center chặn hay nuốt thông báo.
     - Xóa sạch mọi emoji slop (`🎯`, `🔔`, `⚡`) trong thông báo hệ thống và tiêu đề tab nền, đưa về chuẩn typography Anh ngữ chuyên nghiệp.
-- [ ] **Day 6 — Whop Purchase Redirect Flow & Webhook Verification (TIÊU ĐIỂM TIẾP THEO)**:
+  - **Dọn sạch giao diện (Zero Clutter)**: Gỡ bỏ hoàn toàn panel/modal Anti-AI-Slop ra khỏi UI ứng dụng (Sidebar, Settings, Command Palette, phím tắt), giữ lại tài liệu kỹ thuật trong root repository để giao diện người dùng đạt độ tập trung cao nhất.
+- [ ] **Day 6 — Whop Purchase Redirect Flow & Webhook Verification (TIÊU ĐIỂM HIỆN TẠI)**:
   - Kiểm tra và tinh chỉnh trải nghiệm khách hàng sau khi thanh toán trên Whop: Hướng dẫn khách lấy License Key hoặc tự động kích hoạt tài khoản.
+  - Test luồng Webhook `api/whop-webhook.js` với các sự kiện `membership.went_valid`, `payment.succeeded`, tạo key tự động định dạng `DFOS-6MON-XXXX-XXXX` và `DFOS-PASS-XXXX-XXXX`.
   - Hoàn thiện trang Landing Page và đường link thanh toán đồng bộ.
 - [ ] **Day 7 — Packaging Portable .exe & Official Distribution**:
-  - Đóng gói file cài đặt / portable Windows `.exe`.
+  - Đóng gói file cài đặt / portable Windows `.exe` bằng `electron-builder`.
   - Kiểm thử toàn diện trên môi trường sạch trước khi phát hành rộng rãi.
 
 ---
@@ -54,14 +56,16 @@
 
 | Module | Chức năng | Trạng thái | Chi tiết triển khai |
 | :--- | :--- | :---: | :--- |
-| **Desktop App** | Frameless Mini Window | ✅ 100% | Không khung Windows, nền trong suốt, kéo thả mượt mà |
+| **Desktop App** | Frameless Mini Window | ✅ 100% | Không khung Windows, nền trong suốt, kéo thả mượt mà, kích thước `280x82` |
 | | Document Picture-in-Picture | ✅ 100% | Tự động inject dark theme-color & color-scheme `#09090b` |
 | | Cross-Window Realtime Sync | ✅ 100% | Đồng bộ 2 chiều tức thì giữa App chính và Mini Window qua `StorageEvent` & Electron IPC |
 | | Standalone Mini Route | ✅ 100% | Tải tức thì `?mini=true` không tốn tài nguyên chạy ngầm full app |
+| | Native OS Notification IPC | ✅ 100% | Bắn thông báo Windows Action Center từ Electron main process kèm icon chuẩn |
 | **Deep Work Timer** | Pomodoro Core Engine | ✅ 100% | Đếm giờ dựa trên timestamp chống nghẽn tab khi ẩn |
+| | Dynamic Island Mini HUD | ✅ 100% | Thu nhỏ `280x78px`, typography sans `tabular-nums`, gập mở pill capsule |
 | | Background Audio Chime | ✅ 100% | Singleton AudioContext mở khóa tương tác chống chặn autoplay |
-| | OS & Tab Notifications | ✅ 100% | Desktop Notification + Chớp nháy tiêu đề tab nền |
-| | Session Completion Modal | ✅ 100% | Modal tổng kết phiên đẹp mắt, điều hướng phiên nghỉ tự động |
+| | OS & Tab Notifications | ✅ 100% | Desktop Notification + Chớp nháy tiêu đề tab nền (không emoji slop) |
+| | Floating Completion HUD | ✅ 100% | Banner thông báo góc phải trên, không chặn màn hình, tự đóng 15s có hover-pause |
 | | 100% English UI | ✅ 100% | Toàn bộ nhãn, tooltip, thông báo chuẩn tiếng Anh |
 | **Tasks Hub** | Daily / Weekly / Monthly / Yearly | ✅ 100% | Quản lý mục tiêu theo khung thời gian |
 | | Drag & Drop Priority Reordering | ✅ 100% | Kéo thả sắp xếp thứ tự ưu tiên trong Columns, Board và Table |
@@ -69,7 +73,7 @@
 | **Habit Tracker** | Ma trận 30 ngày | ✅ 100% | Theo dõi thói quen, streak, hoàn thành theo ngày |
 | **Daily Journal** | Stoic Energy & Reflection | ✅ 100% | Ghi chép năng lượng, bài học, nhật ký hàng ngày |
 | **Expense Ledger**| Sổ thu chi cá nhân | ✅ 100% | Quản trị dòng tiền, phân loại danh mục, định dạng `1,618,000 ₫` |
-| **Licensing** | Whop Integration | ✅ 100% | Đổi giá $29/tháng và $99/6 tháng |
+| **Licensing** | Whop Integration | ✅ 100% | Đổi giá $29/tháng (`plan_6rzHyaaNhKAaU`) và $99/6 tháng (`plan_vrUwKeR11Yh0T`) |
 | | ProFeatureLockGate | ✅ 100% | Khóa tính năng Pro theo chuẩn Freemium |
 | | License Key Activation | ✅ 100% | Kích hoạt bản quyền qua Firebase với tự động kiểm tra hạn gói |
 | | Admin Dashboard | ✅ 100% | Quản lý người dùng, cấp quyền Pro thủ công, xem số liệu |
@@ -80,18 +84,24 @@
 
 ### 4.1 Cửa sổ nổi Mini Timer (Frameless Electron Window & Document PiP)
 - **Electron Native**:
-  - `electron/main.js`: Sử dụng `BrowserWindow` với `frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, backgroundColor: '#00000000'`.
-  - `electron/preload.cjs`: Cung cấp cầu nối an toàn `window.electronAPI` (`openMiniTimer`, `closeMiniTimer`, `toggleMiniTimer`, `onMiniTimerStatus`).
+  - `electron/main.js`: Sử dụng `BrowserWindow` với `width: 280, height: 82, frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, backgroundColor: '#00000000'`.
+  - `electron/preload.cjs`: Cung cấp cầu nối an toàn `window.electronAPI` (`openMiniTimer`, `closeMiniTimer`, `toggleMiniTimer`, `showNotification`, `onMiniTimerStatus`).
   - Thẻ `MiniTimerCard` áp dụng thuộc tính CSS `-webkit-app-region: drag` cho thân thẻ và `no-drag` cho các nút bấm điều khiển.
 - **Web Browser Fallback**:
   - Sử dụng Chrome Document Picture-in-Picture (`documentPictureInPicture.requestWindow`).
   - Thiết lập `<meta name="color-scheme" content="dark">`, `<meta name="theme-color" content="#09090b">`, `disallowReturnToOpener: true` và layout tràn viền để loại bỏ hoàn toàn viền xám mặc định của Windows.
 
-### 4.2 Cơ chế đồng bộ đa cửa sổ (Cross-Window Realtime Synchronization)
+### 4.2 Hệ thống thông báo đa tầng (Multi-Tier Notification Architecture)
+1. **Desktop Native (Electron Main Process)**: Gọi `new Notification({ title, body, icon, urgency: 'critical' }).show()` qua IPC, khắc phục 100% lỗi Windows Action Center nuốt thông báo từ background renderer.
+2. **Web Browser (HTML5 Notification API)**: Gọi `new Notification` với `requireInteraction: false` và tag có gắn timestamp tránh bị Chrome gộp thông báo ngầm.
+3. **In-App Dynamic Alert HUD**: Banner nổi góc phải trên (`fixed top-6 right-6`), không chặn tương tác người dùng (`pointer-events-none` cho container, `pointer-events-auto` cho thẻ thông báo), tự động đóng sau 15s và tạm dừng khi rê chuột.
+4. **Tab Background Flasher**: Chớp nháy tiêu đề tab sạch sẽ không emoji slop: `[Session Complete] DeepFocus` hoặc `[Break Ended] DeepFocus`.
+
+### 4.3 Cơ chế đồng bộ đa cửa sổ (Cross-Window Realtime Synchronization)
 - Cửa sổ Mini Timer và Cửa sổ ứng dụng chính được đồng bộ trạng thái hai chiều 100% qua sự kiện `window.addEventListener('storage', handleStorageChange)`:
   - Khi bắt đầu, tạm dừng, đổi task hoặc bấm `+5m` ở bất kỳ cửa sổ nào, cửa sổ còn lại lập tức nhận diện và cập nhật trạng thái tương ứng.
 
-### 4.3 Tách biệt Route tải nhanh (Zero-Delay Standalone Route)
+### 4.4 Tách biệt Route tải nhanh (Zero-Delay Standalone Route)
 - Khi nạp với tham số URL `?mini=true`, hệ thống chỉ render duy nhất component `<MiniTimerStandalone />` bên trong `<PomodoroProvider>`:
   - Không tải 2,300 dòng code của Dashboard chính, không khởi tạo biểu đồ, không gọi Firebase thừa thãi.
   - Đảm bảo thời gian mở cửa sổ con đạt mức mili-giây, tiêu tốn cực ít RAM và CPU.
@@ -100,10 +110,14 @@
 
 ## 📝 5. NHẬT KÝ COMMITS GẦN NHẤT (RECENT COMMITS CHANGELOG)
 
+- `0033fde` — **refactor(ui): remove in-app anti-ai-slop modal and clean up user interface**  
+  *Gỡ bỏ hoàn toàn file AntiSlopManifestoModal.tsx, dọn sạch nút bấm trên Sidebar, thẻ banner trong Settings, mục điều hướng Command Palette và phím tắt Ctrl+M. Giữ UI người dùng sạch sẽ tuyệt đối.*
 - `d06894e` — **feat(pomodoro): redesign mini timer HUD to sleek Dynamic Island capsule and overhaul notifications**  
   *Thu nhỏ Mini Timer HUD xuống 280x78px tối giản, thay modal che màn hình bằng Floating Notification Banner đếm ngược 15s tự động đóng, tích hợp Native Windows Action Center notification qua Electron IPC, xóa sạch emoji slop.*
+- `ce52b4b` — **docs: update HANDOFF.md with latest manifesto modal integration**  
+  *Cập nhật tài liệu tiến độ với việc tích hợp modal.*
 - `c0da8ac` — **feat: integrate Anti-AI-Slop Manifesto and 7-Day Plan modal into app**  
-  *Tích hợp trực tiếp Sổ tay Anti-AI-Slop, 10 tiêu chuẩn kiểm định Quality Gate và Kế hoạch 7 ngày vào giao diện App (Sidebar, Settings modal, Command Palette Ctrl+K, phím tắt Ctrl+M).*
+  *Tích hợp trực tiếp Sổ tay Anti-AI-Slop, 10 tiêu chuẩn kiểm định Quality Gate và Kế hoạch 7 ngày vào giao diện App.*
 - `98f33dd` — **docs: add comprehensive ANTI_AI_SLOP_GUIDE.md manifesto**  
   *Đúc kết 7 quy chuẩn thép diệt AI Slop từ quá trình thiết kế DeepFocus OS.*
 - `a5551af` — **docs: add living HANDOFF.md progress master document**  
@@ -125,13 +139,15 @@
 
 ## 🎯 6. KẾ HOẠCH HÀNH ĐỘNG KẾ TIẾP (NEXT ACTIONS)
 
-1. **Hoàn thiện luồng thanh toán Whop (Post-Purchase Experience)**:
-   - Làm rõ trải nghiệm người dùng sau khi ấn thanh toán thành công trên Whop (Màn hình cảm ơn của Whop hiển thị gì? Hướng dẫn người dùng nhận License Key và dán vào app ra sao?).
-   - Đảm bảo khách hàng không bị bỡ ngỡ sau khi thanh toán.
-2. **Kiểm tra đồng bộ giá trên Landing Page & App**:
-   - Rà soát toàn bộ các vị trí hiển thị giá trên trang chủ, landing page và trong ứng dụng, đảm bảo thống nhất đồng thời: **$29/tháng** và **$99/6 tháng**.
-3. **Đóng gói bản Windows Desktop (.exe)**:
-   - Chạy lệnh `npm.cmd run dist:exe` để xuất file Windows portable `.exe`, kiểm thử tính năng Frameless Mini Timer trên môi trường máy tính thực tế.
+1. **Hoàn thiện luồng thanh toán Whop & Trải nghiệm sau mua (Day 6 Priority)**:
+   - Kiểm tra và tinh chỉnh trải nghiệm khách hàng sau khi thanh toán trên Whop: Đảm bảo khách hàng nhận License Key ngay tại màn hình cảm ơn (Customer Portal / Thank You page của Whop) hoặc qua email, và nhập vào DeepFocus OS để kích hoạt ngay tức thì.
+   - Thử nghiệm mô phỏng gọi Webhook Whop tới `api/whop-webhook.js` để xác nhận lưu license vào Firestore tự động.
+2. **Kiểm tra đồng bộ giá & link checkout trên toàn hệ thống**:
+   - Rà soát các vị trí hiển thị giá trong ứng dụng và tài liệu:
+     - Gói tháng: **$29/tháng** (`https://whop.com/checkout/plan_6rzHyaaNhKAaU`)
+     - Gói 6 tháng: **$99/6 tháng** (`https://whop.com/checkout/plan_vrUwKeR11Yh0T`)
+3. **Đóng gói bản Windows Desktop (.exe) (Day 7 Preparation)**:
+   - Chạy thử nghiệm lệnh `npm.cmd run dist:exe` để xuất file Windows portable `.exe`, kiểm thử tính năng Frameless Mini Timer trên môi trường máy tính thực tế.
 
 ---
 
