@@ -82,7 +82,8 @@ function createMiniTimerWindow() {
     alwaysOnTop: true,             // Floats above Slack, Premiere, etc.!
     resizable: false,
     skipTaskbar: true,             // Doesn't clutter the taskbar
-    hasShadow: true,
+    hasShadow: false,              // Prevents rectangular DWM shadow box around rounded corners on Windows
+    thickFrame: false,
     backgroundColor: '#00000000',
     webPreferences: {
       nodeIntegration: false,

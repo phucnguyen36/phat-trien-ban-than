@@ -195,13 +195,17 @@ body {
 
 /* Frameless Transparent Mini Timer Window Mode */
 html.mini-window-html,
-body.mini-window-body {
+html.mini-window-html body,
+body.mini-window-body,
+html.mini-window-html #root {
   background: transparent !important;
   background-color: transparent !important;
+  transition: none !important;
   overflow: hidden !important;
   min-height: 0 !important;
   height: 100vh !important;
   width: 100vw !important;
+  box-shadow: none !important;
 }
 
 html.mini-window-html .noise-overlay,

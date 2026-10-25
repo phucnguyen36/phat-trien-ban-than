@@ -42,12 +42,14 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
     ? Math.max(0, Math.min(1, (totalSessionSeconds - timeLeft) / totalSessionSeconds)) 
     : 0;
 
-  // Ultra-clean Swiss Minimalist dark glass styling (Linear / Raycast standard)
+  // Ultra-clean Swiss Minimalist styling:
+  // Note: For isFramelessNative (Electron transparent window), we avoid outer box-shadow and backdrop-filter
+  // because Chromium/Windows DWM clips blur/shadow to the rectangular window bounds (causing a gray box at the 4 corners).
   const containerClasses = isPiP
-    ? "w-full h-full bg-[#090a10] text-white p-3 flex flex-col justify-between select-none overflow-hidden relative"
+    ? "w-full h-full bg-[#090a10] text-white px-3.5 pt-2.5 pb-3.5 flex flex-col justify-between select-none overflow-hidden relative"
     : isFramelessNative
-    ? "w-[280px] h-[78px] rounded-2xl bg-[#090a10]/95 text-white border border-white/10 px-3.5 py-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.8)] backdrop-blur-2xl flex flex-col justify-between select-none cursor-move overflow-hidden relative group"
-    : "w-[280px] h-[78px] rounded-2xl bg-[#090a10]/95 text-white border border-white/10 px-3.5 py-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.7)] backdrop-blur-2xl flex flex-col justify-between select-none relative group transition-all duration-200 overflow-hidden";
+    ? "w-[280px] h-[78px] rounded-2xl bg-[#090a10] text-white border border-white/15 px-3.5 pt-2.5 pb-3.5 flex flex-col justify-between select-none cursor-move overflow-hidden relative group"
+    : "w-[280px] h-[78px] rounded-2xl bg-[#090a10]/95 text-white border border-white/12 px-3.5 pt-2.5 pb-3.5 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl flex flex-col justify-between select-none relative group transition-all duration-200 overflow-hidden";
 
   const dragStyle = isFramelessNative
     ? ({ WebkitAppRegion: 'drag' } as React.CSSProperties)
@@ -132,9 +134,9 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
       </div>
 
       {/* Main Countdown & Quick Controls */}
-      <div className="flex items-center justify-between gap-3 mt-1 leading-none">
+      <div className="flex items-center justify-between gap-3 mt-0.5 leading-none">
         {/* Time Digits (Pure Sans Tabular Numerals) */}
-        <div className="text-[25px] font-semibold tracking-tight tabular-nums text-white leading-none font-sans select-none">
+        <div className="text-[24px] font-semibold tracking-tight tabular-nums text-white leading-none font-sans select-none">
           {timeFormatted}
         </div>
 
@@ -152,7 +154,7 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
           <button
             type="button"
             onClick={toggleTimer}
-            className={`h-7 w-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-sm ${
+            className={`h-7 w-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer ${
               isRunning
                 ? 'bg-white text-black hover:bg-zinc-200'
                 : 'bg-white/15 hover:bg-white/25 text-white border border-white/15'
@@ -168,10 +170,10 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
         </div>
       </div>
 
-      {/* Baseline Progress Rail */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/[0.06] overflow-hidden rounded-b-2xl">
+      {/* Inset Progress Rail — kept safely inside horizontal padding so it never bleeds into rounded-2xl corners */}
+      <div className="absolute bottom-[5px] left-3.5 right-3.5 h-[2px] bg-white/[0.08] overflow-hidden rounded-full">
         <div 
-          className="h-full bg-white/70 transition-all duration-300 rounded-full"
+          className="h-full bg-white/80 transition-all duration-300 rounded-full"
           style={{ width: `${Math.round(progressRatio * 100)}%` }}
         />
       </div>
@@ -216,7 +218,7 @@ export const FloatingMiniTimer: React.FC = () => {
         <div className="fixed bottom-6 right-6 z-40 select-none animate-in fade-in slide-in-from-bottom-2 duration-200">
           {isCollapsed ? (
             /* Collapsed Minimal Pill */
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#090a10]/95 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-2xl text-xs select-none">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#090a10] border border-white/15 shadow-[0_10px_28px_rgba(0,0,0,0.65)] text-xs select-none">
               <span 
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   isFocus ? 'bg-amber-400' : 'bg-emerald-400'
@@ -225,7 +227,7 @@ export const FloatingMiniTimer: React.FC = () => {
               <span className="tabular-nums font-semibold text-white tracking-tight">
                 {timeFormatted}
               </span>
-              <span className="text-zinc-500 text-[10px] uppercase font-semibold tracking-wider">
+              <span className="text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
                 {isFocus ? 'Focus' : 'Break'}
               </span>
 
