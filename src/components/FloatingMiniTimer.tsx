@@ -48,8 +48,8 @@ export const MiniTimerCard: React.FC<MiniTimerCardProps> = ({
   const containerClasses = isPiP
     ? "w-full h-full bg-[#090a10] text-white px-3.5 pt-2.5 pb-3.5 flex flex-col justify-between select-none overflow-hidden relative"
     : isFramelessNative
-    ? "w-[280px] h-[78px] rounded-2xl bg-[#090a10] text-white border border-white/15 px-3.5 pt-2.5 pb-3.5 flex flex-col justify-between select-none cursor-move overflow-hidden relative group"
-    : "w-[280px] h-[78px] rounded-2xl bg-[#090a10]/95 text-white border border-white/12 px-3.5 pt-2.5 pb-3.5 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl flex flex-col justify-between select-none relative group transition-all duration-200 overflow-hidden";
+    ? "w-[280px] h-[78px] rounded-[10px] bg-[#090a10] text-white border border-white/15 px-3.5 pt-2.5 pb-3.5 flex flex-col justify-between select-none cursor-move overflow-hidden relative group"
+    : "w-[280px] h-[78px] rounded-[10px] bg-[#090a10]/95 text-white border border-white/12 px-3.5 pt-2.5 pb-3.5 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl flex flex-col justify-between select-none relative group transition-all duration-200 overflow-hidden";
 
   const dragStyle = isFramelessNative
     ? ({ WebkitAppRegion: 'drag' } as React.CSSProperties)
