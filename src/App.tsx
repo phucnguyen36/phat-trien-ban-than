@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { getApiEndpoint } from './utils/apiConfig';
 import { 
   GoalTodo, 
   HabitData, 
@@ -523,10 +524,13 @@ export default function App() {
         const expMs = Number(expiresAt) > 10000000000 ? Number(expiresAt) : Number(expiresAt) * 1000;
         if (Date.now() > expMs) {
           localStorage.removeItem('df_lifetime_license_active');
+          localStorage.removeItem('df_lifetime_license_key');
+          localStorage.removeItem('df_license_expires_at');
+          localStorage.removeItem('df_license_plan_type');
           return false;
         }
       }
-      return !!(key || active === 'true');
+      return !!(key && active === 'true');
     } catch {
       return false;
     }
@@ -568,7 +572,7 @@ export default function App() {
   useEffect(() => {
     const key = localStorage.getItem('df_lifetime_license_key');
     if (key && currentUser?.role !== 'admin') {
-      fetch('/api/verify-license', {
+      fetch(getApiEndpoint('/api/verify-license'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ licenseKey: key })
@@ -577,6 +581,13 @@ export default function App() {
       .then(data => {
         if (data && data.valid === false) {
           handleDeactivateLicense();
+        } else if (data && data.valid === true) {
+          if (data.expiresAt) {
+            localStorage.setItem('df_license_expires_at', String(data.expiresAt));
+          }
+          if (data.planType) {
+            localStorage.setItem('df_license_plan_type', data.planType);
+          }
         }
       })
       .catch(() => {});

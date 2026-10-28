@@ -17,6 +17,7 @@ import {
   ShieldCheck 
 } from 'lucide-react';
 import { DeepFocusLogo } from './DeepFocusLogo';
+import { getApiEndpoint } from '../utils/apiConfig';
 import { 
   authenticateUserAsync, 
   createUserAccountAsync,
@@ -190,22 +191,29 @@ export default function AuthGate({ onAuthenticated }: AuthGateProps) {
       // If user entered a Whop license key, verify and grant VIP
       if (cleanLicense) {
         try {
-          const res = await fetch('/api/verify-license', {
+          const res = await fetch(getApiEndpoint('/api/verify-license'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ licenseKey: cleanLicense })
           });
           const data = await res.json();
           if (res.ok && data.valid) {
-            tier = 'VIP';
-            pricePaid = 99;
+            tier = data.planType === 'monthly' ? 'Standard' : 'VIP';
+            pricePaid = data.planType === 'monthly' ? 29 : 99;
             localStorage.setItem('df_pro_lifetime_active', 'true');
             localStorage.setItem('df_pro_license_key', cleanLicense);
+            if (data.expiresAt) {
+              localStorage.setItem('df_license_expires_at', String(data.expiresAt));
+            }
+            if (data.planType) {
+              localStorage.setItem('df_license_plan_type', data.planType);
+            }
           }
         } catch (e) {
+          // If network failed but key format is valid, keep basic fallback
           if (cleanLicense.startsWith('DFOS-')) {
-            tier = 'VIP';
-            pricePaid = 99;
+            tier = cleanLicense.includes('6MON') ? 'VIP' : 'Standard';
+            pricePaid = cleanLicense.includes('6MON') ? 99 : 29;
             localStorage.setItem('df_pro_lifetime_active', 'true');
             localStorage.setItem('df_pro_license_key', cleanLicense);
           }

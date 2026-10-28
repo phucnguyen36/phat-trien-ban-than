@@ -13,6 +13,7 @@ import {
   AlertCircle, 
   Clock
 } from 'lucide-react';
+import { getApiEndpoint } from '../utils/apiConfig';
 
 interface ProUpgradeModalProps {
   isOpen: boolean;
@@ -82,7 +83,7 @@ export default function ProUpgradeModal({
       let detectedPlanType: string | undefined;
 
       try {
-        const res = await fetch('/api/verify-license', {
+        const res = await fetch(getApiEndpoint('/api/verify-license'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ licenseKey: clean })
@@ -99,7 +100,8 @@ export default function ProUpgradeModal({
           serverError = data.error || 'Invalid license key.';
         }
       } catch (networkErr) {
-        isSuccess = Boolean(onActivateKey(clean));
+        serverError = 'Unable to connect to verification server. Please ensure you are connected to the internet to activate your pass.';
+        isSuccess = false;
       }
 
       if (isSuccess) {
