@@ -22,6 +22,7 @@ import {
   DailyJournal, 
   PersonalExpense 
 } from './types';
+import { INITIAL_GOALS, INITIAL_HABITS } from './initialData';
 
 // Standard Firebase config
 const firebaseConfig = {
@@ -117,6 +118,79 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+// Helper to check if an account is the Master Administrator
+export function isMasterAdmin(emailOrUid?: string): boolean {
+  if (!emailOrUid) return false;
+  const clean = emailOrUid.trim().toLowerCase();
+  return (
+    clean === 'work.xuanphuc@gmail.com' ||
+    clean === 'work_xuanphuc_gmail_com' ||
+    clean === 'usr_admin_001'
+  );
+}
+
+// Marker detector for creator/admin private journal entries
+export function isLeakedAdminJournalEntry(entry: any): boolean {
+  if (!entry) return false;
+  const text = String(entry.text || '').toLowerCase();
+
+  return (
+    text.includes('đài hoàng') ||
+    text.includes('dai hoang') ||
+    text.includes('khong biet con app nay ton tai') ||
+    text.includes('biết ơn m ọi thứ lắm') ||
+    text.includes('biet on m oi thu lam') ||
+    text.includes('tu dưỡng và xin lỗi em') ||
+    text.includes('tu duong va xin loi em') ||
+    text.includes('anh yêu em nhiều lắm') ||
+    text.includes('anh yeu em nhieu lam') ||
+    text.includes('cảm thấy trì trệ nha') ||
+    text.includes('cam thay tri tre nha') ||
+    text.includes('10k coming soon') ||
+    text.includes('thằng p ngày đó') ||
+    text.includes('thang p ngay do') ||
+    text.includes('người ở bên, tiền bạc, sức khỏe') ||
+    text.includes('nguoi o ben, tien bac, suc khoe')
+  );
+}
+
+// One-time migration: Quarantines any legacy unscoped dev data safely to admin key and removes global keys
+export function migrateLegacyAdminStorage() {
+  try {
+    const adminUid = 'work_xuanphuc_gmail_com';
+    const legacyKeys = [
+      'df_goals_todo',
+      'df_habits_data',
+      'df_daily_journal',
+      'df_personal_expenses',
+      'df_quick_scratchpad'
+    ];
+
+    legacyKeys.forEach(baseKey => {
+      const legacyVal = localStorage.getItem(baseKey);
+      if (legacyVal) {
+        const adminKey = `${baseKey}_${adminUid}`;
+        if (!localStorage.getItem(adminKey)) {
+          localStorage.setItem(adminKey, legacyVal);
+        }
+        // Remove global unscoped key to permanently seal cross-account leaks
+        localStorage.removeItem(baseKey);
+      }
+
+      const defaultVal = localStorage.getItem(`${baseKey}_default_user`);
+      if (defaultVal) {
+        const adminKey = `${baseKey}_${adminUid}`;
+        if (!localStorage.getItem(adminKey)) {
+          localStorage.setItem(adminKey, defaultVal);
+        }
+        localStorage.removeItem(`${baseKey}_default_user`);
+      }
+    });
+  } catch (e) {
+    console.warn('Storage migration notice:', e);
+  }
+}
+
 // Helper to get raw user email if available
 export function getRawUserEmail(userId?: string): string {
   if (userId && userId.trim()) {
@@ -144,15 +218,31 @@ export function resolveActiveUserId(overrideUserId?: string): string {
 
 // ---------------- ACCOUNT-SCOPED LOCAL STORAGE HELPERS ----------------
 export function loadFromLocalStorage(userId?: string) {
+  migrateLegacyAdminStorage();
+
   const uid = resolveActiveUserId(userId);
   const rawEmail = getRawUserEmail(userId);
+  const isAdmin = isMasterAdmin(uid) || isMasterAdmin(rawEmail);
 
-  // Fallback reader across sanitized key, raw email key, and legacy keys
+  // Strictly isolated storage lookup:
+  // For admin: reads scoped keys, falling back to admin preserved keys if first load
+  // For non-admin (customers): ONLY reads their own scoped keys! NEVER reads legacy dev keys!
   const getStorageItem = (baseKey: string) => {
-    return localStorage.getItem(`${baseKey}_${uid}`) ||
-           (rawEmail ? localStorage.getItem(`${baseKey}_${rawEmail}`) : null) ||
-           localStorage.getItem(`${baseKey}_default_user`) ||
-           localStorage.getItem(baseKey);
+    const userScoped = localStorage.getItem(`${baseKey}_${uid}`);
+    if (userScoped !== null) return userScoped;
+
+    if (rawEmail) {
+      const emailScoped = localStorage.getItem(`${baseKey}_${rawEmail}`);
+      if (emailScoped !== null) return emailScoped;
+    }
+
+    if (isAdmin) {
+      return localStorage.getItem(`${baseKey}_work_xuanphuc_gmail_com`) ||
+             localStorage.getItem(`${baseKey}_default_user`) ||
+             localStorage.getItem(baseKey);
+    }
+
+    return null;
   };
 
   const savedGoals = getStorageItem('df_goals_todo');
@@ -161,6 +251,7 @@ export function loadFromLocalStorage(userId?: string) {
   const savedExpenses = getStorageItem('df_personal_expenses');
   const savedScratchpad = getStorageItem('df_quick_scratchpad');
 
+  // Goals
   let goals: GoalTodo[] = [];
   if (savedGoals) {
     try {
@@ -169,8 +260,12 @@ export function loadFromLocalStorage(userId?: string) {
     } catch (e) {
       console.warn('Error parsing goals from localStorage', e);
     }
+  } else if (!isAdmin) {
+    // New customers get standard template goals
+    goals = INITIAL_GOALS;
   }
 
+  // Habits
   let habits: HabitData[] = [];
   if (savedHabits) {
     try {
@@ -179,8 +274,12 @@ export function loadFromLocalStorage(userId?: string) {
     } catch (e) {
       console.warn('Error parsing habits from localStorage', e);
     }
+  } else if (!isAdmin) {
+    // New customers get standard template habits
+    habits = INITIAL_HABITS;
   }
 
+  // Daily Journal (STRICT ISOLATION: Defaults to empty [] for non-admin)
   let journal: DailyJournal[] = [];
   if (savedJournal) {
     try {
@@ -191,6 +290,19 @@ export function loadFromLocalStorage(userId?: string) {
     }
   }
 
+  // Sanitize non-admin local storage if previously contaminated
+  if (!isAdmin && journal.length > 0) {
+    const cleanedJournal = journal.filter(j => !isLeakedAdminJournalEntry(j));
+    if (cleanedJournal.length !== journal.length) {
+      journal = cleanedJournal;
+      localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
+      if (rawEmail) {
+        localStorage.setItem(`df_daily_journal_${rawEmail}`, JSON.stringify(journal));
+      }
+    }
+  }
+
+  // Expenses (STRICT ISOLATION: Defaults to empty [] for non-admin)
   let expenses: PersonalExpense[] = [];
   if (savedExpenses) {
     try {
@@ -213,22 +325,12 @@ export function loadFromLocalStorage(userId?: string) {
 
   let scratchpad: string = savedScratchpad || cleanDefaultScratchpad;
 
-  // Cache to standardized account key
-  if (goals.length > 0) {
-    localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
-  }
-  if (habits.length > 0) {
-    localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
-  }
-  if (journal.length > 0) {
-    localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
-  }
-  if (expenses.length > 0) {
-    localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
-  }
-  if (scratchpad) {
-    localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpad);
-  }
+  // Persist strictly under user-scoped keys
+  localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
+  localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
+  localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
+  localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
+  localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpad);
 
   return { goals, habits, journal, expenses, scratchpad };
 }
@@ -236,6 +338,8 @@ export function loadFromLocalStorage(userId?: string) {
 // ---------------- LOAD WORKSPACE DATA PER USER WITH SMART MERGE ----------------
 export async function loadWorkspaceData(userId?: string) {
   const uid = resolveActiveUserId(userId);
+  const rawEmail = getRawUserEmail(userId);
+  const isAdmin = isMasterAdmin(uid) || isMasterAdmin(rawEmail);
   const local = loadFromLocalStorage(uid);
 
   if (isLocalModeEnabled() || !db) {
@@ -266,9 +370,22 @@ export async function loadWorkspaceData(userId?: string) {
         (habitsSnap as any).forEach((d: any) => remoteHabits.push({ id: d.id, ...d.data() } as HabitData));
       }
 
-      const remoteJournal: DailyJournal[] = [];
+      let remoteJournal: DailyJournal[] = [];
       if ((journalSnap as any)?.forEach) {
         (journalSnap as any).forEach((d: any) => remoteJournal.push({ id: d.id, ...d.data() } as DailyJournal));
+      }
+
+      // Quarantining: If non-admin user, purge any leaked admin entries from remote Firestore
+      if (!isAdmin && remoteJournal.length > 0) {
+        const leakedRemote = remoteJournal.filter(j => isLeakedAdminJournalEntry(j));
+        if (leakedRemote.length > 0) {
+          remoteJournal = remoteJournal.filter(j => !isLeakedAdminJournalEntry(j));
+          leakedRemote.forEach(item => {
+            deleteDoc(doc(db, 'users', uid, 'daily_journal', item.id)).catch(err => {
+              console.warn('Failed deleting leaked admin doc in customer collection:', err);
+            });
+          });
+        }
       }
 
       const remoteExpenses: PersonalExpense[] = [];
@@ -280,7 +397,7 @@ export async function loadWorkspaceData(userId?: string) {
         ? ((padDoc as any).data() as any)?.text || '' 
         : '';
 
-      // SMART MERGE: Local items + Remote items (Zero data loss)
+      // SMART MERGE: Local items + Remote items
       const mergedGoalsMap = new Map<string, GoalTodo>();
       local.goals.forEach(g => mergedGoalsMap.set(g.id, g));
       remoteGoals.forEach(g => mergedGoalsMap.set(g.id, g));
@@ -292,8 +409,12 @@ export async function loadWorkspaceData(userId?: string) {
       const habits = Array.from(mergedHabitsMap.values());
 
       const mergedJournalMap = new Map<string, DailyJournal>();
-      local.journal.forEach(j => mergedJournalMap.set(j.id, j));
-      remoteJournal.forEach(j => mergedJournalMap.set(j.id, j));
+      local.journal
+        .filter(j => isAdmin || !isLeakedAdminJournalEntry(j))
+        .forEach(j => mergedJournalMap.set(j.id, j));
+      remoteJournal
+        .filter(j => isAdmin || !isLeakedAdminJournalEntry(j))
+        .forEach(j => mergedJournalMap.set(j.id, j));
       const journal = Array.from(mergedJournalMap.values());
 
       const mergedExpensesMap = new Map<string, PersonalExpense>();
@@ -303,7 +424,7 @@ export async function loadWorkspaceData(userId?: string) {
 
       const scratchpad = remoteScratchpad || local.scratchpad;
 
-      // Update local storage cache INSTANTLY
+      // Update local storage cache INSTANTLY (Strictly account-scoped)
       localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
       localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
       localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
@@ -313,10 +434,12 @@ export async function loadWorkspaceData(userId?: string) {
       // Background Non-Blocking Cloud Upload of missing items
       setTimeout(async () => {
         try {
-          const missingGoals = local.goals.filter(g => !remoteGoals.some(rg => rg.id === g.id));
-          const missingHabits = local.habits.filter(h => !remoteHabits.some(rh => rh.id === h.id));
-          const missingJournal = local.journal.filter(j => !remoteJournal.some(rj => rj.id === j.id));
-          const missingExpenses = local.expenses.filter(e => !remoteExpenses.some(re => re.id === e.id));
+          const missingGoals = goals.filter(g => !remoteGoals.some(rg => rg.id === g.id));
+          const missingHabits = habits.filter(h => !remoteHabits.some(rh => rh.id === h.id));
+          const missingJournal = journal
+            .filter(j => isAdmin || !isLeakedAdminJournalEntry(j))
+            .filter(j => !remoteJournal.some(rj => rj.id === j.id));
+          const missingExpenses = expenses.filter(e => !remoteExpenses.some(re => re.id === e.id));
 
           await Promise.all([
             ...missingGoals.map(g => saveGoal(g, uid)),
@@ -341,15 +464,21 @@ export async function loadWorkspaceData(userId?: string) {
 // ---------------- FAST & RELIABLE JSON BACKUP IMPORT ----------------
 export async function importWorkspaceData(backupData: any, userId?: string) {
   const uid = resolveActiveUserId(userId);
+  const rawEmail = getRawUserEmail(userId);
+  const isAdmin = isMasterAdmin(uid) || isMasterAdmin(rawEmail);
+
   const goals: GoalTodo[] = Array.isArray(backupData.goals) ? backupData.goals : [];
   const habits: HabitData[] = Array.isArray(backupData.habits) ? backupData.habits : [];
-  const journal: DailyJournal[] = Array.isArray(backupData.journalEntries) 
+  let journal: DailyJournal[] = Array.isArray(backupData.journalEntries) 
     ? backupData.journalEntries 
     : (Array.isArray(backupData.journal) ? backupData.journal : []);
+  if (!isAdmin) {
+    journal = journal.filter(j => !isLeakedAdminJournalEntry(j));
+  }
   const expenses: PersonalExpense[] = Array.isArray(backupData.expenses) ? backupData.expenses : [];
   const scratchpad: string = backupData.scratchpadText || backupData.scratchpad || '';
 
-  // 1. Save to LocalStorage INSTANTLY under standardized account key
+  // 1. Save to LocalStorage under account key
   localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
   localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
   localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journal));
@@ -387,7 +516,6 @@ export async function saveGoal(goal: GoalTodo, userId?: string) {
   else current.goals.push(goal);
   
   localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(current.goals));
-  localStorage.setItem('df_goals_todo', JSON.stringify(current.goals));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -403,7 +531,6 @@ export async function deleteGoal(id: string, userId?: string) {
   current.goals = current.goals.filter(g => g.id !== id);
   
   localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(current.goals));
-  localStorage.setItem('df_goals_todo', JSON.stringify(current.goals));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -422,7 +549,6 @@ export async function saveHabit(habit: HabitData, userId?: string) {
   else current.habits.push(habit);
   
   localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(current.habits));
-  localStorage.setItem('df_habits_data', JSON.stringify(current.habits));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -438,7 +564,6 @@ export async function deleteHabit(id: string, userId?: string) {
   current.habits = current.habits.filter(h => h.id !== id);
   
   localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(current.habits));
-  localStorage.setItem('df_habits_data', JSON.stringify(current.habits));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -451,13 +576,20 @@ export async function deleteHabit(id: string, userId?: string) {
 // Daily Journal
 export async function saveJournal(journal: DailyJournal, userId?: string) {
   const uid = resolveActiveUserId(userId);
+  const rawEmail = getRawUserEmail(userId);
+  const isAdmin = isMasterAdmin(uid) || isMasterAdmin(rawEmail);
+
+  if (!isAdmin && isLeakedAdminJournalEntry(journal)) {
+    console.warn('Blocked attempt to save admin journal entry to customer account');
+    return;
+  }
+
   const current = loadFromLocalStorage(uid);
   const index = current.journal.findIndex(j => j.id === journal.id);
   if (index >= 0) current.journal[index] = journal;
   else current.journal.push(journal);
   
   localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(current.journal));
-  localStorage.setItem('df_daily_journal', JSON.stringify(current.journal));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -473,7 +605,6 @@ export async function deleteJournal(id: string, userId?: string) {
   current.journal = current.journal.filter(j => j.id !== id);
   
   localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(current.journal));
-  localStorage.setItem('df_daily_journal', JSON.stringify(current.journal));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -492,7 +623,6 @@ export async function saveExpense(expense: PersonalExpense, userId?: string) {
   else current.expenses.push(expense);
   
   localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(current.expenses));
-  localStorage.setItem('df_personal_expenses', JSON.stringify(current.expenses));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -508,7 +638,6 @@ export async function deleteExpense(id: string, userId?: string) {
   current.expenses = current.expenses.filter(e => e.id !== id);
   
   localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(current.expenses));
-  localStorage.setItem('df_personal_expenses', JSON.stringify(current.expenses));
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -522,7 +651,6 @@ export async function deleteExpense(id: string, userId?: string) {
 export async function saveScratchpad(text: string, userId?: string) {
   const uid = resolveActiveUserId(userId);
   localStorage.setItem(`df_quick_scratchpad_${uid}`, text);
-  localStorage.setItem('df_quick_scratchpad', text);
 
   if (isLocalModeEnabled() || !db) return;
   try {
@@ -589,14 +717,18 @@ export function syncScratchpadRealtime(callback: (text: string) => void, userId?
 export function syncCollectionRealtime(collectionName: string, callback: (data: any[]) => void, userId?: string) {
   if (isLocalModeEnabled() || !db) return () => {};
   const uid = resolveActiveUserId(userId);
+  const rawEmail = getRawUserEmail(userId);
+  const isAdmin = isMasterAdmin(uid) || isMasterAdmin(rawEmail);
 
   return onSnapshot(collection(db, 'users', uid, collectionName), (snap) => {
-    const list: any[] = [];
+    let list: any[] = [];
     snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-    // Critical: If remote collection is completely empty, do NOT overwrite local data with []!
-    if (list.length > 0) {
-      callback(list);
+
+    if (collectionName === 'daily_journal' && !isAdmin) {
+      list = list.filter(j => !isLeakedAdminJournalEntry(j));
     }
+
+    callback(list);
   }, (error) => {
     handleFirestoreError(error, OperationType.GET, `users/${uid}/` + collectionName);
   });

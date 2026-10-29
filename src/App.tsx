@@ -39,7 +39,9 @@ import {
   syncScratchpadRealtime,
   loadFromLocalStorage,
   resolveActiveUserId,
-  purgeAllWorkspaceData
+  purgeAllWorkspaceData,
+  isMasterAdmin,
+  isLeakedAdminJournalEntry
 } from './firebase';
 
 import AuthGate from './components/AuthGate';
@@ -255,7 +257,8 @@ export default function App() {
     if (saved) {
       try { email = JSON.parse(saved)?.email; } catch (e) {}
     }
-    return loadFromLocalStorage(email).journal;
+    const localJournal = loadFromLocalStorage(email).journal;
+    return isMasterAdmin(email) ? localJournal : localJournal.filter(j => !isLeakedAdminJournalEntry(j));
   });
 
   const [expenses, setExpenses] = useState<PersonalExpense[]>(() => {
@@ -276,35 +279,36 @@ export default function App() {
     return loadFromLocalStorage(email).scratchpad;
   });
 
-  // CONTINUOUS ZERO-DELAY LOCALSTORAGE AUTO-SAVE
+  // CONTINUOUS ZERO-DELAY LOCALSTORAGE AUTO-SAVE (STRICTLY ACCOUNT-SCOPED)
   useEffect(() => {
-    const uid = resolveActiveUserId(currentUser?.email);
+    if (!currentUser?.email) return;
+    const uid = resolveActiveUserId(currentUser.email);
     localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(goals));
-    localStorage.setItem('df_goals_todo', JSON.stringify(goals));
   }, [goals, currentUser]);
 
   useEffect(() => {
-    const uid = resolveActiveUserId(currentUser?.email);
+    if (!currentUser?.email) return;
+    const uid = resolveActiveUserId(currentUser.email);
     localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(habits));
-    localStorage.setItem('df_habits_data', JSON.stringify(habits));
   }, [habits, currentUser]);
 
   useEffect(() => {
-    const uid = resolveActiveUserId(currentUser?.email);
-    localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(journalEntries));
-    localStorage.setItem('df_daily_journal', JSON.stringify(journalEntries));
+    if (!currentUser?.email) return;
+    const uid = resolveActiveUserId(currentUser.email);
+    const safeJournal = isMasterAdmin(uid) ? journalEntries : journalEntries.filter(j => !isLeakedAdminJournalEntry(j));
+    localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(safeJournal));
   }, [journalEntries, currentUser]);
 
   useEffect(() => {
-    const uid = resolveActiveUserId(currentUser?.email);
+    if (!currentUser?.email) return;
+    const uid = resolveActiveUserId(currentUser.email);
     localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(expenses));
-    localStorage.setItem('df_personal_expenses', JSON.stringify(expenses));
   }, [expenses, currentUser]);
 
   useEffect(() => {
-    const uid = resolveActiveUserId(currentUser?.email);
+    if (!currentUser?.email) return;
+    const uid = resolveActiveUserId(currentUser.email);
     localStorage.setItem(`df_quick_scratchpad_${uid}`, scratchpadText);
-    localStorage.setItem('df_quick_scratchpad', scratchpadText);
   }, [scratchpadText, currentUser]);
 
   // App settings state
@@ -651,15 +655,21 @@ export default function App() {
 
   // Load all Workspace Data for current active account
   const loadData = useCallback(async () => {
+    if (!currentUser?.email) return;
     setIsLoading(true);
     try {
-      const activeEmail = currentUser?.email;
+      const activeEmail = currentUser.email;
       const data = await loadWorkspaceData(activeEmail);
-      if (data.goals && data.goals.length > 0) setGoals(data.goals);
-      if (data.habits && data.habits.length > 0) setHabits(data.habits);
-      if (data.journal && data.journal.length > 0) setJournalEntries(data.journal);
-      if (data.expenses && data.expenses.length > 0) setExpenses(data.expenses);
-      if (data.scratchpad && data.scratchpad.length > 0) setScratchpadText(data.scratchpad);
+      if (data.goals) setGoals(data.goals);
+      if (data.habits) setHabits(data.habits);
+      if (data.journal) {
+        const safeJournal = isMasterAdmin(activeEmail) 
+          ? data.journal 
+          : data.journal.filter(j => !isLeakedAdminJournalEntry(j));
+        setJournalEntries(safeJournal);
+      }
+      if (data.expenses) setExpenses(data.expenses);
+      if (data.scratchpad !== undefined) setScratchpadText(data.scratchpad);
     } catch (e) {
       console.error('Failed loading workspace data for active account', e);
     } finally {
@@ -711,22 +721,28 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated || localOnlyMode) return;
     const activeEmail = currentUser?.email;
+    if (!activeEmail) return;
 
     try {
       const unsubGoals = syncCollectionRealtime('goals_todo', (data) => {
-        if (Array.isArray(data) && data.length > 0) setGoals(data);
+        if (Array.isArray(data)) setGoals(data);
       }, activeEmail);
       const unsubHabits = syncCollectionRealtime('habits_data', (data) => {
-        if (Array.isArray(data) && data.length > 0) setHabits(data);
+        if (Array.isArray(data)) setHabits(data);
       }, activeEmail);
       const unsubJournal = syncCollectionRealtime('daily_journal', (data) => {
-        if (Array.isArray(data) && data.length > 0) setJournalEntries(data);
+        if (Array.isArray(data)) {
+          const safeJournal = isMasterAdmin(activeEmail)
+            ? data
+            : data.filter(j => !isLeakedAdminJournalEntry(j));
+          setJournalEntries(safeJournal);
+        }
       }, activeEmail);
       const unsubExpenses = syncCollectionRealtime('personal_expenses', (data) => {
-        if (Array.isArray(data) && data.length > 0) setExpenses(data);
+        if (Array.isArray(data)) setExpenses(data);
       }, activeEmail);
       const unsubPad = syncScratchpadRealtime((text) => {
-        if (text !== undefined && text.length > 0) setScratchpadText(text);
+        if (text !== undefined) setScratchpadText(text);
       }, activeEmail);
 
       return () => {
@@ -1100,11 +1116,12 @@ export default function App() {
     const demoScratchpad = `# Focus & Strategic Notes\n\n- Priority 1: Maintain 4-hour daily uninterrupted deep work sessions.\n- Priority 2: Optimize personal cash flow and monthly expense allocations.\n- Priority 3: Target 100km+ monthly outdoor cardio and fitness routine.\n\n## Ideas & Quick References\n- Clean architecture and minimal Swiss typography create maximum focus density.\n- Schedule weekly review every Sunday evening to calibrate roadmap.`;
 
     const activeEmail = currentUser?.email;
-    localStorage.setItem(`df_goals_todo_${activeEmail}`, JSON.stringify(demoGoals));
-    localStorage.setItem(`df_habits_data_${activeEmail}`, JSON.stringify(demoHabits));
-    localStorage.setItem(`df_daily_journal_${activeEmail}`, JSON.stringify(demoJournal));
-    localStorage.setItem(`df_personal_expenses_${activeEmail}`, JSON.stringify(demoExpenses));
-    localStorage.setItem(`df_quick_scratchpad_${activeEmail}`, demoScratchpad);
+    const uid = resolveActiveUserId(activeEmail);
+    localStorage.setItem(`df_goals_todo_${uid}`, JSON.stringify(demoGoals));
+    localStorage.setItem(`df_habits_data_${uid}`, JSON.stringify(demoHabits));
+    localStorage.setItem(`df_daily_journal_${uid}`, JSON.stringify(demoJournal));
+    localStorage.setItem(`df_personal_expenses_${uid}`, JSON.stringify(demoExpenses));
+    localStorage.setItem(`df_quick_scratchpad_${uid}`, demoScratchpad);
 
     for (const g of demoGoals) await saveGoal(g, activeEmail);
     for (const h of demoHabits) await saveHabit(h, activeEmail);
@@ -1171,6 +1188,11 @@ export default function App() {
     logoutUserSession();
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setGoals([]);
+    setHabits([]);
+    setJournalEntries([]);
+    setExpenses([]);
+    setScratchpadText('');
   };
 
   // Auth Gate screen before unlock
@@ -1178,6 +1200,15 @@ export default function App() {
     return (
       <AuthGate 
         onAuthenticated={(user) => {
+          const fresh = loadFromLocalStorage(user.email);
+          const safeJournal = isMasterAdmin(user.email)
+            ? fresh.journal
+            : fresh.journal.filter(j => !isLeakedAdminJournalEntry(j));
+          setGoals(fresh.goals);
+          setHabits(fresh.habits);
+          setJournalEntries(safeJournal);
+          setExpenses(fresh.expenses);
+          setScratchpadText(fresh.scratchpad);
           setCurrentUser(user);
           setIsAuthenticated(true);
         }} 
